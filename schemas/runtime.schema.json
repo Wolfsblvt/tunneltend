@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Wolfsblvt/tunneltend/schemas/runtime.schema.json",
+  "title": "TunnelTend runtime observations",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "session",
+    "officialClient",
+    "services"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "session": {
+      "type": "object"
+    },
+    "officialClient": {
+      "type": "object"
+    },
+    "services": {
+      "type": "object"
+    }
+  }
+}

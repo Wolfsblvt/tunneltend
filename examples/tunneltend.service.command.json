@@ -1,0 +1,69 @@
+{
+  "service": {
+    "id": "internal-tools",
+    "displayName": "Internal tools",
+    "enabled": true,
+    "desiredState": "running",
+    "autostart": true,
+    "watchdog": true,
+    "tunnel": {
+      "alias": "internal-tools",
+      "tunnelId": null,
+      "organizationIds": [
+        "org_REPLACE"
+      ],
+      "workspaceIds": [],
+      "runtimeKeyRef": "env:CONTROL_PLANE_API_KEY",
+      "adminProfile": null,
+      "profileName": "internal-tools",
+      "profileDirectory": null
+    },
+    "mcp": {
+      "kind": "command",
+      "command": {
+        "file": "pwsh",
+        "arguments": [
+          "-NoLogo",
+          "-NoProfile",
+          "-File",
+          "server.ps1"
+        ],
+        "workingDirectory": "C:\\src\\internal-tools",
+        "environment": {}
+      }
+    },
+    "host": null,
+    "health": {
+      "url": null,
+      "readyUrl": null,
+      "timeoutSeconds": 5,
+      "startupTimeoutSeconds": 60
+    },
+    "source": {
+      "path": "C:\\src\\internal-tools",
+      "watch": true,
+      "include": [
+        "**/*"
+      ],
+      "exclude": [
+        ".git/**",
+        "bin/**",
+        "obj/**",
+        "node_modules/**"
+      ],
+      "debounceSeconds": 10
+    },
+    "recovery": {
+      "enabled": true,
+      "maxAttempts": 4,
+      "windowMinutes": 20,
+      "initialBackoffSeconds": 10,
+      "maximumBackoffSeconds": 300,
+      "unhealthyThreshold": 2
+    },
+    "update": {
+      "enabled": false,
+      "command": null
+    }
+  }
+}

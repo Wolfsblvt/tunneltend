@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Wolfsblvt/tunneltend/schemas/registry.schema.json",
+  "title": "TunnelTend registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "product",
+    "settings",
+    "services"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "product": {
+      "type": "object"
+    },
+    "settings": {
+      "type": "object",
+      "required": [
+        "automation",
+        "officialClient",
+        "defaults"
+      ],
+      "properties": {
+        "automation": {
+          "type": "object",
+          "required": [
+            "autostart",
+            "watchdog",
+            "autoUpdate",
+            "watchdogIntervalMinutes"
+          ],
+          "properties": {
+            "autostart": {
+              "type": "boolean"
+            },
+            "watchdog": {
+              "type": "boolean"
+            },
+            "autoUpdate": {
+              "type": "boolean"
+            },
+            "watchdogIntervalMinutes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1440
+            },
+            "maintenanceHour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 23
+            },
+            "maintenanceMinute": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 59
+            },
+            "maintenanceRandomDelayMinutes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "startupDelaySeconds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3600
+            }
+          }
+        },
+        "officialClient": {
+          "type": "object",
+          "required": [
+            "repository",
+            "channel",
+            "installDirectory",
+            "executablePath",
+            "allowUnverifiedAsset"
+          ],
+          "properties": {
+            "repository": {
+              "const": "openai/tunnel-client"
+            },
+            "channel": {
+              "enum": [
+                "stable"
+              ]
+            },
+            "installDirectory": {
+              "type": "string"
+            },
+            "executablePath": {
+              "type": "string"
+            },
+            "updateCheckHours": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 720
+            },
+            "allowUnverifiedAsset": {
+              "const": false
+            }
+          }
+        },
+        "defaults": {
+          "type": "object"
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "service.schema.json"
+      }
+    }
+  }
+}

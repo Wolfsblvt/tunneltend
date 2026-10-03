@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "repository": "openai/tunnel-client",
+  "releaseId": 396303161,
+  "tag": "v0.0.15",
+  "name": "v0.0.15",
+  "publishedAt": "2026-09-25T04:40:41Z",
+  "updatedAt": "2026-09-25T04:40:41Z",
+  "releaseUrl": "https://github.com/openai/tunnel-client/releases/tag/v0.0.15",
+  "checksumAsset": {
+    "name": "SHA256SUMS.txt",
+    "size": 7568,
+    "digest": "sha256:8a32bbcd724468f1874f12d5b0dedb6e6b07dfe5aa323cf5b4c070a5a81b0b4e",
+    "browserDownloadUrl": "https://github.com/openai/tunnel-client/releases/download/v0.0.15/SHA256SUMS.txt"
+  },
+  "windowsAssets": [
+    {
+      "architecture": "amd64",
+      "name": "tunnel-client-v0.0.15-windows-amd64.zip",
+      "size": 28098744,
+      "digest": "sha256:3b53133a1e24d43f63088d843860cb1701a4c3ed6390de2e19f69089e43bddc1",
+      "browserDownloadUrl": "https://github.com/openai/tunnel-client/releases/download/v0.0.15/tunnel-client-v0.0.15-windows-amd64.zip"
+    },
+    {
+      "architecture": "arm64",
+      "name": "tunnel-client-v0.0.15-windows-arm64.zip",
+      "size": 25474435,
+      "digest": "sha256:571e0d59ed9e86d1b105dc34f3267865f654de6968b01efd7c847f0af657d11d",
+      "browserDownloadUrl": "https://github.com/openai/tunnel-client/releases/download/v0.0.15/tunnel-client-v0.0.15-windows-arm64.zip"
+    }
+  ]
+}

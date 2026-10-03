@@ -1,0 +1,9 @@
+artifacts/
+.validation/
+.vscode/
+.idea/
+*.user
+*.tmp
+*.log
+.DS_Store
+Thumbs.db

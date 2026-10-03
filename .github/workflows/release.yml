@@ -1,0 +1,40 @@
+name: Release candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic version to stamp into the candidate, without a leading v
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build qualified candidate
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Install pinned test tooling
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -RequiredVersion 6.2.0 -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Scope CurrentUser -Force
+      - name: Test and package
+        shell: pwsh
+        run: |
+          ./scripts/Invoke-Tests.ps1 -RequirePester -RequireAnalyzer
+          ./scripts/Invoke-RepositoryValidation.ps1
+          ./scripts/Build-Release.ps1 -Version '${{ inputs.version }}' -SkipTests
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tunneltend-${{ inputs.version }}-candidate
+          path: |
+            artifacts/tunneltend-*.zip
+            artifacts/tunneltend-*.zip.sha256
+            artifacts/tunneltend-*.manifest.json
+          if-no-files-found: error
+          retention-days: 30

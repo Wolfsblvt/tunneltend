@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-package:
+    name: Test and package
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Install pinned test tooling
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -RequiredVersion 6.2.0 -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Scope CurrentUser -Force
+      - name: Verify source
+        shell: pwsh
+        run: |
+          ./scripts/Invoke-Tests.ps1 -RequirePester -RequireAnalyzer
+          ./scripts/Invoke-RepositoryValidation.ps1
+      - name: Build release candidate
+        shell: pwsh
+        run: |
+          $version = "0.1.0-ci.${{ github.run_number }}"
+          ./scripts/Build-Release.ps1 -Version $version -SkipTests
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tunneltend-${{ github.sha }}
+          path: |
+            artifacts/tunneltend-*.zip
+            artifacts/tunneltend-*.zip.sha256
+            artifacts/tunneltend-*.manifest.json
+          if-no-files-found: error
+          retention-days: 14

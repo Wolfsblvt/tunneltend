@@ -1,0 +1,21 @@
+name: Feature request
+description: Propose a product or lifecycle change
+title: "[feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Desired behavior
+    validations:
+      required: true
+  - type: textarea
+    id: implications
+    attributes:
+      label: Automation, safety, and migration implications

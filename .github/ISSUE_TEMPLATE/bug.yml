@@ -1,0 +1,26 @@
+name: Bug report
+description: Report reproducible TunnelTend behavior
+title: "[bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostics
+      description: Include status/health/doctor JSON after removing identifiers. Never include keys or tokens.
+  - type: input
+    id: versions
+    attributes:
+      label: TunnelTend, PowerShell, Windows, and tunnel-client versions

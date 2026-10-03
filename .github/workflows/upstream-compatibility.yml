@@ -1,0 +1,45 @@
+name: Upstream compatibility watch
+
+on:
+  schedule:
+    - cron: '17 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    name: Inspect stable tunnel-client release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Refresh release snapshot
+        shell: pwsh
+        run: ./scripts/Update-UpstreamSnapshot.ps1
+      - name: Preserve changed snapshot
+        id: diff
+        shell: pwsh
+        run: |
+          $snapshot = 'docs/research/openai-tunnel-client-release.json'
+          if (git diff --quiet -- $snapshot) {
+            "changed=false" >> $env:GITHUB_OUTPUT
+          } else {
+            "changed=true" >> $env:GITHUB_OUTPUT
+            New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+            git diff -- $snapshot | Tee-Object -FilePath artifacts/upstream-release.diff
+            Copy-Item $snapshot artifacts/openai-tunnel-client-release.json
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.diff.outputs.changed == 'true'
+        with:
+          name: upstream-compatibility-change
+          path: |
+            artifacts/upstream-release.diff
+            artifacts/openai-tunnel-client-release.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Require compatibility review when changed
+        if: steps.diff.outputs.changed == 'true'
+        shell: pwsh
+        run: throw 'The stable openai/tunnel-client release changed. Review the uploaded snapshot and run the compatibility and Windows gates before accepting it.'

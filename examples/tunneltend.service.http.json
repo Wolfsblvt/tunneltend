@@ -1,0 +1,69 @@
+{
+  "service": {
+    "id": "docs-mcp",
+    "displayName": "Docs MCP",
+    "enabled": true,
+    "desiredState": "running",
+    "autostart": true,
+    "watchdog": true,
+    "tunnel": {
+      "alias": "docs-mcp",
+      "tunnelId": null,
+      "organizationIds": [],
+      "workspaceIds": [
+        "ws_REPLACE"
+      ],
+      "runtimeKeyRef": "env:CONTROL_PLANE_API_KEY",
+      "adminProfile": null,
+      "profileName": "docs-mcp",
+      "profileDirectory": null
+    },
+    "mcp": {
+      "kind": "url",
+      "url": "http://127.0.0.1:3001/mcp"
+    },
+    "host": {
+      "enabled": true,
+      "file": "dotnet",
+      "arguments": [
+        "run",
+        "--project",
+        "Docs.Mcp.csproj"
+      ],
+      "workingDirectory": "C:\\src\\docs-mcp",
+      "environment": {},
+      "stopTimeoutSeconds": 15
+    },
+    "health": {
+      "url": "http://127.0.0.1:3001/health",
+      "readyUrl": "http://127.0.0.1:3001/ready",
+      "timeoutSeconds": 5,
+      "startupTimeoutSeconds": 60
+    },
+    "source": {
+      "path": "C:\\src\\docs-mcp",
+      "watch": true,
+      "include": [
+        "**/*"
+      ],
+      "exclude": [
+        ".git/**",
+        "bin/**",
+        "obj/**"
+      ],
+      "debounceSeconds": 10
+    },
+    "recovery": {
+      "enabled": true,
+      "maxAttempts": 4,
+      "windowMinutes": 20,
+      "initialBackoffSeconds": 10,
+      "maximumBackoffSeconds": 300,
+      "unhealthyThreshold": 2
+    },
+    "update": {
+      "enabled": false,
+      "command": null
+    }
+  }
+}
