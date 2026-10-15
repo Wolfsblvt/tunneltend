@@ -31,7 +31,7 @@ jobs:
           ./scripts/Invoke-Tests.ps1 -RequirePester -RequireAnalyzer
           ./scripts/Invoke-RepositoryValidation.ps1
           ./scripts/Build-Release.ps1 -Version $env:TUNNELTEND_RELEASE_VERSION -SkipTests
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tunneltend-${{ inputs.version }}-candidate
           path: |
