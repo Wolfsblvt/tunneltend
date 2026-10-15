@@ -12,7 +12,7 @@ Describe 'Repository verification failure propagation' {
         Test-Path -LiteralPath (Join-Path $root 'artifacts') | Should -BeFalse
     }
 
-    It 'validates owned source without treating local tooling and downloaded clients as source' {
+    It 'validates source and its extracted package without including local tooling' {
         $root = Join-Path $TestDrive 'source-with-artifacts'
         New-Item -ItemType Directory -Path $root | Out-Null
         Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..') -Force | Where-Object {
@@ -25,6 +25,16 @@ Describe 'Repository verification failure propagation' {
 
         & (Join-Path $root 'scripts/Invoke-RepositoryValidation.ps1')
         $? | Should -BeTrue
+
+        & (Join-Path $root 'scripts/Build-Release.ps1') -Version '0.1.0-test' -SkipTests
+        $package = Join-Path $TestDrive 'extracted-package'
+        Expand-Archive -LiteralPath (Join-Path $artifacts 'tunneltend-0.1.0-test.zip') -DestinationPath $package
+        Test-Path -LiteralPath (Join-Path $package 'tests/Fixtures/mcp-stdio-echo.ps1') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $package 'artifacts/tunnel-client.exe') | Should -BeFalse
+        & (Join-Path $package 'scripts/Invoke-RepositoryValidation.ps1')
+        $? | Should -BeTrue
+        $manifest = Get-Content -Raw -LiteralPath (Join-Path $artifacts 'tunneltend-0.1.0-test.manifest.json') | ConvertFrom-Json
+        @($manifest.files | Where-Object { $_.Contains('\') }).Count | Should -Be 0
     }
 
     It 'refuses success when the dependency-free suite exits nonzero' {

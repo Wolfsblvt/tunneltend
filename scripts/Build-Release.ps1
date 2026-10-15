@@ -25,7 +25,7 @@ Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $stage | Out-Null
 
 $include = @(
-    'assets', 'docs', 'examples', 'schemas', 'scripts', 'src',
+    'assets', 'carriers', 'docs', 'examples', 'schemas', 'scripts', 'src', 'tests',
     'AGENTS.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'Install-TunnelTend.cmd',
     'LICENSE', 'README.md', 'SECURITY.md', 'PSScriptAnalyzerSettings.psd1',
     'tunneltend.cmd', 'tunneltend.ps1'
