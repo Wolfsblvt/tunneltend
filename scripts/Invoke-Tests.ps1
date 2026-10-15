@@ -4,7 +4,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $errors=@()
-$files=@(Get-ChildItem -LiteralPath $root -Recurse -File | Where-Object { $_.Extension -in @('.ps1','.psm1','.psd1') -and $_.FullName -notmatch '[\\/]artifacts[\\/]' })
+$files=@(Get-ChildItem -LiteralPath $root -Force | Where-Object {
+    $_.Name -notin @('.git','artifacts','.validation')
+} | ForEach-Object {
+    if ($_.PSIsContainer) { Get-ChildItem -LiteralPath $_.FullName -Recurse -File }
+    else { $_ }
+} | Where-Object { $_.Extension -in @('.ps1','.psm1','.psd1') })
 foreach ($file in $files) {
     $tokens=$null;$parseErrors=$null
     [Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$parseErrors) | Out-Null

@@ -34,7 +34,6 @@ foreach ($json in Get-ChildItem -LiteralPath (Join-Path $root 'schemas') -Filter
 $validationScript = [IO.Path]::GetFullPath($PSCommandPath)
 $codeFiles = @($ownedFiles | Where-Object {
     [IO.Path]::GetFullPath($_.FullName) -ne $validationScript -and
-    $_.FullName -notmatch '[\\/](?:\.git|artifacts)[\\/]' -and
     $_.Extension -in @('.ps1', '.psm1', '.psd1', '.cmd')
 })
 $dangerousPatterns = @(

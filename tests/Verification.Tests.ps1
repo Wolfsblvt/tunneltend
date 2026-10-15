@@ -1,5 +1,21 @@
 BeforeAll {
     $script:Runner = Join-Path $PSScriptRoot '../scripts/Invoke-Tests.ps1'
+    function Invoke-VerificationSpecimen([string]$Path) {
+        $start = [Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path)
+        $start.UseShellExecute = $false
+        $start.CreateNoWindow = $true
+        $start.RedirectStandardOutput = $true
+        $start.RedirectStandardError = $true
+        foreach ($argument in @('-NoProfile', '-NonInteractive', '-File', $Path)) { $start.ArgumentList.Add($argument) }
+        $process = [Diagnostics.Process]::Start($start)
+        try {
+            $stdout = $process.StandardOutput.ReadToEndAsync()
+            $stderr = $process.StandardError.ReadToEndAsync()
+            if (-not $process.WaitForExit(30000)) { $process.Kill($true); throw 'Verification specimen timed out.' }
+            return @{exitCode=$process.ExitCode;stdout=$stdout.GetAwaiter().GetResult();stderr=$stderr.GetAwaiter().GetResult()}
+        }
+        finally { $process.Dispose() }
+    }
 }
 
 Describe 'Repository verification failure propagation' {
@@ -13,7 +29,7 @@ Describe 'Repository verification failure propagation' {
     }
 
     It 'validates source and its extracted package without including local tooling' {
-        $root = Join-Path $TestDrive 'source-with-artifacts'
+        $root = Join-Path $TestDrive 'artifacts/source-with-artifacts'
         New-Item -ItemType Directory -Path $root | Out-Null
         Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..') -Force | Where-Object {
             $_.Name -notin @('.git', 'artifacts', '.validation')
@@ -22,6 +38,11 @@ Describe 'Repository verification failure propagation' {
         New-Item -ItemType Directory -Path $artifacts | Out-Null
         Set-Content -LiteralPath (Join-Path $artifacts 'README.md') -Value '[tooling link](not-shipped.md)'
         Set-Content -LiteralPath (Join-Path $artifacts 'tunnel-client.exe') -Value 'synthetic downloaded artifact'
+
+        $unsafe = Join-Path $root 'unsafe.ps1'
+        Set-Content -LiteralPath $unsafe -Value ('Stop-' + 'Process -Name unrelated')
+        { & (Join-Path $root 'scripts/Invoke-RepositoryValidation.ps1') } | Should -Throw '*dangerous pattern*'
+        Remove-Item -LiteralPath $unsafe
 
         & (Join-Path $root 'scripts/Invoke-RepositoryValidation.ps1')
         $? | Should -BeTrue
@@ -43,23 +64,21 @@ Describe 'Repository verification failure propagation' {
         Copy-Item -LiteralPath $script:Runner -Destination (Join-Path $root 'scripts/Invoke-Tests.ps1')
         Set-Content -LiteralPath (Join-Path $root 'tests/ZeroDependency.ps1') -Value 'exit 1'
 
-        $start = [Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path)
-        $start.UseShellExecute = $false
-        $start.CreateNoWindow = $true
-        $start.RedirectStandardOutput = $true
-        $start.RedirectStandardError = $true
-        foreach ($argument in @('-NoProfile', '-NonInteractive', '-File', (Join-Path $root 'scripts/Invoke-Tests.ps1'))) {
-            $start.ArgumentList.Add($argument)
-        }
-        $process = [Diagnostics.Process]::Start($start)
-        try {
-            $stdout = $process.StandardOutput.ReadToEndAsync()
-            $stderr = $process.StandardError.ReadToEndAsync()
-            if (-not $process.WaitForExit(30000)) { $process.Kill(); throw 'Verification specimen timed out.' }
-            $process.ExitCode | Should -Not -Be 0
-            $stderr.GetAwaiter().GetResult() | Should -Match 'dependency-free behavior suite failed'
-            $stdout.GetAwaiter().GetResult() | Should -Not -Match 'All available tests passed'
-        }
-        finally { $process.Dispose() }
+        $result = Invoke-VerificationSpecimen (Join-Path $root 'scripts/Invoke-Tests.ps1')
+        $result.exitCode | Should -Not -Be 0
+        $result.stderr | Should -Match 'dependency-free behavior suite failed'
+        $result.stdout | Should -Not -Match 'All available tests passed'
+    }
+
+    It 'parses source beneath an artifacts-named parent before running behavior tests' {
+        $root = Join-Path $TestDrive 'artifacts/parser-specimen'
+        New-Item -ItemType Directory -Path (Join-Path $root 'scripts'), (Join-Path $root 'tests') -Force | Out-Null
+        Copy-Item -LiteralPath $script:Runner -Destination (Join-Path $root 'scripts/Invoke-Tests.ps1')
+        Set-Content -LiteralPath (Join-Path $root 'bad.ps1') -Value 'function Broken {'
+        Set-Content -LiteralPath (Join-Path $root 'tests/ZeroDependency.ps1') -Value "Write-Output 'portable suite ran'"
+        $result = Invoke-VerificationSpecimen (Join-Path $root 'scripts/Invoke-Tests.ps1')
+        $result.exitCode | Should -Not -Be 0
+        $result.stderr | Should -Match 'bad.ps1'
+        $result.stdout | Should -Not -Match 'portable suite ran'
     }
 }
