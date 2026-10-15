@@ -67,7 +67,7 @@ The same planning engine produces explicit actions; context decides eligibility 
 
 ## Update transaction
 
-The hardened updater performs release discovery, exact asset selection, checksum verification, safe extraction, staged version validation, backup, replacement, capability verification, and rollback. Fleet coordination surrounds that transaction so download and extraction occur before downtime and services are restored afterward.
+Fleet coordination first runs the hardened updater into an isolated sibling installation. Release discovery, exact asset selection, checksum verification, safe extraction, and staged version and capability checks finish before any service is stopped. TunnelTend then backs up the existing installation, stops the active fleet, swaps directories, checks the installed capabilities, and restores the fleet. A replacement or fleet-restoration failure restores the previous directory and attempts to restore the stopped services; an incomplete rollback is reported explicitly. An explicit same-version reinstall follows the same path; force never permits a downgrade.
 
 ## Key invariants
 

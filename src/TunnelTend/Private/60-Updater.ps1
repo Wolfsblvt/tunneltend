@@ -102,46 +102,73 @@ function Invoke-TtOfficialClientUpdateInternal {
     param([Parameter(Mandatory)][hashtable]$Registry, [Parameter(Mandatory)][hashtable]$Runtime, [string]$StateRoot, [switch]$Force, [switch]$CheckOnly)
     $check = Test-TtOfficialClientNeedsUpdate $Registry $StateRoot
     $Runtime.officialClient.lastUpdateCheckAt = Get-TtUtcNow
-    if ($CheckOnly -or -not $check.needed) {
+    if ($CheckOnly -or (-not $check.needed -and -not $Force)) {
         $Runtime.officialClient.lastUpdateResult = [ordered]@{ checkedAt=Get-TtUtcNow; changed=$false; installed=$check.installed.version; latest=$check.latestVersion }
         return [ordered]@{ changed=$false; check=$check; stoppedServices=@(); restoredServices=@() }
     }
-    $active = @()
-    foreach ($id in @($Registry.services.Keys | Sort-Object)) {
-        $service = $Registry.services[$id]
-        $observation = Get-TtServiceObservation $service $Registry $Runtime $StateRoot
-        if ($observation.tunnel.running -or ($observation.host.configured -and $observation.host.running)) { $active += $id }
-    }
-    foreach ($id in $active) { Stop-TtManagedService $Registry.services[$id] $Registry $Runtime $StateRoot | Out-Null; Save-TtRuntimeStore $Runtime $StateRoot }
-    $backup = New-TtOfficialClientBackup $Registry $StateRoot
-    $updaterResult = $null
+    if ($check.installed.version -and (Compare-TtVersion $check.installed.version $check.latestVersion) -gt 0) { throw 'Refusing automatic official-client downgrade, including with force.' }
+    $install = [IO.Path]::GetFullPath([string]$Registry.settings.officialClient.installDirectory)
+    $transactionId = [Guid]::NewGuid().ToString('N')
+    $stage = "$install.staged-$transactionId"
+    $previous = "$install.previous-$transactionId"
+    $stagedRegistry = Copy-TtObject $Registry
+    $stagedRegistry.settings.officialClient.installDirectory = $stage
+    $stagedRegistry.settings.officialClient.executablePath = Join-Path $stage 'tunnel-client.exe'
     try {
-        $updaterResult = Invoke-TtBundledUpdater $Registry $StateRoot -Force:$Force
+        # The existing hardened updater acquires and verifies into an isolated
+        # sibling installation. No active fleet is disturbed during this work.
+        $updaterResult = Invoke-TtBundledUpdater $stagedRegistry $StateRoot -Force:$Force
         if ($updaterResult.exit_code -ne 0) { throw "Bundled updater failed: $(Protect-TtLogText (($updaterResult.stderr + $updaterResult.stdout).Trim()))" }
-        $capabilities = Test-TtOfficialClientCapabilities $Registry $StateRoot
-        if (-not $capabilities.compatible) { throw 'Updated official client does not provide the capabilities required by tunneltend.' }
-    }
-    catch {
-        if ($backup) {
-            $install = [string]$Registry.settings.officialClient.installDirectory
-            if ([IO.Directory]::Exists($install)) { Remove-Item -LiteralPath $install -Recurse -Force }
-            Copy-Item -LiteralPath $backup -Destination $install -Recurse -Force
-            $backupManifest = [IO.Path]::Combine($install, 'tunneltend-backup.json')
-            if ([IO.File]::Exists($backupManifest)) { Remove-Item -LiteralPath $backupManifest -Force }
+        $version = Get-TtOfficialClientVersion $stagedRegistry $StateRoot
+        if (-not $version.installed -or $version.version -ne $check.latestVersion) { throw 'Staged official-client version does not match the selected release.' }
+        $capabilities = Test-TtOfficialClientCapabilities $stagedRegistry $StateRoot
+        if (-not $capabilities.compatible) { throw 'Staged official client does not provide the capabilities required by tunneltend.' }
+        $active = @()
+        foreach ($id in @($Registry.services.Keys | Sort-Object)) {
+            $observation = Get-TtServiceObservation $Registry.services[$id] $Registry $Runtime $StateRoot
+            if ($observation.tunnel.running -or ($observation.host.configured -and $observation.host.running)) { $active += $id }
         }
-        foreach ($id in $active) { try { Start-TtManagedService $Registry.services[$id] $Registry $Runtime $StateRoot | Out-Null } catch { } }
-        throw
-    }
-    $restored = @()
-    foreach ($id in $active) {
-        $service = $Registry.services[$id]
-        if ([bool]$service.enabled -and [string]$service.desiredState -eq 'running') {
-            Start-TtManagedService $service $Registry $Runtime $StateRoot | Out-Null
-            $restored += $id
+        $backup = New-TtOfficialClientBackup $Registry $StateRoot
+        $stopped = @()
+        $restored = @()
+        $replacementInstalled = $false
+        try {
+            foreach ($id in $active) {
+                Stop-TtManagedService $Registry.services[$id] $Registry $Runtime $StateRoot | Out-Null
+                $stopped += $id
+                Save-TtRuntimeStore $Runtime $StateRoot
+            }
+            if ([IO.Directory]::Exists($install)) { [IO.Directory]::Move($install, $previous) }
+            [IO.Directory]::Move($stage, $install)
+            $replacementInstalled = $true
+            if (-not (Test-TtOfficialClientCapabilities $Registry $StateRoot).compatible) { throw 'Installed official client does not provide the required capabilities.' }
+            foreach ($id in $stopped) {
+                $service = $Registry.services[$id]
+                if ([bool]$service.enabled -and [string]$service.desiredState -eq 'running') {
+                    Start-TtManagedService $service $Registry $Runtime $StateRoot | Out-Null
+                    $restored += $id
+                }
+            }
         }
+        catch {
+            $updateFailure = $_
+            try {
+                if ($replacementInstalled) {
+                    foreach ($id in $stopped) { Stop-TtManagedService $Registry.services[$id] $Registry $Runtime $StateRoot | Out-Null }
+                    Remove-Item -LiteralPath $install -Recurse -Force
+                }
+                if ([IO.Directory]::Exists($previous)) { [IO.Directory]::Move($previous, $install) }
+                foreach ($id in $stopped) { Start-TtManagedService $Registry.services[$id] $Registry $Runtime $StateRoot | Out-Null }
+                Save-TtRuntimeStore $Runtime $StateRoot
+            }
+            catch { throw "Official-client update failed and rollback was incomplete. Update: $($updateFailure.Exception.Message) Rollback: $($_.Exception.Message) Previous files: $previous" }
+            throw $updateFailure
+        }
+        if ([IO.Directory]::Exists($previous)) { Remove-Item -LiteralPath $previous -Recurse -Force }
+        $Runtime.officialClient.lastUpdateResult = [ordered]@{ checkedAt=Get-TtUtcNow; changed=$true; installed=(Get-TtOfficialClientVersion $Registry $StateRoot).version; latest=$check.latestVersion; backup=$backup }
+        return [ordered]@{ changed=$true; check=$check; stoppedServices=$active; restoredServices=$restored; backup=$backup; updater=$updaterResult }
     }
-    $Runtime.officialClient.lastUpdateResult = [ordered]@{ checkedAt=Get-TtUtcNow; changed=$true; installed=(Get-TtOfficialClientVersion $Registry $StateRoot).version; latest=$check.latestVersion; backup=$backup }
-    return [ordered]@{ changed=$true; check=$check; stoppedServices=$active; restoredServices=$restored; backup=$backup; updater=$updaterResult }
+    finally { if ([IO.Directory]::Exists($stage)) { Remove-Item -LiteralPath $stage -Recurse -Force } }
 }
 
 function Restore-TtOfficialClientBackupInternal {
