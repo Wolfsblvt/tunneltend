@@ -33,6 +33,18 @@ BeforeAll {
 }
 
 Describe 'Official ZIP attributes' {
+    It 'refuses parent traversal without creating an escaped file' {
+        $zipPath = Join-Path $TestDrive 'traversal.zip'
+        $archive = [IO.Compression.ZipFile]::Open($zipPath, [IO.Compression.ZipArchiveMode]::Create)
+        try {
+            $writer = [IO.StreamWriter]::new($archive.CreateEntry('../escaped.txt').Open())
+            try { $writer.Write('must not escape') } finally { $writer.Dispose() }
+        }
+        finally { $archive.Dispose() }
+        { & $script:UpdaterFunctions { param($zip, $target) Expand-ZipSafely $zip $target 1024 10 } $zipPath (Join-Path $TestDrive 'extracted') } | Should -Throw '*unsafe path*'
+        Test-Path -LiteralPath (Join-Path $TestDrive 'escaped.txt') | Should -BeFalse
+    }
+
     It 'extracts regular Unix files and still rejects symbolic links' {
         foreach ($specimen in @(@{ name = 'regular'; mode = 0x81A4; allowed = $true }, @{ name = 'symlink'; mode = 0xA1FF; allowed = $false })) {
             $zipPath = Join-Path $TestDrive ($specimen.name + '.zip')
@@ -63,6 +75,12 @@ AfterAll {
 }
 
 Describe 'Official tunnel-client release selection' {
+    It 'refuses ambiguous primary client assets' {
+        $name = 'tunnel-client-v0.0.16-windows-amd64.zip'
+        $asset = [pscustomobject]@{ name = $name; browser_download_url = "https://github.com/openai/tunnel-client/releases/download/v0.0.16/$name" }
+        { & $script:UpdaterFunctions { param($release) Select-WindowsReleaseAsset $release '' } ([pscustomobject]@{ assets = @($asset, $asset) }) } | Should -Throw
+    }
+
     It 'chooses the primary client when runtime variants share the architecture' {
         $tag = 'v0.0.15'
         $base = "https://github.com/openai/tunnel-client/releases/download/$tag"

@@ -4,6 +4,17 @@ BeforeAll {
 }
 
 Describe 'Windows watchdog triggers' {
+    It 'does not diagnose a new task as a failed execution' {
+        Mock Get-TtOfficialClientVersion -ModuleName TunnelTend { @{ installed = $true; version = '0.0.16' } }
+        Mock Test-TtOfficialClientCapabilities -ModuleName TunnelTend { @{ compatible = $true; checks = @() } }
+        Mock Get-TtAutomationStatusInternal -ModuleName TunnelTend {
+            @{ supported = $true; tasks = @(@{ name = 'TunnelTend Startup'; desired = $true; installed = $true; lastTaskResult = 0x00041303 }) }
+        }
+        $doctor = Invoke-TtDoctor -StateRoot $TestDrive
+        $doctor.status | Should -Be 'ok'
+        @($doctor.diagnostics).Count | Should -Be 0
+    }
+
     It 'reports event-triggered tasks with no next scheduled run time' -Skip:(-not $IsWindows) {
         Mock Get-ScheduledTask -ModuleName TunnelTend { [pscustomobject]@{ State = 'Ready' } }
         Mock Get-ScheduledTaskInfo -ModuleName TunnelTend { [pscustomobject]@{ LastRunTime = $null; NextRunTime = $null; LastTaskResult = 267011 } }

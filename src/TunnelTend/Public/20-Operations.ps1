@@ -108,7 +108,9 @@ function Invoke-TtDoctor {
     if ($automation.supported) {
         foreach ($task in $automation.tasks) {
             if ($task.desired -and -not $task.installed) { $diagnostics += [ordered]@{ severity='warning'; code='automation.task-missing'; message="Scheduled task '$($task.name)' is configured but not installed."; repair='tunneltend automation install' } }
-            if ($task.installed -and $task.lastTaskResult -notin @($null,0,267009)) { $diagnostics += [ordered]@{ severity='warning'; code='automation.last-run-failed'; message="Scheduled task '$($task.name)' last returned $($task.lastTaskResult)." } }
+            # SCHED_S_TASK_RUNNING and SCHED_S_TASK_HAS_NOT_RUN describe normal
+            # scheduler states; a new logon task has no failed execution.
+            if ($task.installed -and $task.lastTaskResult -notin @($null,0,0x00041301,0x00041303)) { $diagnostics += [ordered]@{ severity='warning'; code='automation.last-run-failed'; message="Scheduled task '$($task.name)' last returned $($task.lastTaskResult)." } }
         }
     }
     elseif ($IsWindows) { $diagnostics += [ordered]@{ severity='warning'; code='automation.unsupported'; message='Windows Scheduled Task automation could not be inspected.' } }
