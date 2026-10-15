@@ -125,7 +125,7 @@ function ConvertTo-TtGlobRegex {
 function Test-TtSourcePathIncluded {
     [CmdletBinding()]
     param([string]$RelativePath, [string[]]$Includes, [string[]]$Excludes)
-    $normalized = $RelativePath.Replace('\\','/')
+    $normalized = $RelativePath.Replace('\','/')
     foreach ($pattern in @($Excludes)) { if ($normalized -match (ConvertTo-TtGlobRegex $pattern)) { return $false } }
     if (@($Includes).Count -eq 0) { return $true }
     foreach ($pattern in @($Includes)) { if ($normalized -match (ConvertTo-TtGlobRegex $pattern)) { return $true } }
@@ -148,7 +148,7 @@ function Get-TtSourceFingerprint {
     else {
         $items = Get-ChildItem -LiteralPath $root -File -Recurse -Force -ErrorAction SilentlyContinue
         foreach ($item in $items) {
-            $relative = [IO.Path]::GetRelativePath($root, $item.FullName).Replace('\\','/')
+            $relative = [IO.Path]::GetRelativePath($root, $item.FullName).Replace('\','/')
             if (-not (Test-TtSourcePathIncluded $relative $includes $excludes)) { continue }
             $records.Add("$relative|$($item.Length)|$($item.LastWriteTimeUtc.Ticks)")
         }

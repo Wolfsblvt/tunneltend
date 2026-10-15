@@ -22,11 +22,39 @@ BeforeAll {
 
     $assertText = Get-UpdaterFunctionText 'Assert-OfficialReleaseAssetUrl'
     $selectText = Get-UpdaterFunctionText 'Select-WindowsReleaseAsset'
-    $script:UpdaterFunctions = New-Module -Name TunnelTendUpdaterSelectionTests -ArgumentList $assertText, $selectText -ScriptBlock {
-        param($AssertText, $SelectText)
+    $expandText = Get-UpdaterFunctionText 'Expand-ZipSafely'
+    $script:UpdaterFunctions = New-Module -Name TunnelTendUpdaterSelectionTests -ArgumentList $assertText, $selectText, $expandText -ScriptBlock {
+        param($AssertText, $SelectText, $ExpandText)
         $script:OfficialReleasePathPrefix = '/openai/tunnel-client/releases/download/'
         . ([scriptblock]::Create($AssertText))
         . ([scriptblock]::Create($SelectText))
+        . ([scriptblock]::Create($ExpandText))
+    }
+}
+
+Describe 'Official ZIP attributes' {
+    It 'extracts regular Unix files and still rejects symbolic links' {
+        foreach ($specimen in @(@{ name = 'regular'; mode = 0x81A4; allowed = $true }, @{ name = 'symlink'; mode = 0xA1FF; allowed = $false })) {
+            $zipPath = Join-Path $TestDrive ($specimen.name + '.zip')
+            $destination = Join-Path $TestDrive $specimen.name
+            $archive = [IO.Compression.ZipFile]::Open($zipPath, [IO.Compression.ZipArchiveMode]::Create)
+            try {
+                $entry = $archive.CreateEntry('payload.txt')
+                $entry.ExternalAttributes = $specimen.mode -shl 16
+                $writer = [IO.StreamWriter]::new($entry.Open())
+                try { $writer.Write('verified payload') } finally { $writer.Dispose() }
+            }
+            finally { $archive.Dispose() }
+
+            if ($specimen.allowed) {
+                & $script:UpdaterFunctions { param($zip, $target) Expand-ZipSafely $zip $target 1024 10 } $zipPath $destination
+                Get-Content -Raw -LiteralPath (Join-Path $destination 'payload.txt') | Should -Be 'verified payload'
+            }
+            else {
+                { & $script:UpdaterFunctions { param($zip, $target) Expand-ZipSafely $zip $target 1024 10 } $zipPath $destination } | Should -Throw '*symbolic link*'
+                Test-Path -LiteralPath (Join-Path $destination 'payload.txt') | Should -BeFalse
+            }
+        }
     }
 }
 

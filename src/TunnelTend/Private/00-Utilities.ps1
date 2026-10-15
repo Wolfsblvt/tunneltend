@@ -82,6 +82,13 @@ function Get-TtDefaultStateRoot {
     if (-not [string]::IsNullOrWhiteSpace($env:TUNNELTEND_STATE_DIR)) {
         return [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($env:TUNNELTEND_STATE_DIR))
     }
+    $receiptPath = [IO.Path]::GetFullPath([IO.Path]::Combine($script:TtModuleRoot, '..', '..', 'install.json'))
+    if ([IO.File]::Exists($receiptPath)) {
+        $receipt = [IO.File]::ReadAllText($receiptPath) | ConvertFrom-Json -AsHashtable
+        $installedState = [string](Get-TtMapValue $receipt 'stateRoot' '')
+        if (-not [IO.Path]::IsPathRooted($installedState)) { throw "Installation receipt '$receiptPath' requires an absolute stateRoot." }
+        return [IO.Path]::GetFullPath($installedState)
+    }
     if ($IsWindows) {
         $base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { [Environment]::GetFolderPath('LocalApplicationData') }
         return [IO.Path]::Combine($base, 'TunnelTend', 'state')
@@ -360,22 +367,22 @@ function Resolve-TtExecutable {
 function ConvertTo-TtWindowsCommandArgument {
     [CmdletBinding()]
     param([AllowEmptyString()][string]$Argument)
-    if ($Argument -notmatch '[\\s"]') { return $Argument }
+    if ($Argument.Length -gt 0 -and $Argument -notmatch '[\s"]') { return $Argument }
     $builder = [Text.StringBuilder]::new()
     [void]$builder.Append('"')
     $slashes = 0
     foreach ($character in $Argument.ToCharArray()) {
-        if ($character -eq '\\') { $slashes++; continue }
+        if ($character -eq '\') { $slashes++; continue }
         if ($character -eq '"') {
-            [void]$builder.Append(('\\' * (($slashes * 2) + 1)))
+            [void]$builder.Append(('\' * (($slashes * 2) + 1)))
             [void]$builder.Append('"')
             $slashes = 0
             continue
         }
-        if ($slashes -gt 0) { [void]$builder.Append(('\\' * $slashes)); $slashes = 0 }
+        if ($slashes -gt 0) { [void]$builder.Append(('\' * $slashes)); $slashes = 0 }
         [void]$builder.Append($character)
     }
-    if ($slashes -gt 0) { [void]$builder.Append(('\\' * ($slashes * 2))) }
+    if ($slashes -gt 0) { [void]$builder.Append(('\' * ($slashes * 2))) }
     [void]$builder.Append('"')
     return $builder.ToString()
 }
@@ -493,6 +500,7 @@ function Test-TtOwnedProcess {
     $info = Get-TtProcessInfo ([int]$ProcessRecord.pid)
     if (-not $info.running) { return $false }
     if ([string]::IsNullOrWhiteSpace([string]$info.executable_path)) { return $false }
+    if (-not $ProcessRecord.start_time_utc -or -not $info.start_time_utc) { return $false }
     $expected = [IO.Path]::GetFullPath([string]$ProcessRecord.executable_path)
     $actual = [IO.Path]::GetFullPath([string]$info.executable_path)
     if (-not [string]::Equals($expected, $actual, [StringComparison]::OrdinalIgnoreCase)) { return $false }

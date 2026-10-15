@@ -13,6 +13,7 @@ foreach ($file in $files) {
 if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
 Write-Host "PowerShell parser: $($files.Count) files passed"
 & (Join-Path $root 'tests/ZeroDependency.ps1') -RepositoryRoot $root
+if (-not $?) { throw 'The dependency-free behavior suite failed.' }
 $pester=Get-Module Pester -ListAvailable | Where-Object Version -GE ([version]'6.0.0') | Sort-Object Version -Descending | Select-Object -First 1
 if ($pester) {
     Import-Module $pester.Path -Force

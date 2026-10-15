@@ -48,6 +48,8 @@ if (-not $NonInteractive) {
 if (-not $PSCmdlet.ShouldProcess($InstallRoot, 'Install TunnelTend')) { return }
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('tunneltend-install-' + [Guid]::NewGuid().ToString('N'))
 $backup = $null
+$automationInstalled = $false
+$automationSnapshot = @{}
 try {
     New-Item -ItemType Directory -Path $temp -Force | Out-Null
     $exclude = @('.git','artifacts','.validation')
@@ -81,6 +83,25 @@ try {
         Set-TtConfiguration -Path 'settings.officialClient.executablePath' -Value (Join-Path $InstallRoot 'official-client/tunnel-client.exe') -StateRoot $StateRoot | Out-Null
     }
 
+    if (-not $SkipClientInstall -and -not $TunnelClientPath) { Update-TtClient -Force -StateRoot $StateRoot | Out-Null }
+    $selectedAliases = @($AutostartAliases | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($AllManagedAliases -or $selectedAliases.Count -gt 0) {
+        Import-TtOfficialRuntime -Alias $(if ($AllManagedAliases) {@()} else {$selectedAliases}) -Force:$Force -StateRoot $StateRoot | Out-Null
+    }
+    foreach ($path in @($RegisterPath | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })) {
+        Register-TtService -Path $path -OrganizationId $OrganizationId -WorkspaceId $WorkspaceId -RuntimeKeyRef $RuntimeKeyRef -Force:$Force -StateRoot $StateRoot | Out-Null
+    }
+    foreach ($task in (Get-TtAutomationStatus -StateRoot $StateRoot).tasks) {
+        if ($task.installed) { $automationSnapshot[$task.name] = Export-ScheduledTask -TaskName $task.name -TaskPath '\TunnelTend\' }
+    }
+    Install-TtAutomation -StateRoot $StateRoot | Out-Null
+    $automationInstalled = $true
+    $manifest = [ordered]@{ product='tunneltend'; version='0.1.0-preview.1'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot }
+    $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $InstallRoot 'install.json') -Encoding utf8NoBOM
+    $doctor = Invoke-TtDoctor -StateRoot $StateRoot
+    $status = Get-TtStatus -StateRoot $StateRoot
+    # Publish the command only after acquisition, task registration, and the
+    # installation receipt succeed. A failed install must not leave a dead PATH.
     if (-not $SkipPath) {
         $userPath = [Environment]::GetEnvironmentVariable('Path','User')
         $parts = @($userPath -split ';' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -89,19 +110,6 @@ try {
         }
         if (($env:Path -split ';') -notcontains $InstallRoot) { $env:Path = "$InstallRoot;$env:Path" }
     }
-
-    if (-not $SkipClientInstall -and -not $TunnelClientPath) { Update-TtClient -Force -StateRoot $StateRoot | Out-Null }
-    if ($AllManagedAliases -or @($AutostartAliases).Count -gt 0) {
-        Import-TtOfficialRuntime -Alias $(if ($AllManagedAliases) {@()} else {@($AutostartAliases)}) -Force:$Force -StateRoot $StateRoot | Out-Null
-    }
-    foreach ($path in @($RegisterPath)) {
-        Register-TtService -Path $path -OrganizationId $OrganizationId -WorkspaceId $WorkspaceId -RuntimeKeyRef $RuntimeKeyRef -Force:$Force -StateRoot $StateRoot | Out-Null
-    }
-    Install-TtAutomation -StateRoot $StateRoot | Out-Null
-    $manifest = [ordered]@{ product='tunneltend'; version='0.1.0-preview.1'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot }
-    $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $InstallRoot 'install.json') -Encoding utf8NoBOM
-    $doctor = Invoke-TtDoctor -StateRoot $StateRoot
-    $status = Get-TtStatus -StateRoot $StateRoot
     [Console]::WriteLine("TunnelTend installed at $InstallRoot")
     [Console]::WriteLine("State is stored at $StateRoot")
     [Console]::WriteLine("Doctor status: $($doctor.status)")
@@ -109,9 +117,14 @@ try {
     if ($backup -and (Test-Path -LiteralPath $backup)) { Remove-Item -LiteralPath $backup -Recurse -Force }
 }
 catch {
+    $installError = $_
+    if ($automationInstalled) {
+        Uninstall-TtAutomation | Out-Null
+        foreach ($name in $automationSnapshot.Keys) { Register-ScheduledTask -TaskName $name -TaskPath '\TunnelTend\' -Xml $automationSnapshot[$name] -Force | Out-Null }
+    }
     if (Test-Path -LiteralPath $InstallRoot) { Remove-Item -LiteralPath $InstallRoot -Recurse -Force -ErrorAction SilentlyContinue }
     if ($backup -and (Test-Path -LiteralPath $backup)) { Move-Item -LiteralPath $backup -Destination $InstallRoot -Force }
-    throw
+    throw $installError
 }
 finally {
     if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }

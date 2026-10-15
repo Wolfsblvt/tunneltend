@@ -22,6 +22,7 @@ This is the maintained map of TunnelTend product, operator, development, compati
 
 ## Use and operation
 
+- [Getting started](getting-started.md): installation, policy switches, credentials, agent setup, and uninstall.
 - [Registration](registration.md): descriptors, discovery, explicit targets, and import.
 - [CLI reference](cli-reference.md): command grammar and structured output.
 - [Operations](OPERATIONS.md): startup, watchdog, maintenance, recovery, and ordinary use.

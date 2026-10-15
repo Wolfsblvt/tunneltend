@@ -33,7 +33,7 @@ function New-TtScheduledTaskAction {
     param([Parameter(Mandatory)][string]$Mode, [string]$StateRoot)
     $pwsh = (Get-Process -Id $PID).Path
     $cli = Get-TtCliScriptPath
-    $arguments = @('-NoLogo','-NoProfile','-NonInteractive','-File',$cli,'automation',$Mode,'--state-root',(Resolve-TtStateRoot $StateRoot),'--json')
+    $arguments = @('-NoLogo','-NoProfile','-NonInteractive','-WindowStyle','Hidden','-File',$cli,'automation',$Mode,'--state-root',(Resolve-TtStateRoot $StateRoot),'--json')
     return New-ScheduledTaskAction -Execute $pwsh -Argument (ConvertTo-TtCommandLine $arguments) -WorkingDirectory ([IO.Path]::GetDirectoryName($cli))
 }
 
@@ -56,11 +56,10 @@ function New-TtScheduledTaskTriggers {
             $user = [Security.Principal.WindowsIdentity]::GetCurrent().Name
             $logon = New-ScheduledTaskTrigger -AtLogOn -User $user
             $logon.Delay = "PT$([int]$Definition.delaySeconds)S"
-            $logon.Repetition.Interval = "PT$([int]$Definition.intervalMinutes)M"
-            $logon.Repetition.Duration = 'P1D'
+            $repeating = New-ScheduledTaskTrigger -Once -At ([DateTime]::Today) -RepetitionInterval (New-TimeSpan -Minutes ([int]$Definition.intervalMinutes)) -RepetitionDuration (New-TimeSpan -Days 1)
+            $logon.Repetition = $repeating.Repetition
             $daily = New-ScheduledTaskTrigger -Daily -At ([DateTime]::Today)
-            $daily.Repetition.Interval = "PT$([int]$Definition.intervalMinutes)M"
-            $daily.Repetition.Duration = 'P1D'
+            $daily.Repetition = $repeating.Repetition
             return @($logon,$daily)
         }
     }
@@ -74,10 +73,18 @@ function Install-TtAutomationInternal {
     $principal = New-ScheduledTaskPrincipal -UserId ([Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 30) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2)
     $results = @()
+    $changedTasks = @()
+    $previousTasks = @{}
+    try {
     foreach ($definition in Get-TtAutomationTaskDefinitions $Registry $StateRoot) {
         $fullName = "TunnelTend $($definition.name)"
+        $existing = Get-ScheduledTask -TaskName $fullName -TaskPath $taskPath -ErrorAction SilentlyContinue
+        $previousTasks[$fullName] = if ($existing) { Export-ScheduledTask -TaskName $fullName -TaskPath $taskPath } else { $null }
         if (-not $definition.enabled) {
-            Unregister-ScheduledTask -TaskName $fullName -TaskPath $taskPath -Confirm:$false -ErrorAction SilentlyContinue
+            if ($existing) {
+                Unregister-ScheduledTask -TaskName $fullName -TaskPath $taskPath -Confirm:$false -ErrorAction Stop
+                $changedTasks += $fullName
+            }
             $results += [ordered]@{ name=$fullName; installed=$false; reason='disabled-by-configuration' }
             continue
         }
@@ -85,7 +92,17 @@ function Install-TtAutomationInternal {
         $triggers = New-TtScheduledTaskTriggers $definition
         $task = New-ScheduledTask -Action $action -Trigger $triggers -Settings $settings -Principal $principal -Description "TunnelTend $($definition.mode) automation. Managed by tunneltend; edit through the CLI rather than Task Scheduler."
         Register-ScheduledTask -TaskName $fullName -TaskPath $taskPath -InputObject $task -Force | Out-Null
+        $changedTasks += $fullName
         $results += [ordered]@{ name=$fullName; installed=$true; mode=$definition.mode }
+    }
+    }
+    catch {
+        $installError = $_
+        foreach ($name in $changedTasks) {
+            if ($previousTasks[$name]) { Register-ScheduledTask -TaskName $name -TaskPath $taskPath -Xml $previousTasks[$name] -Force | Out-Null }
+            else { Unregister-ScheduledTask -TaskName $name -TaskPath $taskPath -Confirm:$false -ErrorAction Stop }
+        }
+        throw $installError
     }
     return $results
 }
@@ -119,9 +136,9 @@ function Get-TtAutomationStatusInternal {
             desired=[bool]$definition.enabled
             installed=$null -ne $task
             state=$(if ($task) { [string]$task.State } else { 'Missing' })
-            lastRunTime=$(if ($info) { $info.LastRunTime.ToString('o') } else { $null })
+            lastRunTime=$(if ($info -and $null -ne $info.LastRunTime) { $info.LastRunTime.ToString('o') } else { $null })
             lastTaskResult=$(if ($info) { $info.LastTaskResult } else { $null })
-            nextRunTime=$(if ($info) { $info.NextRunTime.ToString('o') } else { $null })
+            nextRunTime=$(if ($info -and $null -ne $info.NextRunTime) { $info.NextRunTime.ToString('o') } else { $null })
         }
     }
     return [ordered]@{ supported=$true; tasks=$tasks; desired=(Get-TtAutomationTaskDefinitions $Registry $StateRoot) }

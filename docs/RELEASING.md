@@ -8,6 +8,12 @@ This document defines TunnelTend's local release-candidate, qualification, publi
 
 TunnelTend is pre-release. `main` is the public integration line. The first stable release is `v0.1.0` after the disposable-Windows checklist and current hosted CI pass for the exact candidate.
 
+## Release communication
+
+The release audience is the Windows user or local agent operating registered MCP services. The leading audience account belongs in `docs/releases/<version>.md` when a release is actually prepared; the GitHub Release projects that account rather than keeping a separate history. No audience release is asserted by a local candidate build.
+
+Lead with what changes in installation, routine operation, recovery, or compatibility. Distinguish source availability, a tested package, Windows qualification, and publication. Credit accepted material contributors, and call out any remaining operator action or limitation that changes whether users should update. Follow the shared Works release-communication standard; do not substitute a file inventory or internal Work chronology for the user-facing account.
+
 ## Prepare the candidate
 
 1. Read current `AGENTS.md`, Vision, Direction, and upstream compatibility sources.

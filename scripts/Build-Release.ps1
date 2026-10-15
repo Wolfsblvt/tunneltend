@@ -6,6 +6,12 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+# Validate before the version participates in any deletion or output path.
+if ($Version -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-(?<pre>[0-9A-Za-z.-]+))?$') {
+    throw "Version '$Version' is not semantic versioning."
+}
+$baseVersion = $Matches.base
+$prerelease = if ($Matches.ContainsKey('pre')) { $Matches.pre } else { '' }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $SkipTests) {
     & (Join-Path $PSScriptRoot 'Invoke-Tests.ps1')
@@ -30,11 +36,6 @@ foreach ($item in $include) {
 
 
 # Stamp the staged package without mutating the source checkout.
-if ($Version -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-(?<pre>[0-9A-Za-z.-]+))?$') {
-    throw "Version '$Version' is not semantic versioning."
-}
-$baseVersion = $Matches.base
-$prerelease = $Matches.pre
 $stagedManifest = Join-Path $stage 'src/TunnelTend/TunnelTend.psd1'
 $manifestText = Get-Content $stagedManifest -Raw
 $manifestText = [regex]::Replace($manifestText, "ModuleVersion\s*=\s*'[^']+'", "ModuleVersion = '$baseVersion'")

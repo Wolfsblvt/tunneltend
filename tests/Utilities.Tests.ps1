@@ -4,6 +4,49 @@ BeforeAll {
 }
 
 Describe 'TunnelTend utility contracts' {
+    It 'requires process generation evidence as well as the executable path' {
+        & $script:Module {
+            $record = Get-TtProcessInfo $PID
+            Test-TtOwnedProcess $record | Should -BeTrue
+            $record.start_time_utc = $null
+            Test-TtOwnedProcess $record | Should -BeFalse
+            { Stop-TtOwnedProcess $record 0 } | Should -Throw '*Refusing to terminate*'
+        }
+    }
+
+    It 'preserves Windows command-line argument boundaries through a real process' -Skip:(-not $IsWindows) {
+        $fixture = Join-Path $TestDrive 'arguments.ps1'
+        Set-Content -LiteralPath $fixture -Value '@($args) | ConvertTo-Json -Compress'
+        $expected = @('a b', '', 'trailing path\', 'say "hello"', 'plain')
+        $arguments = & $script:Module {
+            param($file, $values)
+            ConvertTo-TtCommandLine (@('-NoProfile', '-NonInteractive', '-File', $file) + $values)
+        } $fixture $expected
+        $start = [Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path)
+        $start.Arguments = $arguments
+        $start.UseShellExecute = $false
+        $start.CreateNoWindow = $true
+        $start.RedirectStandardOutput = $true
+        $start.RedirectStandardError = $true
+        $process = [Diagnostics.Process]::Start($start)
+        try {
+            $stdout = $process.StandardOutput.ReadToEndAsync()
+            $stderr = $process.StandardError.ReadToEndAsync()
+            if (-not $process.WaitForExit(30000)) { $process.Kill(); throw 'Argument specimen timed out.' }
+            $process.ExitCode | Should -Be 0
+            $stderr.GetAwaiter().GetResult() | Should -BeNullOrEmpty
+            @($stdout.GetAwaiter().GetResult() | ConvertFrom-Json) | Should -Be $expected
+        }
+        finally { $process.Dispose() }
+    }
+
+    It 'applies source exclusions to Windows and portable paths' {
+        foreach ($path in @('bin/generated.dll', 'bin\generated.dll', 'nested\bin\generated.dll')) {
+            (& $script:Module { param($relative) Test-TtSourcePathIncluded $relative @('**/*') @('**/bin/**') } $path) | Should -BeFalse
+        }
+        (& $script:Module { Test-TtSourcePathIncluded 'src\server.ps1' @('src/**') @('bin/**') }) | Should -BeTrue
+    }
+
     It 'accepts only complete secret references' {
         (& $script:Module { Test-TtSecretReference 'env:CONTROL_PLANE_API_KEY' }) | Should -BeTrue
         (& $script:Module { Test-TtSecretReference 'file:C:\secure\runtime-key.txt' }) | Should -BeTrue

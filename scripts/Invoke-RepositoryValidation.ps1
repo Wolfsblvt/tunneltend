@@ -5,6 +5,13 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $failures = [Collections.Generic.List[string]]::new()
+# Generated packages, local tooling, and Git objects are not repository source.
+$ownedFiles = @(Get-ChildItem -LiteralPath $root -Force | Where-Object {
+    $_.Name -notin @('.git', 'artifacts', '.validation')
+} | ForEach-Object {
+    if ($_.PSIsContainer) { Get-ChildItem -LiteralPath $_.FullName -Recurse -File -Force }
+    else { $_ }
+})
 
 $required = @(
     'README.md', 'AGENTS.md', 'LICENSE', 'SECURITY.md', 'CHANGELOG.md',
@@ -25,7 +32,7 @@ foreach ($json in Get-ChildItem -LiteralPath (Join-Path $root 'schemas') -Filter
 }
 
 $validationScript = [IO.Path]::GetFullPath($PSCommandPath)
-$codeFiles = @(Get-ChildItem -LiteralPath $root -Recurse -File | Where-Object {
+$codeFiles = @($ownedFiles | Where-Object {
     [IO.Path]::GetFullPath($_.FullName) -ne $validationScript -and
     $_.FullName -notmatch '[\\/](?:\.git|artifacts)[\\/]' -and
     $_.Extension -in @('.ps1', '.psm1', '.psd1', '.cmd')
@@ -44,7 +51,7 @@ foreach ($file in $codeFiles) {
     }
 }
 
-$bundledClient = @(Get-ChildItem -LiteralPath $root -Recurse -File | Where-Object {
+$bundledClient = @($ownedFiles | Where-Object {
     $_.Name -match '^tunnel-client(?:\.exe)?$'
 })
 if ($bundledClient.Count -gt 0) { $failures.Add('official tunnel-client binary must not be bundled') }
@@ -58,9 +65,7 @@ foreach ($functionName in @('Get-TtStatus', 'Get-TtHealth', 'Invoke-TtDoctor', '
     }
 }
 
-foreach ($markdown in Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.md' | Where-Object {
-    $_.FullName -notmatch '[\\/]\.git[\\/]'
-}) {
+foreach ($markdown in $ownedFiles | Where-Object Extension -EQ '.md') {
     $text = Get-Content $markdown.FullName -Raw
     foreach ($match in [regex]::Matches($text, '\[[^\]]+\]\((?<target>[^)]+)\)')) {
         $target = $match.Groups['target'].Value.Split('#')[0]

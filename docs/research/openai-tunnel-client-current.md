@@ -2,15 +2,17 @@
 
 ## Meaning
 
-This record pins the stable official-client release and command surface used while qualifying the current TunnelTend adapter. It is compatibility evidence captured from primary GitHub release/source data on 2026-10-04, not an assertion that every future release remains compatible.
+This record pins the stable official-client release and command surface used while qualifying the current TunnelTend adapter. The release coordinate, verified Windows amd64 download, version output, and six help-based capability probes were observed on 2026-10-16. Remote control-plane and consumer behavior remain unobserved without credentials; this is not a claim of complete compatibility.
 
 - Repository: `openai/tunnel-client`
-- Stable release: `v0.0.15`
-- Published: 2026-09-25
-- Source commit/tag: `v0.0.15`
+- Stable release: `v0.0.16`
+- Published: 2026-10-06
+- Source commit/tag: `v0.0.16`, `5f99daabd4aa4a77049e6d81d54a0d8c18335397`
 - Release checksum asset: `SHA256SUMS.txt`
 - Windows release assets: architecture-specific ZIPs with published SHA-256 material
 - Generated release coordinate: [`openai-tunnel-client-release.json`](openai-tunnel-client-release.json)
+- Downloaded asset: `tunnel-client-v0.0.16-windows-amd64.zip`
+- Archive SHA-256: `edef7241b0c647fcb30f1a80ff376b6b25c51927960f257a3f01e21b17c2aba6`, verified against the GitHub release-asset digest.
 
 ## Runtime command surface used by TunnelTend
 

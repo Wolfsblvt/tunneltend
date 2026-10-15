@@ -25,10 +25,12 @@ jobs:
           Install-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Scope CurrentUser -Force
       - name: Test and package
         shell: pwsh
+        env:
+          TUNNELTEND_RELEASE_VERSION: ${{ inputs.version }}
         run: |
           ./scripts/Invoke-Tests.ps1 -RequirePester -RequireAnalyzer
           ./scripts/Invoke-RepositoryValidation.ps1
-          ./scripts/Build-Release.ps1 -Version '${{ inputs.version }}' -SkipTests
+          ./scripts/Build-Release.ps1 -Version $env:TUNNELTEND_RELEASE_VERSION -SkipTests
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: tunneltend-${{ inputs.version }}-candidate

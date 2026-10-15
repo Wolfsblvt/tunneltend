@@ -607,8 +607,9 @@ function Expand-ZipSafely {
 
             # Reject Unix symbolic links. On Windows they would otherwise become
             # confusing payload files rather than trustworthy regular files.
-            $external = [uint32]$entry.ExternalAttributes
-            $unixType = (($external -shr 16) -band 0xF000)
+            # ExternalAttributes is a signed Int32; regular Unix files commonly
+            # set its sign bit. Shift and mask without a checked UInt32 cast.
+            $unixType = (($entry.ExternalAttributes -shr 16) -band 0xF000)
             if ($unixType -eq 0xA000) {
                 throw "ZIP contains a symbolic link: '$name'."
             }
