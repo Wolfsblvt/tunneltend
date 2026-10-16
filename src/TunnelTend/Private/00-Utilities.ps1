@@ -619,11 +619,12 @@ function ConvertTo-TtBool {
 
 function ConvertTo-TtStringArray {
     [CmdletBinding()]
-    param($Value)
+    param($Value, [switch]$RejectEmpty)
     if ($null -eq $Value) { return @() }
     $result = @()
     foreach ($item in @($Value)) {
         foreach ($part in ([string]$item -split ',')) {
+            if ($RejectEmpty -and [string]::IsNullOrWhiteSpace($part)) { throw 'Tunnel scope selectors must not contain empty values.' }
             if (-not [string]::IsNullOrWhiteSpace($part)) { $result += $part.Trim() }
         }
     }

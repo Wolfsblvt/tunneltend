@@ -87,6 +87,12 @@ function Repair-TtRegistryShape {
     foreach ($key in $defaults.settings.defaults.recovery.Keys) {
         if (-not $Registry.settings.defaults.recovery.Contains($key)) { $Registry.settings.defaults.recovery[$key] = $defaults.settings.defaults.recovery[$key] }
     }
+    foreach ($scopeName in @('organizationIds','workspaceIds')) {
+        $values = @($Registry.settings.defaults[$scopeName])
+        # Earlier public setup/install wrote an omitted parameter as [null].
+        # Normalize only that known unset shape, never blank strings or mixed input.
+        if ($values.Count -eq 1 -and $null -eq $values[0]) { $Registry.settings.defaults[$scopeName] = @() }
+    }
     return $Registry
 }
 
@@ -187,6 +193,19 @@ function Set-TtRunningServiceIntent {
     Save-TtRuntimeStore $Runtime $StateRoot
 }
 
+function Assert-TtTunnelScopes {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][System.Collections.IDictionary]$Scopes, [Parameter(Mandatory)][string]$Context)
+    foreach ($scopeName in @('organizationIds', 'workspaceIds')) {
+        $scopeValues = @($Scopes[$scopeName])
+        foreach ($scopeValue in $scopeValues) {
+            if ([string]::IsNullOrWhiteSpace([string]$scopeValue)) { throw "$Context.$scopeName must not contain empty values." }
+        }
+        if (@($scopeValues | Select-Object -Unique).Count -ne $scopeValues.Count) { throw "$Context.$scopeName must not contain duplicate values." }
+    }
+    if (@($Scopes.organizationIds).Count -gt 0 -and @($Scopes.workspaceIds).Count -gt 0) { throw "$Context may use organizationIds or workspaceIds, not both." }
+}
+
 function Assert-TtServiceDefinition {
     [CmdletBinding()]
     param([Parameter(Mandatory)][hashtable]$Service)
@@ -211,20 +230,7 @@ function Assert-TtServiceDefinition {
         }
     }
     if ([string]::IsNullOrWhiteSpace([string]$Service.tunnel.alias)) { throw "Service '$($Service.id)' requires tunnel.alias." }
-    foreach ($scopeName in @('organizationIds', 'workspaceIds')) {
-        $scopeValues = @($Service.tunnel[$scopeName])
-        foreach ($scopeValue in $scopeValues) {
-            if ([string]::IsNullOrWhiteSpace([string]$scopeValue)) {
-                throw "Service '$($Service.id)' tunnel.$scopeName must not contain empty values."
-            }
-        }
-        if (@($scopeValues | Select-Object -Unique).Count -ne $scopeValues.Count) {
-            throw "Service '$($Service.id)' tunnel.$scopeName must not contain duplicate values."
-        }
-    }
-    if (@($Service.tunnel.organizationIds).Count -gt 0 -and @($Service.tunnel.workspaceIds).Count -gt 0) {
-        throw "Service '$($Service.id)' may use organizationIds or workspaceIds, not both."
-    }
+    Assert-TtTunnelScopes $Service.tunnel "Service '$($Service.id)' tunnel"
     if ($Service.tunnel.runtimeKeyRef -and -not (Test-TtSecretReference ([string]$Service.tunnel.runtimeKeyRef))) {
         throw "Service '$($Service.id)' tunnel.runtimeKeyRef must use env:NAME or file:/path."
     }
@@ -248,6 +254,7 @@ function Assert-TtRegistry {
     if ($Registry.settings.officialClient.allowUnverifiedAsset -isnot [bool] -or $Registry.settings.officialClient.allowUnverifiedAsset) {
         throw 'Automatic official-client acquisition requires published digest/checksum verification; allowUnverifiedAsset must be false.'
     }
+    Assert-TtTunnelScopes $Registry.settings.defaults 'Registration defaults'
     $aliases = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($id in $Registry.services.Keys) {
         $service = $Registry.services[$id]

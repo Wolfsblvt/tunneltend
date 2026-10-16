@@ -105,7 +105,15 @@
           }
         },
         "defaults": {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "organizationIds": {
+              "$ref": "service.schema.json#/properties/tunnel/properties/organizationIds"
+            },
+            "workspaceIds": {
+              "$ref": "service.schema.json#/properties/tunnel/properties/workspaceIds"
+            }
+          }
         }
       }
     },

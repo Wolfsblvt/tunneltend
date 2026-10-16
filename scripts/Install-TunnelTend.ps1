@@ -22,6 +22,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows) { throw 'TunnelTend installation currently targets Windows.' }
 if ($PSVersionTable.PSVersion -lt [version]'7.4.0') { throw 'TunnelTend requires PowerShell 7.4 or newer.' }
+if ($null -eq $OrganizationId) { $OrganizationId = @() }
+if ($null -eq $WorkspaceId) { $WorkspaceId = @() }
 
 $sourceRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $InstallRoot) { $InstallRoot = Join-Path $env:LOCALAPPDATA 'Programs/TunnelTend' }

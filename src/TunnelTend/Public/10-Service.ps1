@@ -23,6 +23,8 @@ function New-TtServiceDefinition {
         [string]$DesiredState = 'running',
         [hashtable]$Defaults
     )
+    if ($null -eq $OrganizationId) { $OrganizationId = @() }
+    if ($null -eq $WorkspaceId) { $WorkspaceId = @() }
     $serviceId = ConvertTo-TtServiceId $Id
     if (-not $DisplayName) { $DisplayName = $serviceId }
     if (-not $Alias) { $Alias = $serviceId }
@@ -41,8 +43,8 @@ function New-TtServiceDefinition {
         tunnel = [ordered]@{
             alias = (ConvertTo-TtServiceId $Alias)
             tunnelId = $TunnelId
-            organizationIds = @(ConvertTo-TtStringArray $OrganizationId | Select-Object -Unique)
-            workspaceIds = @(ConvertTo-TtStringArray $WorkspaceId | Select-Object -Unique)
+            organizationIds = @(ConvertTo-TtStringArray $OrganizationId -RejectEmpty)
+            workspaceIds = @(ConvertTo-TtStringArray $WorkspaceId -RejectEmpty)
             runtimeKeyRef = $RuntimeKeyRef
             adminProfile = $AdminProfile
             profileName = $serviceId

@@ -24,6 +24,9 @@ function Invoke-TtSetup {
         [switch]$SkipAutomationInstall,
         [string]$StateRoot
     )
+    if ($null -eq $OrganizationId) { $OrganizationId = @() }
+    if ($null -eq $WorkspaceId) { $WorkspaceId = @() }
+    if ($null -eq $ImportAlias) { $ImportAlias = @() }
     $settings = Get-TtConfiguration $StateRoot
     if (-not $NonInteractive) {
         if ($null -eq $Autostart) { $Autostart = Read-TtSetupBoolean 'Start registered services at Windows logon?' ([bool]$settings.automation.autostart) }
@@ -43,13 +46,18 @@ function Invoke-TtSetup {
     if ($null -eq $Watchdog) { $Watchdog = [bool]$settings.automation.watchdog }
     if (-not $RuntimeKeyRef) { $RuntimeKeyRef = [string]$settings.defaults.runtimeKeyRef }
     if (-not (Test-TtSecretReference $RuntimeKeyRef)) { throw 'RuntimeKeyRef must use env:NAME or file:/path.' }
+    Assert-TtTunnelScopes @{organizationIds=$OrganizationId;workspaceIds=$WorkspaceId} 'Setup defaults'
 
     Set-TtConfiguration 'settings.automation.autostart' ([bool]$Autostart) $StateRoot | Out-Null
     Set-TtConfiguration 'settings.automation.autoUpdate' ([bool]$AutoUpdate) $StateRoot | Out-Null
     Set-TtConfiguration 'settings.automation.watchdog' ([bool]$Watchdog) $StateRoot | Out-Null
-    if (@($OrganizationId).Count -gt 0) { Set-TtConfiguration 'settings.defaults.organizationIds' @($OrganizationId) $StateRoot | Out-Null }
-    if (@($WorkspaceId).Count -gt 0) { Set-TtConfiguration 'settings.defaults.workspaceIds' @($WorkspaceId) $StateRoot | Out-Null }
-    Set-TtConfiguration 'settings.defaults.runtimeKeyRef' $RuntimeKeyRef $StateRoot | Out-Null
+    $defaults = $settings.defaults
+    if ($OrganizationId.Count -gt 0 -or $WorkspaceId.Count -gt 0) {
+        $defaults.organizationIds = @($OrganizationId)
+        $defaults.workspaceIds = @($WorkspaceId)
+    }
+    $defaults.runtimeKeyRef = $RuntimeKeyRef
+    Set-TtConfiguration 'settings.defaults' $defaults $StateRoot | Out-Null
 
     $imports = @()
     if ($ImportAll -or @($ImportAlias).Count -gt 0) {

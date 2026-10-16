@@ -61,6 +61,8 @@ Each official tunnel alias belongs to at most one registration. A registration a
 
 Version 1 is the only accepted persisted schema in the initial release. Missing fields within version 1 receive current defaults in memory. An unknown schema version is rejected.
 
+Unset organization/workspace defaults are empty arrays. Reads normalize the singleton-null default arrays emitted by earlier setup/install versions to empty arrays in memory; only an explicit mutation saves the corrected shape. Blank strings, mixed null/value arrays, and duplicate entries are not treated as unset and remain invalid. Public setup and installation now write empty arrays for omitted scopes; neither registration nor setup requires invented scope IDs when a service uses an explicit tunnel ID.
+
 Before a public release creates real persisted consumers, development state may be reset. After release, a schema change that cannot preserve registered services and operator intent requires an explicit migration and rollback story.
 
 ## Recovery
