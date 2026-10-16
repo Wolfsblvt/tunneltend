@@ -40,6 +40,14 @@ The current `connect` surface includes organization/workspace scope, existing tu
 
 On 2026-10-16, the stable release remained [v0.0.16](https://github.com/openai/tunnel-client/releases/tag/v0.0.16). Its [native process starter](https://github.com/openai/tunnel-client/blob/v0.0.16/pkg/codexplugin/session/session.go#L1168-L1194) and [stdio command transport](https://github.com/openai/tunnel-client/blob/v0.0.16/pkg/mcpclient/stdio_command.go#L81-L92) do not replace the inherited working directory. TunnelTend supplies the registered directory when invoking `runtimes connect` and resolves the command executable against that same directory. Fixture process tests exercise directory inheritance through detachment and repeated launch for Node and npm; they double the official-provider boundary and do not establish connected upstream behavior.
 
+## Startup admission source check
+
+On 2026-10-16 the stable release remained v0.0.16. Its [connect manager](https://github.com/openai/tunnel-client/blob/v0.0.16/pkg/codexplugin/manager.go#L473-L480) returns structured payload error code 2 when launch health is not yet established; the [command](https://github.com/openai/tunnel-client/blob/v0.0.16/cmd/client/runtimes_command.go#L106-L130) writes that payload even on failure. Connect has no startup-wait option. The payload can report a newly launched, running process in `starting` state.
+
+TunnelTend admits only that specific code-2 transition, with boolean launch/running flags, the requested alias and the explicit tunnel identity when configured, to its existing bounded observation. Other nonzero results remain failures. Startup, restart, recovery and client fleet restoration require observed health, readiness and a running official runtime before reporting success. A launch acknowledgement alone is insufficient; stopped or mismatched process identity and readiness timeout remain failures.
+
+Credential-free regressions exercise this transition and the updater's restoration/rollback path through the real adapter and reconciler, with the external CLI boundary doubled.
+
 ## Acceptance boundary
 
 TunnelTend still requires live compatibility qualification for the exact downloaded Windows binary. Source inspection and release metadata support adapter design but do not prove Windows process, control-plane, or runtime behavior.

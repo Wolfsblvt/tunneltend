@@ -214,7 +214,19 @@ function Start-TtOfficialRuntime {
     $result = Invoke-TtOfficialClientJson -Arguments (Get-TtConnectArguments $Service) -Registry $Registry -StateRoot $StateRoot -WorkingDirectory $workingDirectory -TimeoutSeconds $TimeoutSeconds -AllowFailure -Environment $environment
     $errorText = Protect-TtLogText (($result.process.stderr + [Environment]::NewLine + $result.process.stdout).Trim())
     if ($result.process.exit_code -ne 0) {
-        throw "Official runtime connect failed for '$($Service.id)': $errorText"
+        $payload = $result.payload
+        $launched = Get-TtMapValue $payload 'launched' $false
+        $running = Get-TtMapValue $payload 'process_running' $false
+        $tunnel = Get-TtMapValue $payload 'tunnel' $null
+        # v0.0.16 emits PayloadError code 2 before a newly launched runtime's
+        # health endpoint settles. Admit only that transition to the caller's
+        # bounded observation; the launch itself is never a success verdict.
+        $starting = $result.process.exit_code -eq 2 -and
+            $launched -is [bool] -and $launched -and $running -is [bool] -and $running -and
+            (Get-TtMapValue $payload 'runtime_state' '') -ceq 'starting' -and
+            (Get-TtMapValue $payload 'alias' '') -ceq [string]$Service.tunnel.alias -and
+            (-not $Service.tunnel.tunnelId -or (Get-TtMapValue $tunnel 'id' '') -ceq [string]$Service.tunnel.tunnelId)
+        if (-not $starting) { throw "Official runtime connect failed for '$($Service.id)': $errorText" }
     }
     return ConvertTo-TtRuntimeObservation -Payload $result.payload -ExitCode $result.process.exit_code
 }

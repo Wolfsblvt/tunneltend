@@ -56,7 +56,7 @@ function Wait-TtServiceHealth {
     $last = $null
     do {
         $last = Get-TtServiceObservation $Service $Registry $Runtime $StateRoot
-        if ($last.healthy) { return $last }
+        if ($last.healthy -and $last.ready -and $last.tunnel.running) { return $last }
         Start-Sleep -Milliseconds 500
     } while ([DateTimeOffset]::UtcNow -lt $deadline)
     return $last
@@ -106,7 +106,9 @@ function Start-TtManagedService {
     $timeout = if ($Service.health -and $Service.health.startupTimeoutSeconds) { [int]$Service.health.startupTimeoutSeconds } else { 60 }
     $observation = Wait-TtServiceHealth $Service $Registry $Runtime $StateRoot $timeout
     $runtimeRecord = Update-TtRuntimeObservation $Runtime $observation
-    if (-not $observation.healthy) { throw "Service '$($Service.id)' did not become healthy after startup." }
+    if (-not ($observation.healthy -and $observation.ready -and $observation.tunnel.running)) {
+        throw "Service '$($Service.id)' did not become healthy and ready with a running runtime after startup."
+    }
     Reset-TtRecoveryBudget $runtimeRecord
     $fingerprint = Get-TtSourceFingerprint $Service.source
     if ($fingerprint) {
