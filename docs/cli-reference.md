@@ -85,3 +85,5 @@ Normal users should prefer installer switches and service commands over direct c
 | 2 | command completed with degraded or error facts |
 | 4 | command failed validation or execution |
 | 10 | launcher/install dependency failure |
+
+Applied repair, reconciliation, and automation aggregate their per-service and update outcomes. A failed operation returns degraded status and exit 2 while retaining successful fleet results. A normal recovery-policy deferral returns `noop` (or `changed` when other work succeeded), exit 0, and an `operation.skipped` diagnostic; it does not claim that the deferred service converged. Startup's persisted session reset counts as a state change. Maintenance with no update or reconciliation change returns `noop`.

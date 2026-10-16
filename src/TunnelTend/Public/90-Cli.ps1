@@ -80,6 +80,41 @@ function Get-TtCliBoolOption {
     return ConvertTo-TtBool $Options[$Name] $Default
 }
 
+function Get-TtOperationOutcome {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][System.Collections.IDictionary]$Data)
+    $reconcile = Get-TtMapValue $Data 'reconcile' $Data
+    $changed = [bool](Get-TtMapValue $reconcile 'changed' $false)
+    $session = Get-TtMapValue $Data 'session' $null
+    if ($session -and (Get-TtMapValue $session 'id' $null)) { $changed = $true }
+    $results = @(Get-TtMapValue $reconcile 'results' @()) + @(Get-TtMapValue $Data 'serviceUpdates' @())
+    foreach ($key in @('update','clientUpdate')) {
+        $update = Get-TtMapValue $Data $key $null
+        if ($null -ne $update) { $results += $update }
+    }
+    $failed = $false
+    $diagnostics = @()
+    foreach ($result in $results) {
+        if ($null -eq $result) { continue }
+        $serviceId = Get-TtMapValue $result 'serviceId' $null
+        if (Get-TtMapValue $result 'skipped' $false) {
+            $reason = [string](Get-TtMapValue $result 'reason' 'policy')
+            $diagnostics += [ordered]@{ severity='info'; code='operation.skipped'; serviceId=$serviceId; message="Recovery deferred by current policy: $reason." }
+            continue
+        }
+        if ((Get-TtMapValue $result 'changed' $false) -or (Get-TtMapValue $result 'updated' $false)) { $changed = $true }
+        $errorMessage = [string](Get-TtMapValue $result 'error' '')
+        $resultFailed = $errorMessage -or ($result.Contains('ok') -and -not [bool]$result.ok) -or ($result.Contains('updated') -and -not [bool]$result.updated)
+        if ($resultFailed) {
+            $failed = $true
+            if (-not $errorMessage) { $errorMessage = 'The requested operation did not succeed.' }
+            $diagnostics += [ordered]@{ severity='error'; code='operation.failed'; serviceId=$serviceId; message=(Protect-TtLogText $errorMessage) }
+        }
+    }
+    $status = if ($failed) { 'degraded' } elseif ($changed) { 'changed' } else { 'noop' }
+    return [ordered]@{ status=$status; diagnostics=$diagnostics }
+}
+
 function Invoke-TtCli {
     [CmdletBinding()]
     param([string[]]$Arguments)
@@ -94,6 +129,7 @@ function Invoke-TtCli {
     $commandName = [string]$positionals[0]
     try {
         $data = $null; $status = 'ok'; $message = $null; $diagnostics = @(); $actions = @()
+        $summarizeOperation = $false
         switch ($commandName) {
             'version' { $data=[ordered]@{ version=$script:TtModuleVersion; schemaVersion=$script:TtSchemaVersion }; $message="tunneltend $script:TtModuleVersion" }
             'setup' {
@@ -118,13 +154,15 @@ function Invoke-TtCli {
             'repair' {
                 $apply=Get-TtCliBoolOption $options 'apply'; $force=Get-TtCliBoolOption $options 'force'
                 $data=Invoke-TtRepair -ServiceId @($positionals | Select-Object -Skip 1) -Apply:$apply -Force:$force -StateRoot $stateRoot
-                $status=if ($apply) {'changed'} else {'planned'}
+                $status=if ($apply) {'ok'} else {'planned'}
+                $summarizeOperation=$apply
                 if (-not $apply) { $actions=@($data.actions) }
             }
             'reconcile' {
                 $plan=Get-TtCliBoolOption $options 'plan'; $force=Get-TtCliBoolOption $options 'force'; $context=[string](Get-TtCliOption $options 'context' 'manual')
                 $data=Invoke-TtReconcile -ServiceId @($positionals | Select-Object -Skip 1) -Context $context -Plan:$plan -Force:$force -StateRoot $stateRoot
-                $status=if ($plan) {'planned'} elseif ($data.changed) {'changed'} else {'noop'}
+                $status=if ($plan) {'planned'} else {'ok'}
+                $summarizeOperation=-not $plan
                 $actions=@($data.plan.actions)
             }
             'service' {
@@ -172,9 +210,9 @@ function Invoke-TtCli {
                     'install' { $data=Install-TtAutomation $stateRoot; $status='changed' }
                     'uninstall' { $data=Uninstall-TtAutomation; $status='changed' }
                     'status' { $data=Get-TtAutomationStatus $stateRoot }
-                    'startup' { $data=Invoke-TtStartup -StateRoot $stateRoot -SkipUpdate:(Get-TtCliBoolOption $options 'skip-update'); $status='changed' }
-                    'watchdog' { $data=Invoke-TtWatchdog -StateRoot $stateRoot -Force:(Get-TtCliBoolOption $options 'force'); $status=if ($data.reconcile.changed) {'changed'} else {'noop'} }
-                    'maintenance' { $data=Invoke-TtMaintenance -StateRoot $stateRoot -SkipClientUpdate:(Get-TtCliBoolOption $options 'skip-client-update') -SkipServiceUpdates:(Get-TtCliBoolOption $options 'skip-service-updates') -Force:(Get-TtCliBoolOption $options 'force'); $status='changed' }
+                    'startup' { $data=Invoke-TtStartup -StateRoot $stateRoot -SkipUpdate:(Get-TtCliBoolOption $options 'skip-update'); $summarizeOperation=$true }
+                    'watchdog' { $data=Invoke-TtWatchdog -StateRoot $stateRoot -Force:(Get-TtCliBoolOption $options 'force'); $summarizeOperation=$true }
+                    'maintenance' { $data=Invoke-TtMaintenance -StateRoot $stateRoot -SkipClientUpdate:(Get-TtCliBoolOption $options 'skip-client-update') -SkipServiceUpdates:(Get-TtCliBoolOption $options 'skip-service-updates') -Force:(Get-TtCliBoolOption $options 'force'); $summarizeOperation=$true }
                     default { throw "Unknown automation subcommand '$($positionals[1])'." }
                 }
             }
@@ -192,6 +230,12 @@ function Invoke-TtCli {
                 }
             }
             default { throw "Unknown command '$commandName'. Run 'tunneltend --help'." }
+        }
+        if ($summarizeOperation) {
+            $outcome = Get-TtOperationOutcome $data
+            $status = $outcome.status
+            $diagnostics = @($outcome.diagnostics)
+            if ($status -eq 'degraded') { $message = 'Some operations failed; inspect diagnostics and per-service results.' }
         }
         $envelope=New-TtEnvelope -Command $commandName -Status $status -Data $data -Diagnostics $diagnostics -Actions $actions -Message $message
         Write-TtCliResult $envelope -Json:$json

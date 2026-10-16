@@ -11,7 +11,6 @@ function Test-TtServiceDesiredRunning {
     if ([string]$Service.desiredState -ne 'running') { return $false }
     if ($Context -eq 'startup') { return @($Runtime.session.activeServices) -contains [string]$Service.id }
     if ($Context -in @('watchdog','maintenance')) {
-        if ($Context -eq 'watchdog' -and -not [bool]$Service.watchdog) { return $false }
         if (@($Runtime.session.suppressedServices) -contains [string]$Service.id) { return $false }
         if (@($Runtime.session.activeServices) -notcontains [string]$Service.id) { return $false }
     }
@@ -33,9 +32,13 @@ function Stop-TtHostProcess {
     [CmdletBinding()]
     param([Parameter(Mandatory)][hashtable]$Service, [Parameter(Mandatory)][hashtable]$RuntimeRecord)
     if (-not $RuntimeRecord.hostProcess) { return }
+    if (-not $RuntimeRecord.hostProcess.pid) { throw "Refusing to stop host for '$($Service.id)' without a recorded PID." }
     if (Test-TtOwnedProcess $RuntimeRecord.hostProcess) {
         $timeout = if ($Service.host -and $Service.host.stopTimeoutSeconds) { [int]$Service.host.stopTimeoutSeconds } else { 15 }
         Stop-TtOwnedProcess $RuntimeRecord.hostProcess $timeout
+    }
+    elseif ((Get-TtProcessInfo ([int]$RuntimeRecord.hostProcess.pid)).running) {
+        throw "Refusing to stop host for '$($Service.id)': the live PID does not match its recorded process identity."
     }
     $RuntimeRecord.hostProcess = $null
 }
@@ -69,6 +72,7 @@ function Start-TtManagedService {
     )
     $record = Get-TtRuntimeServiceRecord $Runtime $Service.id -Create
     Start-TtHostProcess $Service $record | Out-Null
+    if ($record.hostProcess) { Save-TtRuntimeStore $Runtime $StateRoot }
     if ($Service.host -and $Service.host.enabled -and $Service.health -and $Service.health.url) {
         $deadline = [DateTimeOffset]::UtcNow.AddSeconds($(if ($Service.health.startupTimeoutSeconds) { [int]$Service.health.startupTimeoutSeconds } else { 45 }))
         do {
@@ -170,8 +174,16 @@ function Get-TtReconcilePlanInternal {
         }
         $service = $Registry.services[$id]
         $runtimeRecord = Get-TtRuntimeServiceRecord $Runtime $id -Create
-        $observation = Get-TtServiceObservation $service $Registry $Runtime $StateRoot
+        try { $observation = Get-TtServiceObservation $service $Registry $Runtime $StateRoot }
+        catch {
+            $actions += [ordered]@{ serviceId=$id; action='error'; reason='observation-failed'; disruptive=$false; issues=@(Protect-TtLogText $_.Exception.Message) }
+            continue
+        }
         $observations += $observation
+        if ($Context -eq 'watchdog' -and -not [bool]$service.watchdog) {
+            $actions += [ordered]@{ serviceId=$id; action='noop'; reason='watchdog-disabled'; disruptive=$false }
+            continue
+        }
         $desiredRunning = Test-TtServiceDesiredRunning $service $Runtime $Context
         if (-not $desiredRunning) {
             if ($observation.tunnel.running -or ($observation.host.configured -and $observation.host.running)) {
@@ -238,6 +250,11 @@ function Invoke-TtReconcileInternal {
         $record = Get-TtRuntimeServiceRecord $Runtime $id -Create
         try {
             switch ([string]$action.action) {
+                'error' {
+                    $issues = @(Get-TtMapValue $action 'issues' @()) -join '; '
+                    $record.lastError = Protect-TtLogText $(if ($issues) { $issues } else { [string]$action.reason })
+                    $results += [ordered]@{ serviceId=$id; action='error'; ok=$false; reason=$action.reason; error=$record.lastError }
+                }
                 'record-source-baseline' {
                     $record.source.appliedFingerprint = $action.fingerprint
                     $record.source.pendingFingerprint = $null
@@ -280,8 +297,9 @@ function Invoke-TtReconcileInternal {
                     }
                     $observation = if ($action.action -eq 'restart') { Restart-TtManagedService $service $Registry $Runtime $StateRoot } else { Start-TtManagedService $service $Registry $Runtime $StateRoot }
                     $record.recovery.lastResult = if ($observation.healthy) { 'healthy' } else { 'unhealthy' }
-                    if ($action.fingerprint -and $observation.healthy) {
-                        $record.source.appliedFingerprint = $action.fingerprint
+                    $fingerprint = Get-TtMapValue $action 'fingerprint' $null
+                    if ($fingerprint -and $observation.healthy) {
+                        $record.source.appliedFingerprint = $fingerprint
                         $record.source.pendingFingerprint = $null
                         $record.source.pendingSince = $null
                     }

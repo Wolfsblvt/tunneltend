@@ -52,8 +52,9 @@ Budget exhaustion is a diagnostic condition. Inspect `doctor`, service logs, com
 ## Manual intent
 
 - `service stop` persists desired stopped state unless a session-only path is selected.
-- A session-only stop suppresses the service until the next logon or manual start.
+- A session-only stop suppresses the service until the next logon or explicit manual start/restart.
 - `service start` activates and reconciles the service.
+- `service restart` explicitly restores running intent before restarting, including after a deliberate stop. A failed start/restart retains that intent for bounded recovery; a failed stop retains the requested stopped or suppressed intent.
 - `service disable` stops and disables it.
 
 These distinctions let the watchdog remain autonomous without overriding current operator intent.

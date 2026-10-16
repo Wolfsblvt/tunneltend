@@ -490,7 +490,10 @@ function Get-TtProcessInfo {
         try { $start = $process.StartTime.ToUniversalTime().ToString('o') } catch { }
         return [ordered]@{ running = $true; pid = $ProcessId; executable_path = $path; start_time_utc = $start }
     }
-    catch { return [ordered]@{ running = $false; pid = $ProcessId; executable_path = $null; start_time_utc = $null } }
+    catch {
+        if ($_.CategoryInfo.Category -ne [Management.Automation.ErrorCategory]::ObjectNotFound) { throw }
+        return [ordered]@{ running = $false; pid = $ProcessId; executable_path = $null; start_time_utc = $null }
+    }
 }
 
 function Test-TtOwnedProcess {
@@ -520,11 +523,12 @@ function Stop-TtOwnedProcess {
     }
     $process = Get-Process -Id ([int]$ProcessRecord.pid) -ErrorAction Stop
     try { $process.CloseMainWindow() | Out-Null } catch { }
-    try { $process.WaitForExit($TimeoutSeconds * 1000) } catch { }
+    try { $process.WaitForExit($TimeoutSeconds * 1000) | Out-Null } catch { }
     if (-not $process.HasExited) {
         $process.Kill($true)
         $process.WaitForExit($TimeoutSeconds * 1000) | Out-Null
     }
+    if (-not $process.HasExited) { throw "Owned process '$($ProcessRecord.pid)' did not exit after termination was requested." }
 }
 
 function Get-TtResolvedEnvironment {

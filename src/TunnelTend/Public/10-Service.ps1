@@ -202,7 +202,14 @@ function Unregister-TtService {
         $runtime = Get-TtRuntimeStore $StateRoot
         if (-not $registry.services.Contains($serviceId)) { throw "Service '$serviceId' is not registered." }
         $service = $registry.services[$serviceId]
-        if (-not $KeepRunning) { try { Stop-TtManagedService $service $registry $runtime $StateRoot | Out-Null } catch { Write-TtLog -StateRoot $StateRoot -Level warning -Event 'service.unregister.stop-failed' -Message $_.Exception.Message -Data @{service_id=$serviceId} } }
+        if (-not $KeepRunning) {
+            try { Stop-TtManagedService $service $registry $runtime $StateRoot | Out-Null }
+            catch {
+                Write-TtLog -StateRoot $StateRoot -Level warning -Event 'service.unregister.stop-failed' -Message $_.Exception.Message -Data @{service_id=$serviceId}
+                throw
+            }
+            finally { Save-TtRuntimeStore $runtime $StateRoot }
+        }
         $registry.services.Remove($serviceId)
         $runtime.services.Remove($serviceId)
         $runtime.session.suppressedServices = @($runtime.session.suppressedServices | Where-Object { $_ -ne $serviceId })
@@ -242,14 +249,11 @@ function Start-TtService {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Id, [string]$StateRoot)
     $serviceId = ConvertTo-TtServiceId $Id
-    Set-TtServicePolicy -Id $serviceId -Enabled $true -DesiredState running -StateRoot $StateRoot | Out-Null
     return Invoke-WithTtLock -StateRoot $StateRoot -ScriptBlock {
         $registry = Get-TtRegistry $StateRoot; $runtime = Get-TtRuntimeStore $StateRoot
-        $runtime.session.suppressedServices = @($runtime.session.suppressedServices | Where-Object { $_ -ne $serviceId })
-        if (@($runtime.session.activeServices) -notcontains $serviceId) { $runtime.session.activeServices += $serviceId }
-        $result = Start-TtManagedService $registry.services[$serviceId] $registry $runtime $StateRoot
-        Save-TtRuntimeStore $runtime $StateRoot
-        return $result
+        Set-TtRunningServiceIntent $registry $runtime $serviceId $StateRoot
+        try { return Start-TtManagedService $registry.services[$serviceId] $registry $runtime $StateRoot }
+        finally { Save-TtRuntimeStore $runtime $StateRoot }
     }
 }
 
@@ -257,14 +261,19 @@ function Stop-TtService {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Id, [switch]$SessionOnly, [string]$StateRoot)
     $serviceId = ConvertTo-TtServiceId $Id
-    if (-not $SessionOnly) { Set-TtServicePolicy -Id $serviceId -DesiredState stopped -StateRoot $StateRoot | Out-Null }
     return Invoke-WithTtLock -StateRoot $StateRoot -ScriptBlock {
         $registry = Get-TtRegistry $StateRoot; $runtime = Get-TtRuntimeStore $StateRoot
+        if (-not $registry.services.Contains($serviceId)) { throw "Service '$serviceId' is not registered." }
+        if (-not $SessionOnly) {
+            $registry.services[$serviceId].desiredState = 'stopped'
+            $registry.services[$serviceId].updatedAt = Get-TtUtcNow
+            Save-TtRegistry $registry $StateRoot
+        }
         $runtime.session.activeServices = @($runtime.session.activeServices | Where-Object { $_ -ne $serviceId })
         if ($SessionOnly -and @($runtime.session.suppressedServices) -notcontains $serviceId) { $runtime.session.suppressedServices += $serviceId }
-        $result = Stop-TtManagedService $registry.services[$serviceId] $registry $runtime $StateRoot
         Save-TtRuntimeStore $runtime $StateRoot
-        return $result
+        try { return Stop-TtManagedService $registry.services[$serviceId] $registry $runtime $StateRoot }
+        finally { Save-TtRuntimeStore $runtime $StateRoot }
     }
 }
 
@@ -274,10 +283,9 @@ function Restart-TtService {
     $serviceId = ConvertTo-TtServiceId $Id
     return Invoke-WithTtLock -StateRoot $StateRoot -ScriptBlock {
         $registry = Get-TtRegistry $StateRoot; $runtime = Get-TtRuntimeStore $StateRoot
-        if (-not $registry.services.Contains($serviceId)) { throw "Service '$serviceId' is not registered." }
-        $result = Restart-TtManagedService $registry.services[$serviceId] $registry $runtime $StateRoot
-        Save-TtRuntimeStore $runtime $StateRoot
-        return $result
+        Set-TtRunningServiceIntent $registry $runtime $serviceId $StateRoot
+        try { return Restart-TtManagedService $registry.services[$serviceId] $registry $runtime $StateRoot }
+        finally { Save-TtRuntimeStore $runtime $StateRoot }
     }
 }
 

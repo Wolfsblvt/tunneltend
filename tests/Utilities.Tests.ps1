@@ -4,6 +4,16 @@ BeforeAll {
 }
 
 Describe 'TunnelTend utility contracts' {
+    It 'reports a genuinely absent PID as stopped' {
+        (& $script:Module { Get-TtProcessInfo ([int]::MaxValue) }).running | Should -BeFalse
+    }
+
+    It 'does not turn a process query failure into proof that the process exited' {
+        Mock Get-Process -ModuleName TunnelTend { throw 'Synthetic process query failure' }
+
+        { & $script:Module { Get-TtProcessInfo 77777 } } | Should -Throw '*Synthetic process query failure*'
+    }
+
     It 'requires process generation evidence as well as the executable path' {
         & $script:Module {
             $record = Get-TtProcessInfo $PID
@@ -12,6 +22,31 @@ Describe 'TunnelTend utility contracts' {
             Test-TtOwnedProcess $record | Should -BeFalse
             { Stop-TtOwnedProcess $record 0 } | Should -Throw '*Refusing to terminate*'
         }
+    }
+
+    It 'does not report termination when the owned process has not exited' {
+        Mock Test-TtOwnedProcess -ModuleName TunnelTend { $true }
+        Mock Get-Process -ModuleName TunnelTend {
+            $process = [pscustomobject]@{ HasExited = $false }
+            $process | Add-Member ScriptMethod CloseMainWindow { return $false }
+            $process | Add-Member ScriptMethod WaitForExit { param($milliseconds) return $false }
+            $process | Add-Member ScriptMethod Kill { param($entireProcessTree) }
+            return $process
+        }
+
+        { & $script:Module { Stop-TtOwnedProcess @{pid=77777;executable_path='fixture-host.exe';start_time_utc='2026-10-16T00:00:00Z'} 0 } } | Should -Throw '*did not exit*'
+    }
+
+    It 'does not emit a wait acknowledgement as an extra stop result' {
+        Mock Test-TtOwnedProcess -ModuleName TunnelTend { $true }
+        Mock Get-Process -ModuleName TunnelTend {
+            $process = [pscustomobject]@{ HasExited = $true }
+            $process | Add-Member ScriptMethod CloseMainWindow { return $false }
+            $process | Add-Member ScriptMethod WaitForExit { param($milliseconds) return $true }
+            return $process
+        }
+
+        (& $script:Module { Stop-TtOwnedProcess @{pid=77777;executable_path='fixture-host.exe';start_time_utc='2026-10-16T00:00:00Z'} 0 }) | Should -BeNullOrEmpty
     }
 
     It 'preserves Windows command-line argument boundaries through a real process' -Skip:(-not $IsWindows) {

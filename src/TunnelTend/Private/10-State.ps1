@@ -143,7 +143,9 @@ function Get-TtRuntimeServiceRecord {
     param([Parameter(Mandatory)][hashtable]$Runtime, [Parameter(Mandatory)][string]$ServiceId, [switch]$Create)
     if (-not $Runtime.services.Contains($ServiceId)) {
         if (-not $Create) { return $null }
-        $Runtime.services[$ServiceId] = [ordered]@{
+        # Mutators accept hashtables. OrderedDictionary would be converted to a
+        # copy at that boundary, losing top-level ownership/state assignments.
+        $Runtime.services[$ServiceId] = @{
             serviceId = $ServiceId
             lastObservedAt = $null
             state = 'unknown'
@@ -168,6 +170,20 @@ function Get-TtRuntimeServiceRecord {
         }
     }
     return $Runtime.services[$ServiceId]
+}
+
+function Set-TtRunningServiceIntent {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][hashtable]$Registry, [Parameter(Mandatory)][hashtable]$Runtime, [Parameter(Mandatory)][string]$ServiceId, [string]$StateRoot)
+    if (-not $Registry.services.Contains($ServiceId)) { throw "Service '$ServiceId' is not registered." }
+    $service = $Registry.services[$ServiceId]
+    $service.enabled = $true
+    $service.desiredState = 'running'
+    $service.updatedAt = Get-TtUtcNow
+    Save-TtRegistry $Registry $StateRoot
+    $Runtime.session.suppressedServices = @($Runtime.session.suppressedServices | Where-Object { $_ -ne $ServiceId })
+    if (@($Runtime.session.activeServices) -notcontains $ServiceId) { $Runtime.session.activeServices += $ServiceId }
+    Save-TtRuntimeStore $Runtime $StateRoot
 }
 
 function Assert-TtServiceDefinition {

@@ -14,8 +14,8 @@ function Invoke-TtHttpProbe {
 
 function Get-TtHostObservation {
     [CmdletBinding()]
-    param([AllowNull()][hashtable]$HostProcess)
-    if (-not $HostProcess) { return [ordered]@{ configured=$false; running=$true; owned=$true; process=$null } }
+    param([AllowNull()][hashtable]$HostProcess, [bool]$Required = $false)
+    if (-not $HostProcess) { return [ordered]@{ configured=$Required; running=(-not $Required); owned=(-not $Required); process=$null } }
     if (-not $HostProcess.pid) { return [ordered]@{ configured=$true; running=$false; owned=$false; process=$HostProcess } }
     $info = Get-TtProcessInfo ([int]$HostProcess.pid)
     $owned = if ($info.running) { Test-TtOwnedProcess $HostProcess } else { $false }
@@ -32,7 +32,7 @@ function Get-TtServiceObservation {
     )
     $record = Get-TtRuntimeServiceRecord $Runtime $Service.id -Create
     $tunnel = Get-TtOfficialRuntimeStatus -Alias ([string]$Service.tunnel.alias) -Registry $Registry -StateRoot $StateRoot
-    $host = Get-TtHostObservation $record.hostProcess
+    $host = Get-TtHostObservation $record.hostProcess -Required ([bool]($Service.host -and $Service.host.enabled))
     $healthUrl = if ($Service.health -and $Service.health.url) { [string]$Service.health.url } else { $null }
     $readyUrl = if ($Service.health -and $Service.health.readyUrl) { [string]$Service.health.readyUrl } else { $null }
     $timeout = if ($Service.health -and $Service.health.timeoutSeconds) { [int]$Service.health.timeoutSeconds } else { 5 }
