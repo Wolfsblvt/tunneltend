@@ -62,6 +62,25 @@ function Wait-TtServiceHealth {
     return $last
 }
 
+function Confirm-TtOfficialAliasOwnership {
+    [CmdletBinding()]
+    param([hashtable]$Service, [hashtable]$Registry, [hashtable]$Runtime, [string]$StateRoot, [switch]$Reserve)
+    Assert-TtRegistry $Registry
+    $record = Get-TtRuntimeServiceRecord $Runtime $Service.id -Create
+    $alias = [string]$Service.tunnel.alias
+    if ((Get-TtMapValue $record 'officialAlias' '') -ceq $alias) { return }
+    $list = Get-TtOfficialRuntimeList $Registry $StateRoot
+    if (@($list.aliases | Where-Object { [string]$_.alias -ieq $alias }).Count -gt 0) {
+        throw "Official alias '$alias' already exists without TunnelTend ownership. Use 'tunneltend service import $alias --force' to adopt it deliberately and replace the registered definition."
+    }
+    if ($Reserve) {
+        # Reserve before connect: a failed connection may already have created
+        # the upstream alias, and recovery must retain that acquired custody.
+        $record.officialAlias = $alias
+        Save-TtRuntimeStore $Runtime $StateRoot
+    }
+}
+
 function Start-TtManagedService {
     [CmdletBinding()]
     param(
@@ -71,6 +90,7 @@ function Start-TtManagedService {
         [string]$StateRoot
     )
     $record = Get-TtRuntimeServiceRecord $Runtime $Service.id -Create
+    Confirm-TtOfficialAliasOwnership $Service $Registry $Runtime $StateRoot -Reserve
     Start-TtHostProcess $Service $record | Out-Null
     if ($record.hostProcess) { Save-TtRuntimeStore $Runtime $StateRoot }
     if ($Service.host -and $Service.host.enabled -and $Service.health -and $Service.health.url) {
@@ -107,7 +127,10 @@ function Stop-TtManagedService {
         [string]$StateRoot
     )
     $record = Get-TtRuntimeServiceRecord $Runtime $Service.id -Create
-    Stop-TtOfficialRuntime ([string]$Service.tunnel.alias) $Registry $StateRoot | Out-Null
+    Confirm-TtOfficialAliasOwnership $Service $Registry $Runtime $StateRoot
+    if ((Get-TtMapValue $record 'officialAlias' '') -ceq [string]$Service.tunnel.alias) {
+        Stop-TtOfficialRuntime ([string]$Service.tunnel.alias) $Registry $StateRoot | Out-Null
+    }
     Stop-TtHostProcess $Service $record
     $record.state = 'stopped'
     $record.healthy = $false

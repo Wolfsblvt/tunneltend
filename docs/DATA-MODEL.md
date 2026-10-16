@@ -40,6 +40,7 @@ Per-service runtime records may contain:
 - health/readiness/state and last error;
 - tunnel and host-process observations;
 - canonical process identity evidence;
+- `officialAlias`, reserved before creating a fresh upstream alias or recorded by explicit import, so a failed connect retains acquisition custody;
 - source applied/pending fingerprints;
 - recovery attempts, next eligible time, exhaustion, and last result; and
 - last operation data.
@@ -53,6 +54,8 @@ Registry state is desired truth. Runtime state never silently changes desired tr
 Service IDs are lowercase ASCII slugs with letters, numbers, dots, and hyphens. They are stable keys across registry, runtime, logs, tasks, and structured output. Display names may change without changing identity.
 
 Secrets are references, not secret values.
+
+Each official tunnel alias belongs to at most one registration. A registration alone does not adopt an existing upstream alias. Offline registration remains possible; first start checks the official alias list before acquiring custody. Start and stop refuse an existing alias without recorded custody. Explicit `service import <alias> --force` adopts that alias and replaces its registered definition, preserving an existing service ID already associated with it. Runtime records from before alias custody was recorded require that explicit import when the upstream alias already exists.
 
 ## Compatibility
 

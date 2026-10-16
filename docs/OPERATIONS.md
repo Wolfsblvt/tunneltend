@@ -63,7 +63,13 @@ These distinctions let the watchdog remain autonomous without overriding current
 
 Client update preparation occurs while the current fleet remains running. Downtime begins only after release metadata, checksum, extraction, payload, version, and capability preconditions pass. TunnelTend snapshots intended state, stops affected runtimes, replaces the client, verifies it, and restores services. Failure invokes rollback when a backup exists.
 
-Automatic downgrade is refused. Unverified assets remain blocked by default.
+Automatic downgrade is refused. TunnelTend always requires a published SHA-256 digest/checksum for acquisition. Public configuration cannot enable unverified automatic updates; valid code signatures are an additional check, not a substitute for the published checksum. The bundled updater's separate manual emergency switch does not override TunnelTend's automatic requirement.
+
+## Official alias admission
+
+No-start registration works without an installed or reachable official client. Before first start, TunnelTend checks whether the alias already exists. An existing upstream alias must be imported deliberately with `tunneltend service import <alias> --force`; this replaces its registered definition with the upstream target. The import preserves the existing registered service ID when that ID differs from the alias. Ordinary registration and `--force` cannot give a second service control of an already registered alias.
+
+Command registrations resolve their executable relative to the registered working directory and launch the official client there. Native detachment inherits that directory; each TunnelTend restart supplies it again, regardless of the caller's current folder.
 
 ## State and logs
 

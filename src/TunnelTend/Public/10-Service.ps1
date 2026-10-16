@@ -95,6 +95,8 @@ function Register-TtService {
     return Invoke-WithTtLock -StateRoot $StateRoot -ScriptBlock {
         $registry = Get-TtRegistry $StateRoot
         $runtime = Get-TtRuntimeStore $StateRoot
+        if ($null -eq $OrganizationId) { $OrganizationId = @() }
+        if ($null -eq $WorkspaceId) { $WorkspaceId = @() }
         if (@($OrganizationId).Count -eq 0) { $OrganizationId = @($registry.settings.defaults.organizationIds) }
         if (@($WorkspaceId).Count -eq 0) { $WorkspaceId = @($registry.settings.defaults.workspaceIds) }
         $projectPath = $null
@@ -150,6 +152,7 @@ function Register-TtService {
         $service.updatedAt = Get-TtUtcNow
         Assert-TtServiceDefinition $service
         $registry.services[$serviceId] = $service
+        Assert-TtRegistry $registry
         Get-TtRuntimeServiceRecord $runtime $serviceId -Create | Out-Null
 
         $shouldStart = -not $NoStart -and $service.enabled -and $service.desiredState -eq 'running'
@@ -310,9 +313,13 @@ function Import-TtOfficialRuntime {
         $service = New-TtServiceDefinition -Id $id -DisplayName $name -Mcp $mcp -Alias $name -TunnelId ([string]$status.tunnel_id) -OrganizationId @((Get-TtMapValue (Get-TtMapValue $raw 'remote' @{}) 'organization_ids' @())) -WorkspaceId @((Get-TtMapValue (Get-TtMapValue $raw 'remote' @{}) 'workspace_ids' @())) -Autostart $true -Watchdog $true -SourceWatch $false -Enabled $true -DesiredState running -Defaults $registry.settings.defaults
         Invoke-WithTtLock -StateRoot $StateRoot -ScriptBlock {
             $current = Get-TtRegistry $StateRoot; $runtime = Get-TtRuntimeStore $StateRoot
+            $owners = @($current.services.Values | Where-Object { [string]$_.tunnel.alias -ieq [string]$service.tunnel.alias })
+            if ($owners.Count -eq 1) { $id = [string]$owners[0].id; $service.id = $id }
             if ($current.services.Contains($id) -and -not $Force) { throw "Service '$id' is already registered." }
             $current.services[$id] = $service
-            Get-TtRuntimeServiceRecord $runtime $id -Create | Out-Null
+            Assert-TtRegistry $current
+            $record = Get-TtRuntimeServiceRecord $runtime $id -Create
+            $record.officialAlias = [string]$service.tunnel.alias
             if ($status.running -and @($runtime.session.activeServices) -notcontains $id) { $runtime.session.activeServices += $id }
             Save-TtRegistry $current $StateRoot; Save-TtRuntimeStore $runtime $StateRoot
         } | Out-Null

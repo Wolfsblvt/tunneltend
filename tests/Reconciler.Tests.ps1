@@ -26,6 +26,7 @@ Describe 'Managed lifecycle ownership and intent' {
         Mock Test-TtOwnedProcess -ModuleName TunnelTend { $true }
         Mock Stop-TtOwnedProcess -ModuleName TunnelTend {}
         Mock Start-TtOfficialRuntime -ModuleName TunnelTend {}
+        Mock Get-TtOfficialRuntimeList -ModuleName TunnelTend { @{aliases=@()} }
         Mock Stop-TtOfficialRuntime -ModuleName TunnelTend {}
         Mock Write-TtLog -ModuleName TunnelTend {}
         Mock Test-TtServiceConfigurationReady -ModuleName TunnelTend { @{ready=$true;issues=@()} }

@@ -42,11 +42,12 @@ function Invoke-TtOfficialClient {
         [string]$StateRoot,
         [int]$TimeoutSeconds = 60,
         [switch]$AllowFailure,
-        [hashtable]$Environment
+        [hashtable]$Environment,
+        [string]$WorkingDirectory
     )
     if (-not $Registry) { $Registry = Get-TtRegistry $StateRoot }
     $path = Get-TtOfficialClientPath $Registry $StateRoot
-    return Invoke-TtProcess -FilePath $path -ArgumentList $Arguments -TimeoutSeconds $TimeoutSeconds -AllowFailure:$AllowFailure -Environment $Environment
+    return Invoke-TtProcess -FilePath $path -ArgumentList $Arguments -WorkingDirectory $WorkingDirectory -TimeoutSeconds $TimeoutSeconds -AllowFailure:$AllowFailure -Environment $Environment
 }
 
 function Invoke-TtOfficialClientJson {
@@ -57,9 +58,10 @@ function Invoke-TtOfficialClientJson {
         [string]$StateRoot,
         [int]$TimeoutSeconds = 60,
         [switch]$AllowFailure,
-        [hashtable]$Environment
+        [hashtable]$Environment,
+        [string]$WorkingDirectory
     )
-    $result = Invoke-TtOfficialClient -Arguments $Arguments -Registry $Registry -StateRoot $StateRoot -TimeoutSeconds $TimeoutSeconds -AllowFailure:$AllowFailure -Environment $Environment
+    $result = Invoke-TtOfficialClient -Arguments $Arguments -Registry $Registry -StateRoot $StateRoot -WorkingDirectory $WorkingDirectory -TimeoutSeconds $TimeoutSeconds -AllowFailure:$AllowFailure -Environment $Environment
     $payload = $null
     if (-not [string]::IsNullOrWhiteSpace([string]$result.stdout)) {
         try { $payload = $result.stdout | ConvertFrom-Json -AsHashtable -Depth 100 }
@@ -189,7 +191,8 @@ function Get-TtConnectArguments {
     }
     else {
         $command = $Service.mcp.command
-        $commandString = ConvertTo-TtCommandString -File ([string]$command.file) -Arguments @($command.arguments)
+        $file = Resolve-TtExecutable ([string]$command.file) ([string]$command.workingDirectory)
+        $commandString = ConvertTo-TtCommandString -File $file -Arguments @($command.arguments)
         $arguments.Add('--mcp-command'); $arguments.Add($commandString)
     }
     $arguments.Add('--json')
@@ -203,10 +206,12 @@ function Start-TtOfficialRuntime {
         throw "Service '$($Service.id)' needs tunnel.tunnelId, tunnel.organizationIds, or tunnel.workspaceIds before it can start."
     }
     $environment = @{}
+    $workingDirectory = $null
+    if ($Service.mcp.kind -eq 'command') { $workingDirectory = [string]$Service.mcp.command.workingDirectory }
     if ($Service.mcp.kind -eq 'command' -and $Service.mcp.command.environment) {
         $environment = Get-TtResolvedEnvironment $Service.mcp.command.environment
     }
-    $result = Invoke-TtOfficialClientJson -Arguments (Get-TtConnectArguments $Service) -Registry $Registry -StateRoot $StateRoot -TimeoutSeconds $TimeoutSeconds -AllowFailure -Environment $environment
+    $result = Invoke-TtOfficialClientJson -Arguments (Get-TtConnectArguments $Service) -Registry $Registry -StateRoot $StateRoot -WorkingDirectory $workingDirectory -TimeoutSeconds $TimeoutSeconds -AllowFailure -Environment $environment
     $errorText = Protect-TtLogText (($result.process.stderr + [Environment]::NewLine + $result.process.stdout).Trim())
     if ($result.process.exit_code -ne 0) {
         throw "Official runtime connect failed for '$($Service.id)': $errorText"

@@ -43,7 +43,7 @@ Official runtime stop/restart uses the official client's runtime commands rather
 
 ## Download and archive safety
 
-The updater fixes the source repository to `openai/tunnel-client`, accepts only allowed HTTPS release hosts, selects one exact Windows architecture asset, and requires published SHA-256 evidence by default.
+The updater fixes the source repository to `openai/tunnel-client`, accepts only allowed HTTPS release hosts, and selects one exact Windows architecture asset. TunnelTend acquisition always requires published SHA-256 evidence before extraction. Neither public configuration, force, the standalone emergency override, nor trusted Authenticode signatures can bypass that automatic requirement.
 
 Safe extraction rejects or bounds:
 

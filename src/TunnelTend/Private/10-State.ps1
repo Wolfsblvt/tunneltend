@@ -154,6 +154,7 @@ function Get-TtRuntimeServiceRecord {
             consecutiveFailures = 0
             lastError = $null
             tunnel = $null
+            officialAlias = $null
             hostProcess = $null
             source = [ordered]@{
                 appliedFingerprint = $null
@@ -244,10 +245,15 @@ function Assert-TtRegistry {
     [CmdletBinding()]
     param([Parameter(Mandatory)][hashtable]$Registry)
     if ([int]$Registry.schemaVersion -ne 1) { throw "Unsupported registry schema version '$($Registry.schemaVersion)'." }
+    if ($Registry.settings.officialClient.allowUnverifiedAsset -isnot [bool] -or $Registry.settings.officialClient.allowUnverifiedAsset) {
+        throw 'Automatic official-client acquisition requires published digest/checksum verification; allowUnverifiedAsset must be false.'
+    }
+    $aliases = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($id in $Registry.services.Keys) {
         $service = $Registry.services[$id]
         if ([string]$service.id -ne [string]$id) { throw "Registry key '$id' does not match service id '$($service.id)'." }
         Assert-TtServiceDefinition $service
+        if (-not $aliases.Add([string]$service.tunnel.alias)) { throw "Official alias '$($service.tunnel.alias)' is already controlled by another registration." }
     }
 }
 

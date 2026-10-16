@@ -36,6 +36,10 @@ The current `connect` surface includes organization/workspace scope, existing tu
 - Stdio MCP commands are parsed by the official client's command-string parser, so TunnelTend renders registered executable/argument arrays into that grammar inside its adapter.
 - `env:NAME` and `file:path` are accepted secret-reference forms.
 
+## Launch context source check
+
+On 2026-10-16, the stable release remained [v0.0.16](https://github.com/openai/tunnel-client/releases/tag/v0.0.16). Its [native process starter](https://github.com/openai/tunnel-client/blob/v0.0.16/pkg/codexplugin/session/session.go#L1168-L1194) and [stdio command transport](https://github.com/openai/tunnel-client/blob/v0.0.16/pkg/mcpclient/stdio_command.go#L81-L92) do not replace the inherited working directory. TunnelTend supplies the registered directory when invoking `runtimes connect` and resolves the command executable against that same directory. Fixture process tests exercise directory inheritance through detachment and repeated launch for Node and npm; they double the official-provider boundary and do not establish connected upstream behavior.
+
 ## Acceptance boundary
 
 TunnelTend still requires live compatibility qualification for the exact downloaded Windows binary. Source inspection and release metadata support adapter design but do not prove Windows process, control-plane, or runtime behavior.

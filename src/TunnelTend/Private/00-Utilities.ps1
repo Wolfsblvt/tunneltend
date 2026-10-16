@@ -31,7 +31,7 @@ function ConvertTo-TtHashtable {
         if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
             $items = @()
             foreach ($item in $InputObject) { $items += ,(ConvertTo-TtHashtable $item) }
-            return $items
+            return ,$items
         }
         if ($InputObject -is [pscustomobject]) {
             $result = [ordered]@{}
@@ -57,8 +57,10 @@ function Get-TtMapValue {
 
 function Copy-TtObject {
     [CmdletBinding()]
-    param([Parameter(Mandatory)]$InputObject)
-    return (($InputObject | ConvertTo-Json -Depth 100 -Compress) | ConvertFrom-Json -AsHashtable -Depth 100)
+    param([Parameter(Mandatory)][AllowNull()]$InputObject)
+    # Pipeline enumeration otherwise turns [] into null and [one] into a scalar
+    # while merging descriptors; preserve the JSON value's collection shape.
+    return ,((ConvertTo-Json -InputObject $InputObject -Depth 100 -Compress) | ConvertFrom-Json -AsHashtable -Depth 100 -NoEnumerate)
 }
 
 

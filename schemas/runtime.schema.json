@@ -20,7 +20,16 @@
       "type": "object"
     },
     "services": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "officialAlias": {
+            "type": ["string", "null"],
+            "description": "Alias reserved before first connect or deliberately adopted through import. Absent records carry no upstream ownership."
+          }
+        }
+      }
     }
   }
 }

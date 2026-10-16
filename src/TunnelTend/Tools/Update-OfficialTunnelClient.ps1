@@ -39,6 +39,10 @@ Emergency escape hatch. Permits an asset that has neither a published SHA-256
 value nor sufficient trusted OpenAI Authenticode signatures. Invalid signatures
 are still rejected. Prefer fixing the release-selection/checksum issue instead.
 
+.PARAMETER RequirePublishedChecksum
+Requires a published SHA-256 digest or checksum even when code signatures or
+an emergency override would otherwise allow the asset. TunnelTend always sets this.
+
 .EXAMPLE
 pwsh -NoProfile -File .\Update-OpenAITunnelClient.ps1 `
   -ConfigPath .\OpenAITunnelUpdater.json -CheckOnly
@@ -60,7 +64,10 @@ param(
     [switch] $Force,
 
     [Parameter()]
-    [switch] $AllowUnverifiedAsset
+    [switch] $AllowUnverifiedAsset,
+
+    [Parameter()]
+    [switch] $RequirePublishedChecksum
 )
 
 Set-StrictMode -Version Latest
@@ -1722,6 +1729,9 @@ function Invoke-Updater {
                 $archiveVerified = $true
                 $verificationSource = $publishedHash.Source
                 Write-Log -Level 'INFO' -Message "Archive SHA-256 verified using $verificationSource."
+            }
+            if ($RequirePublishedChecksum -and -not $archiveVerified) {
+                throw 'Automatic acquisition requires a published SHA-256 digest/checksum. Code signatures and emergency overrides cannot replace it.'
             }
 
             Expand-ZipSafely `

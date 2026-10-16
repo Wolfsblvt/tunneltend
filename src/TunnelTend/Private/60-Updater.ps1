@@ -78,7 +78,7 @@ function Get-TtOfficialClientUpdaterConfig {
         maximumExtractedBytes = 1073741824
         maximumArchiveEntries = 2048
         stateDirectory = [IO.Path]::Combine($paths.Root, 'official-client-updater')
-        allowUnverifiedAsset = [bool]$Registry.settings.officialClient.allowUnverifiedAsset
+        allowUnverifiedAsset = $false
         verboseLogging = $false
     }
 }
@@ -86,13 +86,13 @@ function Get-TtOfficialClientUpdaterConfig {
 function Invoke-TtBundledUpdater {
     [CmdletBinding()]
     param([Parameter(Mandatory)][hashtable]$Registry, [string]$StateRoot, [switch]$CheckOnly, [switch]$Force)
+    Assert-TtRegistry $Registry
     $paths = Initialize-TtStateDirectories $StateRoot
     $config = Get-TtOfficialClientUpdaterConfig $Registry $StateRoot
     Write-TtJsonAtomic $paths.ClientUpdater $config
-    $arguments = @('-NoLogo','-NoProfile','-NonInteractive','-File',(Get-TtUpdaterScriptPath),'-ConfigPath',$paths.ClientUpdater)
+    $arguments = @('-NoLogo','-NoProfile','-NonInteractive','-File',(Get-TtUpdaterScriptPath),'-ConfigPath',$paths.ClientUpdater,'-RequirePublishedChecksum')
     if ($CheckOnly) { $arguments += '-CheckOnly' }
     if ($Force) { $arguments += '-Force' }
-    if ($config.allowUnverifiedAsset) { $arguments += '-AllowUnverifiedAsset' }
     $pwsh = (Get-Process -Id $PID).Path
     return Invoke-TtProcess -FilePath $pwsh -ArgumentList $arguments -TimeoutSeconds 600 -AllowFailure
 }
