@@ -16,6 +16,7 @@ Describe 'Official client maintenance transaction' {
         New-Item -ItemType Directory -Path $script:Registry.settings.officialClient.installDirectory -Force | Out-Null
         Set-Content -LiteralPath $script:Registry.settings.officialClient.executablePath -Value 'previous client'
         $script:Runtime = & $script:Module { New-TtDefaultRuntimeStore }
+        $script:Runtime.session.activeServices = @('demo')
         Mock Test-TtOfficialClientNeedsUpdate -ModuleName TunnelTend { @{ needed=$true; latestVersion='0.0.16'; installed=@{version='0.0.15'} } }
         Mock Get-TtServiceObservation -ModuleName TunnelTend { @{tunnel=@{running=$true};host=@{configured=$false;running=$false}} }
         Mock Save-TtRuntimeStore -ModuleName TunnelTend {}

@@ -63,6 +63,10 @@ These distinctions let the watchdog remain autonomous without overriding current
 
 Client update preparation occurs while the current fleet remains running. Downtime begins only after release metadata, checksum, extraction, payload, version, and capability preconditions pass. TunnelTend snapshots intended state, stops affected runtimes, replaces the client, verifies it, and restores services. Failure invokes rollback when a backup exists.
 
+Update and explicit `client restore` replace only the configured executable. An external path keeps its selected directory and filename; unrelated sibling files are neither backed up nor replaced. New backups contain the executable and a manifest. Existing directory backups remain usable, but only their selected executable is restored.
+
+The previous executable remains recoverable until installed-client capability checks and restoration of all intended active services succeed. Restoration attempts every eligible service even if one fails, and never reactivates current-session-suppressed services. A failure restores previous bytes and retries the intended fleet. If a possibly started runtime refuses a safe stop, replacement is refused and the error names the retained fallback file for recovery; ownership protections remain in force.
+
 Automatic downgrade is refused. TunnelTend always requires a published SHA-256 digest/checksum for acquisition. Public configuration cannot enable unverified automatic updates; valid code signatures are an additional check, not a substitute for the published checksum. The bundled updater's separate manual emergency switch does not override TunnelTend's automatic requirement.
 
 ## Official alias admission

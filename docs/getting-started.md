@@ -38,6 +38,8 @@ Useful installation switches:
 | `-TunnelClientPath C:\tools\tunnel-client.exe` | Use an existing official client. |
 | `-InstallRoot` / `-StateRoot` | Select explicit program and state paths. |
 
+Program and state roots must be different directories. A dedicated nested state path such as `C:\Tools\TunnelTend\data\state` is supported; do not place state in a program payload directory such as `src` or `official-client`. Reinstallation preserves nested state at the selected coordinate. When `-StateRoot` is omitted, reinstall and uninstall use the selected installation's `install.json` receipt before falling back to the default state root. An invalid receipt requires an explicit `-StateRoot` override.
+
 Secret references have these forms:
 
 ```text
@@ -81,10 +83,12 @@ Plain-language constraints such as “disable automatic client updates” or “
 
 ## Uninstall or preserve state
 
-Run from the source checkout, using the same custom roots if you installed with them:
+Run from the source checkout, supplying `-InstallRoot` if you selected a custom program directory. The installation receipt resolves a custom state root unless you explicitly override it:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Uninstall-TunnelTend.ps1 -Confirm:$false
 ```
 
 Normal uninstall removes tasks, program files, and the managed PATH entry while preserving registered state. `-RemoveOfficialClient` also removes a managed client inside the installation. `-PurgeState` explicitly removes the selected registry, logs, and backups; use it only when those are disposable or already preserved.
+
+For state nested below the installation, reinstall and normal uninstall preserve its entire dedicated top-level container, including sibling state and junction targets. `-SkipPath` leaves user PATH unchanged, matching the installer's option for installations without a PATH entry.

@@ -510,8 +510,10 @@ function Test-TtOwnedProcess {
     $actual = [IO.Path]::GetFullPath([string]$info.executable_path)
     if (-not [string]::Equals($expected, $actual, [StringComparison]::OrdinalIgnoreCase)) { return $false }
     if ($ProcessRecord.start_time_utc -and $info.start_time_utc) {
-        $expectedStart = [DateTimeOffset]::Parse([string]$ProcessRecord.start_time_utc)
-        $actualStart = [DateTimeOffset]::Parse([string]$info.start_time_utc)
+        # JSON readers on supported PowerShell versions may materialize dates.
+        # Casting those through string loses their Kind/offset and precision.
+        $expectedStart = [DateTimeOffset]$ProcessRecord.start_time_utc
+        $actualStart = [DateTimeOffset]$info.start_time_utc
         if ([Math]::Abs(($expectedStart - $actualStart).TotalSeconds) -gt 2) { return $false }
     }
     return $true

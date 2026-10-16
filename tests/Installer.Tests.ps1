@@ -73,3 +73,139 @@ Describe 'Installer replacement rollback' {
         Should -Invoke Install-TtAutomation -Exactly 0
     }
 }
+
+Describe 'Installation state custody' {
+    BeforeEach {
+        $script:CustodyInstall = Join-Path $TestDrive 'custody-program'
+        $script:CustodyState = Join-Path $script:CustodyInstall 'data/state'
+        New-Item -ItemType Directory -Path $script:CustodyState -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') -Value 'valued registry'
+        Set-Content -LiteralPath (Join-Path $script:CustodyState 'runtime.json') -Value 'valued session'
+        Set-Content -LiteralPath (Join-Path (Split-Path $script:CustodyState) 'sibling.txt') -Value 'sibling state'
+        Set-Content -LiteralPath (Join-Path $script:CustodyInstall 'old-program.txt') -Value 'old program'
+        @{product='tunneltend';installRoot=$script:CustodyInstall;stateRoot=$script:CustodyState} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $script:CustodyInstall 'install.json')
+        Mock Import-Module {}
+        Mock Set-TtConfiguration {}
+        Mock Install-TtAutomation {}
+        Mock Get-TtAutomationStatus { @{tasks=@()} }
+        Mock Uninstall-TtAutomation {}
+        Mock Get-TtService { @() }
+        Mock Stop-TtService {}
+        Mock Invoke-TtDoctor { @{status='ok'} }
+        Mock Get-TtStatus { @{} }
+    }
+
+    It 'preserves a nested state root at its selected path during reinstall using the receipt' {
+        & $script:Installer -InstallRoot $script:CustodyInstall -NonInteractive -SkipClientInstall -SkipPath
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'runtime.json') | Should -Be 'valued session'
+        Get-Content -LiteralPath (Join-Path (Split-Path $script:CustodyState) 'sibling.txt') | Should -Be 'sibling state'
+        (Get-Content -Raw (Join-Path $script:CustodyInstall 'install.json') | ConvertFrom-Json).stateRoot | Should -Be $script:CustodyState
+        Should -Invoke Set-TtConfiguration -ParameterFilter { $StateRoot -eq $script:CustodyState }
+        Test-Path -LiteralPath (Join-Path $script:CustodyInstall 'old-program.txt') | Should -BeFalse
+    }
+
+    It 'restores program files and nested state after replacement configuration fails' {
+        Mock Set-TtConfiguration { throw 'configuration refused' }
+        { & $script:Installer -InstallRoot $script:CustodyInstall -StateRoot $script:CustodyState -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*configuration refused*'
+        Get-Content -LiteralPath (Join-Path $script:CustodyInstall 'old-program.txt') | Should -Be 'old program'
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'runtime.json') | Should -Be 'valued session'
+    }
+
+    It 'uninstalls program files while retaining nested state resolved from the receipt' {
+        & $script:Uninstaller -InstallRoot $script:CustodyInstall -SkipPath -Confirm:$false
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'runtime.json') | Should -Be 'valued session'
+        Test-Path -LiteralPath (Join-Path $script:CustodyInstall 'old-program.txt') | Should -BeFalse
+        Test-Path -LiteralPath (Join-Path $script:CustodyInstall 'install.json') | Should -BeFalse
+        Get-Content -LiteralPath (Join-Path (Split-Path $script:CustodyState) 'sibling.txt') | Should -Be 'sibling state'
+    }
+
+    It 'resolves a separate custom state root for service shutdown without deleting it' {
+        $customState = Join-Path $TestDrive 'separate-custom-state'
+        New-Item -ItemType Directory -Path $customState -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $customState 'registry.json') -Value 'separate registry'
+        @{product='tunneltend';installRoot=$script:CustodyInstall;stateRoot=$customState} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $script:CustodyInstall 'install.json')
+        $modulePath = Join-Path $script:CustodyInstall 'src/TunnelTend/TunnelTend.psd1'
+        New-Item -ItemType Directory -Path (Split-Path $modulePath) -Force | Out-Null
+        Set-Content -LiteralPath $modulePath -Value ''
+        & $script:Uninstaller -InstallRoot $script:CustodyInstall -SkipPath -Confirm:$false
+        Should -Invoke Get-TtService -Exactly 1 -ParameterFilter { $StateRoot -eq $customState }
+        Get-Content -LiteralPath (Join-Path $customState 'registry.json') | Should -Be 'separate registry'
+    }
+
+    It 'removes nested state only with an explicit purge' {
+        & $script:Uninstaller -InstallRoot $script:CustodyInstall -PurgeState -SkipPath -Confirm:$false
+        Test-Path -LiteralPath $script:CustodyState | Should -BeFalse
+    }
+
+    It 'emits self-uninstall cleanup that also preserves nested state' {
+        $scripts = Join-Path $script:CustodyInstall 'scripts'
+        New-Item -ItemType Directory -Path $scripts -Force | Out-Null
+        Copy-Item -LiteralPath $script:Uninstaller -Destination $scripts
+        Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../scripts/InstallationPaths.ps1') -Destination $scripts
+        Mock Start-Process {
+            param($ArgumentList)
+            $encodedIndex = [Array]::IndexOf($ArgumentList, '-EncodedCommand')
+            $encodedIndex | Should -BeGreaterOrEqual 0
+            $cleanup = [Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($ArgumentList[$encodedIndex + 1]))
+            & ([scriptblock]::Create($cleanup))
+        }
+        & (Join-Path $scripts 'Uninstall-TunnelTend.ps1') -InstallRoot $script:CustodyInstall -SkipPath -Confirm:$false
+        Should -Invoke Start-Process -Exactly 1 -ParameterFilter { $WindowStyle -eq 'Hidden' }
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
+        Test-Path -LiteralPath $scripts | Should -BeFalse
+    }
+
+    It 'preserves a nested state container junction and its external sibling files' {
+        $target = Join-Path $TestDrive 'junction-target'
+        $linkedState = Join-Path $script:CustodyInstall 'linked-data/state'
+        New-Item -ItemType Directory -Path (Join-Path $target 'state') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $target 'state/registry.json') -Value 'linked registry'
+        Set-Content -LiteralPath (Join-Path $target 'unrelated.txt') -Value 'external sibling'
+        New-Item -ItemType Junction -Path (Join-Path $script:CustodyInstall 'linked-data') -Target $target | Out-Null
+        & $script:Installer -InstallRoot $script:CustodyInstall -StateRoot $linkedState -NonInteractive -SkipClientInstall -SkipPath
+        (Get-Item -LiteralPath (Join-Path $script:CustodyInstall 'linked-data')).Attributes.HasFlag([IO.FileAttributes]::ReparsePoint) | Should -BeTrue
+        Get-Content -LiteralPath (Join-Path $target 'state/registry.json') | Should -Be 'linked registry'
+        & $script:Uninstaller -InstallRoot $script:CustodyInstall -SkipPath -Confirm:$false
+        Get-Content -LiteralPath (Join-Path $target 'unrelated.txt') | Should -Be 'external sibling'
+        Get-Content -LiteralPath (Join-Path $linkedState 'registry.json') | Should -Be 'linked registry'
+    }
+
+    It 'rejects identical roots before configuration, automation, or filesystem mutation' {
+        { & $script:Installer -InstallRoot $script:CustodyInstall -StateRoot $script:CustodyInstall -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*must differ*'
+        { & $script:Uninstaller -InstallRoot $script:CustodyInstall -StateRoot $script:CustodyInstall -SkipPath -Confirm:$false } | Should -Throw '*must differ*'
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
+        Should -Invoke Set-TtConfiguration -Exactly 0
+        Should -Invoke Uninstall-TtAutomation -Exactly 0
+    }
+
+    It 'refuses a nested state collision with staged program payload before replacement' {
+        $collisionState = Join-Path $script:CustodyInstall 'assets/state'
+        New-Item -ItemType Directory -Path $collisionState -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $collisionState 'registry.json') -Value 'collision state'
+        { & $script:Installer -InstallRoot $script:CustodyInstall -StateRoot $collisionState -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*own directory*'
+        Get-Content -LiteralPath (Join-Path $collisionState 'registry.json') | Should -Be 'collision state'
+        Get-Content -LiteralPath (Join-Path $script:CustodyInstall 'old-program.txt') | Should -Be 'old program'
+        Should -Invoke Set-TtConfiguration -Exactly 0
+    }
+
+    It 'refuses payload overlap when reinstalling through the installed script itself' {
+        & $script:Installer -InstallRoot $script:CustodyInstall -NonInteractive -SkipClientInstall -SkipPath
+        $collisionState = Join-Path $script:CustodyInstall 'docs/state'
+        New-Item -ItemType Directory -Path $collisionState -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $collisionState 'registry.json') -Value 'installed payload state'
+        { & (Join-Path $script:CustodyInstall 'scripts/Install-TunnelTend.ps1') -InstallRoot $script:CustodyInstall -StateRoot $collisionState -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*own directory*'
+        Get-Content -LiteralPath (Join-Path $collisionState 'registry.json') | Should -Be 'installed payload state'
+        Test-Path -LiteralPath (Join-Path $script:CustodyInstall 'src/TunnelTend/TunnelTend.psd1') | Should -BeTrue
+    }
+
+    It 'refuses a malformed receipt before effects and accepts an explicit state override' {
+        Set-Content -LiteralPath (Join-Path $script:CustodyInstall 'install.json') -Value '{bad json'
+        { & $script:Uninstaller -InstallRoot $script:CustodyInstall -SkipPath -Confirm:$false } | Should -Throw
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
+        & $script:Uninstaller -InstallRoot $script:CustodyInstall -StateRoot $script:CustodyState -SkipPath -Confirm:$false
+        Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
+    }
+}

@@ -25,9 +25,10 @@ if ($PSVersionTable.PSVersion -lt [version]'7.4.0') { throw 'TunnelTend requires
 
 $sourceRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $InstallRoot) { $InstallRoot = Join-Path $env:LOCALAPPDATA 'Programs/TunnelTend' }
-if (-not $StateRoot) { $StateRoot = Join-Path $env:LOCALAPPDATA 'TunnelTend/state' }
 $InstallRoot = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($InstallRoot))
-$StateRoot = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($StateRoot))
+. (Join-Path $PSScriptRoot 'InstallationPaths.ps1')
+$StateRoot = Resolve-TtInstallationStateRoot $InstallRoot $StateRoot
+Assert-TtInstallationRoots $InstallRoot $StateRoot
 
 function Read-Choice([string]$Prompt,[bool]$Default) {
     if ($NonInteractive) { return $Default }
@@ -51,13 +52,29 @@ $backup = $null
 $replacementStarted = $false
 $automationInstalled = $false
 $automationSnapshot = @{}
+$nestedState = Test-TtInstallationPathWithin $StateRoot $InstallRoot
+$stateDirectory = if ($nestedState) { ([IO.Path]::GetRelativePath($InstallRoot, $StateRoot) -split '[\\/]')[0] } else { $null }
+$stateContainer = if ($nestedState) { Join-Path $InstallRoot $stateDirectory } else { $null }
+$preservedState = "$InstallRoot.state-$([Guid]::NewGuid().ToString('N'))"
 try {
     New-Item -ItemType Directory -Path $temp -Force | Out-Null
     $exclude = @('.git','artifacts','.validation')
     foreach ($item in Get-ChildItem -LiteralPath $sourceRoot -Force) {
         if ($item.Name -in $exclude) { continue }
+        if ($nestedState -and (Test-TtInstallationPathWithin $StateRoot $item.FullName)) {
+            if ($item.Name -in @('src','scripts','schemas','tests','docs','assets','carriers','examples')) {
+                throw 'A nested StateRoot must use its own directory, separate from TunnelTend program payload paths (for example InstallRoot/data/state).'
+            }
+            continue
+        }
         Copy-Item -LiteralPath $item.FullName -Destination $temp -Recurse -Force
     }
+    if ($nestedState) {
+        if (Test-Path -LiteralPath (Join-Path $temp $stateDirectory)) {
+            throw 'A nested StateRoot must use its own directory, separate from TunnelTend program payload paths (for example InstallRoot/data/state).'
+        }
+    }
+    if ($nestedState -and [IO.Directory]::Exists($stateContainer)) { [IO.Directory]::Move($stateContainer, $preservedState) }
     if (Test-Path -LiteralPath $InstallRoot) {
         $backup = "$InstallRoot.previous-$([DateTimeOffset]::UtcNow.ToString('yyyyMMddHHmmss'))"
         Move-Item -LiteralPath $InstallRoot -Destination $backup -Force
@@ -65,6 +82,9 @@ try {
     New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($InstallRoot)) -Force | Out-Null
     $replacementStarted = $true
     Move-Item -LiteralPath $temp -Destination $InstallRoot
+    if ([IO.Directory]::Exists($preservedState)) {
+        [IO.Directory]::Move($preservedState, $stateContainer)
+    }
 
     $env:TUNNELTEND_CLI_PATH = Join-Path $InstallRoot 'tunneltend.ps1'
     Import-Module (Join-Path $InstallRoot 'src/TunnelTend/TunnelTend.psd1') -Force
@@ -124,8 +144,13 @@ catch {
         Uninstall-TtAutomation | Out-Null
         foreach ($name in $automationSnapshot.Keys) { Register-ScheduledTask -TaskName $name -TaskPath '\TunnelTend\' -Xml $automationSnapshot[$name] -Force | Out-Null }
     }
-    if ($replacementStarted -and (Test-Path -LiteralPath $InstallRoot)) { Remove-Item -LiteralPath $InstallRoot -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($replacementStarted -and $nestedState -and [IO.Directory]::Exists($stateContainer)) { [IO.Directory]::Move($stateContainer, $preservedState) }
+    if ($replacementStarted -and (Test-Path -LiteralPath $InstallRoot)) { Remove-Item -LiteralPath $InstallRoot -Recurse -Force }
     if ($backup -and (Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $InstallRoot)) { Move-Item -LiteralPath $backup -Destination $InstallRoot }
+    if ([IO.Directory]::Exists($preservedState)) {
+        [IO.Directory]::CreateDirectory($InstallRoot) | Out-Null
+        [IO.Directory]::Move($preservedState, $stateContainer)
+    }
     throw $installError
 }
 finally {
