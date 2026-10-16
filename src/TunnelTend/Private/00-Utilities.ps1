@@ -406,7 +406,10 @@ function Invoke-TtProcess {
         [switch]$AllowFailure,
         [string]$StandardInput
     )
+    if ($IsWindows -and ([IO.Path]::GetFileName($FilePath) -match '^pwsh\.console-original-[0-9]+\.exe$' -or $FilePath -in @('pwsh','pwsh.exe'))) { $FilePath = Get-TtPowerShellExecutable }
+    $ArgumentList = Get-TtUnattendedPowerShellArguments $FilePath $ArgumentList
     $resolved = Resolve-TtExecutable $FilePath $WorkingDirectory
+    $resolved = Resolve-TtPowerShellProcessPath $resolved
     $psi = [Diagnostics.ProcessStartInfo]::new()
     $psi.FileName = $resolved
     $psi.UseShellExecute = $false
@@ -458,7 +461,10 @@ function Start-TtDetachedProcess {
         [string]$WorkingDirectory,
         [hashtable]$Environment
     )
+    if ($IsWindows -and ([IO.Path]::GetFileName($FilePath) -match '^pwsh\.console-original-[0-9]+\.exe$' -or $FilePath -in @('pwsh','pwsh.exe'))) { $FilePath = Get-TtPowerShellExecutable }
+    $ArgumentList = Get-TtUnattendedPowerShellArguments $FilePath $ArgumentList
     $resolved = Resolve-TtExecutable $FilePath $WorkingDirectory
+    $resolved = Resolve-TtPowerShellProcessPath $resolved
     $psi = [Diagnostics.ProcessStartInfo]::new()
     $psi.FileName = $resolved
     $psi.UseShellExecute = $false

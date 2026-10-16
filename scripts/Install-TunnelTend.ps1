@@ -12,6 +12,7 @@ param(
     [string[]]$WorkspaceId,
     [string]$RuntimeKeyRef = 'env:CONTROL_PLANE_API_KEY',
     [string]$TunnelClientPath,
+    [string]$PowerShellPath,
     [string[]]$RegisterPath,
     [switch]$SkipClientInstall,
     [switch]$SkipPath,
@@ -31,6 +32,10 @@ $InstallRoot = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables(
 . (Join-Path $PSScriptRoot 'InstallationPaths.ps1')
 $StateRoot = Resolve-TtInstallationStateRoot $InstallRoot $StateRoot
 Assert-TtInstallationRoots $InstallRoot $StateRoot
+if (-not $PowerShellPath -and [IO.File]::Exists((Join-Path $InstallRoot 'install.json'))) {
+    $previousReceipt = Get-Content -Raw -LiteralPath (Join-Path $InstallRoot 'install.json') | ConvertFrom-Json -AsHashtable
+    if ($previousReceipt.Contains('powerShellPath')) { $PowerShellPath = [string]$previousReceipt.powerShellPath }
+}
 
 function Read-Choice([string]$Prompt,[bool]$Default) {
     if ($NonInteractive) { return $Default }
@@ -76,6 +81,8 @@ try {
             throw 'A nested StateRoot must use its own directory, separate from TunnelTend program payload paths (for example InstallRoot/data/state).'
         }
     }
+    $nativeHost = Join-Path $temp 'bin/TunnelTend.TaskHost.exe'
+    if (-not [IO.File]::Exists($nativeHost)) { & (Join-Path $temp 'scripts/Build-WindowsLauncher.ps1') -OutputPath $nativeHost | Out-Null }
     if ($nestedState -and [IO.Directory]::Exists($stateContainer)) { [IO.Directory]::Move($stateContainer, $preservedState) }
     if (Test-Path -LiteralPath $InstallRoot) {
         $backup = "$InstallRoot.previous-$([DateTimeOffset]::UtcNow.ToString('yyyyMMddHHmmss'))"
@@ -90,6 +97,11 @@ try {
 
     $env:TUNNELTEND_CLI_PATH = Join-Path $InstallRoot 'tunneltend.ps1'
     Import-Module (Join-Path $InstallRoot 'src/TunnelTend/TunnelTend.psd1') -Force
+    $PowerShellPath = & (Get-Module TunnelTend | Select-Object -First 1) { param($path) Get-TtPowerShellExecutable $path } $PowerShellPath
+    # Acquisition and optional service registration also launch PowerShell. Make
+    # the selected runtime available to them inside this rollback transaction.
+    $manifest = [ordered]@{ product='tunneltend'; version='0.1.0-preview.1'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot; powerShellPath=$PowerShellPath }
+    $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $InstallRoot 'install.json') -Encoding utf8NoBOM
     Set-TtConfiguration -Path 'settings.automation.autostart' -Value (-not $DisableAutostart) -StateRoot $StateRoot | Out-Null
     Set-TtConfiguration -Path 'settings.automation.autoUpdate' -Value (-not $DisableAutoUpdate) -StateRoot $StateRoot | Out-Null
     Set-TtConfiguration -Path 'settings.automation.watchdog' -Value (-not $DisableWatchdog) -StateRoot $StateRoot | Out-Null
@@ -118,10 +130,8 @@ try {
     foreach ($task in (Get-TtAutomationStatus -StateRoot $StateRoot).tasks) {
         if ($task.installed) { $automationSnapshot[$task.name] = Export-ScheduledTask -TaskName $task.name -TaskPath '\TunnelTend\' }
     }
-    Install-TtAutomation -StateRoot $StateRoot | Out-Null
+    Install-TtAutomation -StateRoot $StateRoot -PowerShellPath $PowerShellPath | Out-Null
     $automationInstalled = $true
-    $manifest = [ordered]@{ product='tunneltend'; version='0.1.0-preview.1'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot }
-    $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $InstallRoot 'install.json') -Encoding utf8NoBOM
     $doctor = Invoke-TtDoctor -StateRoot $StateRoot
     $status = Get-TtStatus -StateRoot $StateRoot
     # Publish the command only after acquisition, task registration, and the

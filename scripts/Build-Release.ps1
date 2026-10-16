@@ -35,6 +35,8 @@ foreach ($item in $include) {
 }
 
 
+& (Join-Path $stage 'scripts/Build-WindowsLauncher.ps1') -OutputPath (Join-Path $stage 'bin/TunnelTend.TaskHost.exe') | Out-Null
+
 # Stamp the staged package without mutating the source checkout.
 $stagedManifest = Join-Path $stage 'src/TunnelTend/TunnelTend.psd1'
 $manifestText = Get-Content $stagedManifest -Raw

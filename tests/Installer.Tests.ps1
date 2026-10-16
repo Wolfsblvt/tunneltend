@@ -1,7 +1,13 @@
 BeforeAll {
     Import-Module (Join-Path $PSScriptRoot '../src/TunnelTend/TunnelTend.psd1') -Force
-    $script:Installer = Join-Path $PSScriptRoot '../scripts/Install-TunnelTend.ps1'
-    $script:Uninstaller = Join-Path $PSScriptRoot '../scripts/Uninstall-TunnelTend.ps1'
+    # Share one immutable compiled payload. Installer cases exercise real staging
+    # and replacement without recompiling identical C# for every scenario.
+    $seed = Join-Path $TestDrive 'installer-source'
+    New-Item -ItemType Directory -Path $seed | Out-Null
+    Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..') -Force | Where-Object { $_.Name -notin @('.git','artifacts','.validation') } | Copy-Item -Destination $seed -Recurse -Force
+    & (Join-Path $seed 'scripts/Build-WindowsLauncher.ps1') -OutputPath (Join-Path $seed 'bin/TunnelTend.TaskHost.exe') | Out-Null
+    $script:Installer = Join-Path $seed 'scripts/Install-TunnelTend.ps1'
+    $script:Uninstaller = Join-Path $seed 'scripts/Uninstall-TunnelTend.ps1'
 }
 
 Describe 'Uninstall preview' {
@@ -10,7 +16,7 @@ Describe 'Uninstall preview' {
         $modulePath = Join-Path $install 'src/TunnelTend/TunnelTend.psd1'
         New-Item -ItemType Directory -Path (Split-Path $modulePath) -Force | Out-Null
         Set-Content -LiteralPath $modulePath -Value ''
-        Mock Import-Module {}
+        Mock Import-Module { Get-Module TunnelTend | Select-Object -First 1 }
         Mock Uninstall-TtAutomation {}
         Mock Get-TtService { @(@{id='preview-service'}) }
         Mock Stop-TtService {}
@@ -25,7 +31,7 @@ Describe 'Uninstall preview' {
 
 Describe 'Installer optional service selection' {
     It 'does not import every alias or register an empty path when selectors are omitted' {
-        Mock Import-Module {}
+        Mock Import-Module { Get-Module TunnelTend | Select-Object -First 1 }
         Mock Set-TtConfiguration {}
         Mock Install-TtAutomation {}
         Mock Get-TtAutomationStatus { @{ tasks = @() } }
@@ -48,7 +54,7 @@ Describe 'Installer replacement rollback' {
         $script:ExistingInstall = Join-Path $TestDrive 'existing-program'
         New-Item -ItemType Directory -Path $script:ExistingInstall -Force | Out-Null
         Set-Content -LiteralPath (Join-Path $script:ExistingInstall 'original.txt') -Value 'existing installation'
-        Mock Import-Module {}
+        Mock Import-Module { Get-Module TunnelTend | Select-Object -First 1 }
         Mock Install-TtAutomation { throw 'Automation must not be reached' }
     }
 
@@ -84,7 +90,7 @@ Describe 'Installation state custody' {
         Set-Content -LiteralPath (Join-Path (Split-Path $script:CustodyState) 'sibling.txt') -Value 'sibling state'
         Set-Content -LiteralPath (Join-Path $script:CustodyInstall 'old-program.txt') -Value 'old program'
         @{product='tunneltend';installRoot=$script:CustodyInstall;stateRoot=$script:CustodyState} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $script:CustodyInstall 'install.json')
-        Mock Import-Module {}
+        Mock Import-Module { Get-Module TunnelTend | Select-Object -First 1 }
         Mock Set-TtConfiguration {}
         Mock Install-TtAutomation {}
         Mock Get-TtAutomationStatus { @{tasks=@()} }
@@ -111,6 +117,24 @@ Describe 'Installation state custody' {
         Get-Content -LiteralPath (Join-Path $script:CustodyInstall 'old-program.txt') | Should -Be 'old program'
         Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
         Get-Content -LiteralPath (Join-Path $script:CustodyState 'runtime.json') | Should -Be 'valued session'
+    }
+
+    It 'preserves the selected public PowerShell and native launcher payload through reinstall' {
+        $powerShell = & (Get-Module TunnelTend | Select-Object -First 1) { Get-TtPowerShellExecutable }
+        Mock Install-TtAutomation { param($StateRoot,$PowerShellPath) @{powerShellPath=$PowerShellPath} }
+        Mock Update-TtClient {
+            param($StateRoot)
+            $receiptPath = [IO.Path]::GetFullPath((Join-Path $StateRoot '../../install.json'))
+            $selected = (Get-Content -Raw $receiptPath | ConvertFrom-Json).powerShellPath
+            $selected | Should -Not -BeNullOrEmpty
+            Test-Path -LiteralPath $selected | Should -BeTrue
+        }
+        & $script:Installer -InstallRoot $script:CustodyInstall -StateRoot $script:CustodyState -PowerShellPath $powerShell -NonInteractive -SkipPath | Out-Null
+        & $script:Installer -InstallRoot $script:CustodyInstall -NonInteractive -SkipPath | Out-Null
+        (Get-Content -Raw (Join-Path $script:CustodyInstall 'install.json') | ConvertFrom-Json).powerShellPath | Should -Be $powerShell
+        Test-Path -LiteralPath (Join-Path $script:CustodyInstall 'bin/TunnelTend.TaskHost.exe') | Should -BeTrue
+        Should -Invoke Install-TtAutomation -Exactly 2 -ParameterFilter { $PowerShellPath -eq $powerShell }
+        Should -Invoke Update-TtClient -Exactly 2
     }
 
     It 'uninstalls program files while retaining nested state resolved from the receipt' {
@@ -145,7 +169,10 @@ Describe 'Installation state custody' {
         New-Item -ItemType Directory -Path $scripts -Force | Out-Null
         Copy-Item -LiteralPath $script:Uninstaller -Destination $scripts
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../scripts/InstallationPaths.ps1') -Destination $scripts
-        Mock Start-Process {
+        $modulePath = Join-Path $script:CustodyInstall 'src/TunnelTend/TunnelTend.psd1'
+        New-Item -ItemType Directory -Path (Split-Path $modulePath) -Force | Out-Null
+        Set-Content -LiteralPath $modulePath -Value ''
+        Mock Start-TtDetachedProcess -ModuleName TunnelTend {
             param($ArgumentList)
             $encodedIndex = [Array]::IndexOf($ArgumentList, '-EncodedCommand')
             $encodedIndex | Should -BeGreaterOrEqual 0
@@ -153,7 +180,7 @@ Describe 'Installation state custody' {
             & ([scriptblock]::Create($cleanup))
         }
         & (Join-Path $scripts 'Uninstall-TunnelTend.ps1') -InstallRoot $script:CustodyInstall -SkipPath -Confirm:$false
-        Should -Invoke Start-Process -Exactly 1 -ParameterFilter { $WindowStyle -eq 'Hidden' }
+        Should -Invoke Start-TtDetachedProcess -ModuleName TunnelTend -Exactly 1 -ParameterFilter { $ArgumentList -contains '-NoProfile' -and $ArgumentList -contains '-NonInteractive' }
         Get-Content -LiteralPath (Join-Path $script:CustodyState 'registry.json') | Should -Be 'valued registry'
         Test-Path -LiteralPath $scripts | Should -BeFalse
     }

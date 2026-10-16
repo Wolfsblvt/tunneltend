@@ -4,6 +4,12 @@ BeforeAll {
 }
 
 Describe 'Windows watchdog triggers' {
+    It 're-registers all three modes through the product launcher without changing triggers or task policy' {
+        Mock Get-ScheduledTask -ModuleName TunnelTend { $null }
+        Mock Register-ScheduledTask -ModuleName TunnelTend {}
+        foreach ($pass in 1..2) { & $script:Module { param($root) Install-TtAutomationInternal (New-TtDefaultRegistry) $root } $TestDrive | Out-Null }
+        Should -Invoke Register-ScheduledTask -ModuleName TunnelTend -Exactly 6 -ParameterFilter { $InputObject.Actions[0].Execute -like '*TunnelTend.TaskHost.exe' -and $InputObject.Settings.MultipleInstances -eq 'IgnoreNew' }
+    }
     It 'does not diagnose a new task as a failed execution' {
         Mock Get-TtOfficialClientVersion -ModuleName TunnelTend { @{ installed = $true; version = '0.0.16' } }
         Mock Test-TtOfficialClientCapabilities -ModuleName TunnelTend { @{ compatible = $true; checks = @() } }

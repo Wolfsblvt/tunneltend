@@ -30,11 +30,12 @@ function Get-TtAutomationTaskDefinitions {
 
 function New-TtScheduledTaskAction {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Mode, [string]$StateRoot)
-    $pwsh = (Get-Process -Id $PID).Path
+    param([Parameter(Mandatory)][string]$Mode, [string]$StateRoot, [string]$PowerShellPath)
+    $pwsh = Get-TtPowerShellExecutable $PowerShellPath
+    $launcher = Get-TtWindowsLauncherPath $StateRoot
     $cli = Get-TtCliScriptPath
     $arguments = @('-NoLogo','-NoProfile','-NonInteractive','-WindowStyle','Hidden','-File',$cli,'automation',$Mode,'--state-root',(Resolve-TtStateRoot $StateRoot),'--json')
-    return New-ScheduledTaskAction -Execute $pwsh -Argument (ConvertTo-TtCommandLine $arguments) -WorkingDirectory ([IO.Path]::GetDirectoryName($cli))
+    return New-ScheduledTaskAction -Execute $launcher -Argument (ConvertTo-TtCommandLine (@($pwsh) + $arguments)) -WorkingDirectory ([IO.Path]::GetDirectoryName($cli))
 }
 
 function New-TtScheduledTaskTriggers {
@@ -67,8 +68,12 @@ function New-TtScheduledTaskTriggers {
 
 function Install-TtAutomationInternal {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][hashtable]$Registry, [string]$StateRoot)
+    param([Parameter(Mandatory)][hashtable]$Registry, [string]$StateRoot, [string]$PowerShellPath)
     Assert-TtWindowsAutomationAvailable
+    $PowerShellPath = Get-TtPowerShellExecutable $PowerShellPath
+    $powerShellVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo((Resolve-TtPowerShellProcessPath $PowerShellPath))
+    if ([version]"$($powerShellVersion.FileMajorPart).$($powerShellVersion.FileMinorPart)" -lt [version]'7.4') { throw 'Windows automation requires a PowerShell 7.4 or newer executable.' }
+    Get-TtWindowsLauncherPath $StateRoot | Out-Null
     $taskPath = '\TunnelTend\'
     $principal = New-ScheduledTaskPrincipal -UserId ([Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 30) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2)
@@ -85,15 +90,15 @@ function Install-TtAutomationInternal {
                 Unregister-ScheduledTask -TaskName $fullName -TaskPath $taskPath -Confirm:$false -ErrorAction Stop
                 $changedTasks += $fullName
             }
-            $results += [ordered]@{ name=$fullName; installed=$false; reason='disabled-by-configuration' }
+            $results += [ordered]@{ name=$fullName; installed=$false; reason='disabled-by-configuration'; powerShellPath=$PowerShellPath }
             continue
         }
-        $action = New-TtScheduledTaskAction $definition.mode $StateRoot
+        $action = New-TtScheduledTaskAction $definition.mode $StateRoot $PowerShellPath
         $triggers = New-TtScheduledTaskTriggers $definition
         $task = New-ScheduledTask -Action $action -Trigger $triggers -Settings $settings -Principal $principal -Description "TunnelTend $($definition.mode) automation. Managed by tunneltend; edit through the CLI rather than Task Scheduler."
         Register-ScheduledTask -TaskName $fullName -TaskPath $taskPath -InputObject $task -Force | Out-Null
         $changedTasks += $fullName
-        $results += [ordered]@{ name=$fullName; installed=$true; mode=$definition.mode }
+        $results += [ordered]@{ name=$fullName; installed=$true; mode=$definition.mode; powerShellPath=$PowerShellPath }
     }
     }
     catch {

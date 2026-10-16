@@ -80,8 +80,8 @@ function Find-TtProjectCandidates {
     foreach ($name in @('server.ps1','mcp.ps1','start-mcp.ps1')) {
         $candidate = [IO.Path]::Combine($path, $name)
         if ([IO.File]::Exists($candidate)) {
-            $pwsh = (Get-Process -Id $PID).Path
-            $candidates += New-TtDiscoveryCandidate 'powershell-script' "PowerShell MCP entry '$name'" $pwsh @('-NoLogo','-NoProfile','-File',$candidate) $path 80
+            $pwsh = Get-TtPowerShellExecutable
+            $candidates += New-TtDiscoveryCandidate 'powershell-script' "PowerShell MCP entry '$name'" $pwsh @('-NoLogo','-NoProfile','-NonInteractive','-File',$candidate) $path 80
         }
     }
     if ($IsWindows) {

@@ -267,9 +267,9 @@ function Restore-TtClient {
 
 function Install-TtAutomation {
     [CmdletBinding()]
-    param([string]$StateRoot)
+    param([string]$StateRoot, [string]$PowerShellPath)
     $registry=Get-TtRegistry $StateRoot
-    return Install-TtAutomationInternal $registry $StateRoot
+    return Install-TtAutomationInternal $registry $StateRoot $PowerShellPath
 }
 function Uninstall-TtAutomation { [CmdletBinding()] param() return Uninstall-TtAutomationInternal }
 function Get-TtAutomationStatus { [CmdletBinding()] param([string]$StateRoot) $registry=Get-TtRegistry $StateRoot; return Get-TtAutomationStatusInternal $registry $StateRoot }

@@ -24,6 +24,7 @@ This map explains where TunnelTend's product behavior, contracts, tooling, and e
 | `src/TunnelTend/Public/30-Setup.ps1` | Guided setup behavior. |
 | `src/TunnelTend/Public/90-Cli.ps1` | CLI grammar, dispatch, envelopes, and exit codes. |
 | `src/TunnelTend/Private/00-Utilities.ps1` | Shared paths, atomic I/O, secret handling, process execution, ownership, and CLI helpers. |
+| `src/TunnelTend/Private/05-WindowsProcess.ps1` | Stable PowerShell selection, alias resolution, and unattended interpreter options. |
 | `src/TunnelTend/Private/10-State.ps1` | Registry/runtime defaults, validation, persistence, and schema-shape repair. |
 | `src/TunnelTend/Private/20-OfficialClient.ps1` | Narrow adapter around official `tunnel-client` runtime commands. |
 | `src/TunnelTend/Private/30-Discovery.ps1` | Descriptors, conservative project discovery, glob matching, and source fingerprints. |
@@ -32,6 +33,7 @@ This map explains where TunnelTend's product behavior, contracts, tooling, and e
 | `src/TunnelTend/Private/60-Updater.ps1` | Fleet-aware official-client update and rollback coordination. |
 | `src/TunnelTend/Private/70-Automation.ps1` | Windows Scheduled Task definitions and readback. |
 | `src/TunnelTend/Tools/Update-OfficialTunnelClient.ps1` | Hardened release download, verification, extraction, replacement, backup, and rollback implementation. |
+| `src/TunnelTend/Native/HiddenTaskLauncher.cs` | Native GUI entry point for console-free scheduled scripts and their cancellation lifetime. |
 
 ## Operator and maintainer tooling
 
@@ -42,6 +44,7 @@ This map explains where TunnelTend's product behavior, contracts, tooling, and e
 | `scripts/Invoke-Tests.ps1` | Canonical parser, portable, Pester, and analyzer gate. |
 | `scripts/Invoke-RepositoryValidation.ps1` | Repository invariants, links, schemas, and dangerous-pattern checks. |
 | `scripts/Build-Release.ps1` | Version-stamped release-layout ZIP, checksum, and manifest. |
+| `scripts/Build-WindowsLauncher.ps1` | Build the native task launcher with the existing Windows Framework compiler. |
 | `scripts/Update-UpstreamSnapshot.ps1` | Refresh current stable official-client release metadata. |
 
 ## Contracts and evidence

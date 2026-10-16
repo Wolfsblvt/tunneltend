@@ -78,7 +78,6 @@ foreach ($markdown in $ownedFiles | Where-Object Extension -EQ '.md') {
 }
 
 if ($failures.Count -gt 0) {
-    $failures | Sort-Object -Unique | ForEach-Object { Write-Error $_ }
-    exit 1
+    throw (($failures | Sort-Object -Unique) -join [Environment]::NewLine)
 }
 Write-Host "Repository validation passed for $($codeFiles.Count) code files."

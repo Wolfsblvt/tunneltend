@@ -52,6 +52,8 @@ The adapter translates registered service targets into the current upstream `run
 
 ## Process boundary
 
+Scheduled actions enter through a small product-owned C# GUI executable before invoking the PowerShell CLI. It prevents console creation, forwards streams and exit status, and owns the script's cancellation lifetime. Deliberately detached service processes retain independent lifetimes. Packages include the compiled helper; source installations build it with the existing Windows Framework compiler. [Operations](OPERATIONS.md#automation-modes) describes interpreter selection and alias ownership.
+
 Configured host processes are launched with typed argument arrays and hidden noninteractive process creation. Runtime state records canonical executable path, PID, and start time when available. Stop operations require matching ownership evidence.
 
 The official client's own process supervisor remains responsible for its managed runtime process. TunnelTend uses official stop/status/connect operations instead of killing by name.

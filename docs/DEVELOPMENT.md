@@ -11,6 +11,7 @@ This guide is the complete local development and verification contract for Tunne
 - Pester 6.2.0.
 - PSScriptAnalyzer 1.25.0.
 - Windows 11 for Scheduled Task, logon, process-identity, sleep/resume, and live executable-replacement qualification.
+- Windows' .NET Framework runtime/compiler for the small C# GUI task launcher. Windows package builds compile and include it; no SDK or NuGet dependencies are added. Source-checkout automation builds a source-addressed helper under its selected runtime work directory.
 
 Install the pinned test tools for the current user:
 
@@ -35,6 +36,8 @@ This command:
 4. runs PSScriptAnalyzer using `PSScriptAnalyzerSettings.psd1`.
 
 Zero tests, missing required tools, parser failures, Pester failures, and analyzer warnings/errors are nonzero results when their gate is required.
+
+Required failures throw from the runner, so a later successful script cannot mask them in a caller. CI also runs source verification and repository validation as separate steps. Quiet-launcher tests exercise actual Windows streams/exit, no-console creation and cancellation with detached-host survival; Task Scheduler registration itself remains a separate live qualification.
 
 ## Repository contract validation
 

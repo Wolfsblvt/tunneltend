@@ -6,6 +6,10 @@ This document explains TunnelTend's unattended operating model, ordinary command
 
 ## Automation modes
 
+Scheduled actions run through the product-owned `TunnelTend.TaskHost.exe` GUI executable. It creates PowerShell without a console, preserves command streams and exit status, and terminates its script on cancellation. Deliberately detached hosts keep their independent lifetime after normal task completion or cancellation. Configured PowerShell child processes use non-interactive, profile-free hidden launches; script arguments remain separate from interpreter options.
+
+The stable PowerShell selection is stored in `install.json`. When the selection is a WindowsApps alias, owned child processes resolve its current package executable before launch so their persisted PID/path/generation identity refers to the actual process. Task and installation configuration keep the stable alias across package updates.
+
 ### Startup
 
 The Startup task runs after logon with a configurable delay. It creates a new session boundary, optionally checks the official client for a due verified update, activates eligible autostart services, reconciles them, and verifies observations.

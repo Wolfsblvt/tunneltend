@@ -18,6 +18,8 @@ An operational tunnel also needs an existing OpenAI tunnel setup: an appropriate
 
 The recommended defaults enable registered-service startup at logon, watchdog reconciliation every two minutes, and daily verified official-client updates. Open a new terminal after installation so the user PATH change is visible.
 
+Unattended tasks use TunnelTend's native GUI launcher to prevent console creation. Installation and reinstallation select a normal PowerShell 7.4+ installation or the current user's WindowsApps alias, rather than capturing the installer's interpreter. A portable installation can be selected with `-PowerShellPath`; the installation receipt preserves that selection for later re-registration. Distributed packages include the launcher. Installing directly from source builds it with Windows' existing .NET Framework compiler; no separate .NET SDK is required.
+
 ## Deterministic installation
 
 ```powershell
@@ -36,6 +38,7 @@ Useful installation switches:
 | `-OrganizationId org_...` / `-WorkspaceId ws_...` | Set default tunnel scope. |
 | `-RuntimeKeyRef env:CONTROL_PLANE_API_KEY` | Select a credential reference. |
 | `-TunnelClientPath C:\tools\tunnel-client.exe` | Use an existing official client. |
+| `-PowerShellPath C:\Tools\PowerShell\pwsh.exe` | Select a portable PowerShell 7.4+ installation for unattended operations. |
 | `-InstallRoot` / `-StateRoot` | Select explicit program and state paths. |
 
 Program and state roots must be different directories. A dedicated nested state path such as `C:\Tools\TunnelTend\data\state` is supported; do not place state in a program payload directory such as `src` or `official-client`. Reinstallation preserves nested state at the selected coordinate. When `-StateRoot` is omitted, reinstall and uninstall use the selected installation's `install.json` receipt before falling back to the default state root. An invalid receipt requires an explicit `-StateRoot` override.

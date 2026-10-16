@@ -94,7 +94,7 @@ function Invoke-TtBundledUpdater {
     $arguments = @('-NoLogo','-NoProfile','-NonInteractive','-File',(Get-TtUpdaterScriptPath),'-ConfigPath',$paths.ClientUpdater,'-RequirePublishedChecksum')
     if ($CheckOnly) { $arguments += '-CheckOnly' }
     if ($Force) { $arguments += '-Force' }
-    $pwsh = (Get-Process -Id $PID).Path
+    $pwsh = Get-TtPowerShellExecutable
     return Invoke-TtProcess -FilePath $pwsh -ArgumentList $arguments -TimeoutSeconds 600 -AllowFailure
 }
 

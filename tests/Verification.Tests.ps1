@@ -19,6 +19,19 @@ BeforeAll {
 }
 
 Describe 'Repository verification failure propagation' {
+    It 'does not let a later successful script hide a failed Pester gate' {
+        $root = Join-Path $TestDrive 'nested-pester-failure'
+        New-Item -ItemType Directory -Path (Join-Path $root 'scripts'),(Join-Path $root 'tests') -Force | Out-Null
+        Copy-Item -LiteralPath $script:Runner -Destination (Join-Path $root 'scripts/Invoke-Tests.ps1')
+        Set-Content -LiteralPath (Join-Path $root 'tests/ZeroDependency.ps1') -Value "Write-Output 'fixture portable success'"
+        Mock Import-Module {}
+        Mock Invoke-Pester { [pscustomobject]@{FailedCount=1} }
+        {
+            & (Join-Path $root 'scripts/Invoke-Tests.ps1') -RequirePester
+            [IO.File]::WriteAllText((Join-Path $root 'later-ran.txt'), 'masked failure')
+        } | Should -Throw '*Pester failed*'
+        Test-Path -LiteralPath (Join-Path $root 'later-ran.txt') | Should -BeFalse
+    }
     It 'rejects an invalid package version before creating or deleting output' {
         $root = Join-Path $TestDrive 'invalid-build'
         New-Item -ItemType Directory -Path (Join-Path $root 'scripts') -Force | Out-Null
@@ -51,6 +64,7 @@ Describe 'Repository verification failure propagation' {
         $package = Join-Path $TestDrive 'extracted-package'
         Expand-Archive -LiteralPath (Join-Path $artifacts 'tunneltend-0.1.0-test.zip') -DestinationPath $package
         Test-Path -LiteralPath (Join-Path $package 'tests/Fixtures/mcp-stdio-echo.ps1') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $package 'bin/TunnelTend.TaskHost.exe') | Should -BeTrue
         Test-Path -LiteralPath (Join-Path $package 'artifacts/tunnel-client.exe') | Should -BeFalse
         & (Join-Path $package 'scripts/Invoke-RepositoryValidation.ps1')
         $? | Should -BeTrue
