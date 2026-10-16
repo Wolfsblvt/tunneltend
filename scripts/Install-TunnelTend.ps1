@@ -48,6 +48,7 @@ if (-not $NonInteractive) {
 if (-not $PSCmdlet.ShouldProcess($InstallRoot, 'Install TunnelTend')) { return }
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('tunneltend-install-' + [Guid]::NewGuid().ToString('N'))
 $backup = $null
+$replacementStarted = $false
 $automationInstalled = $false
 $automationSnapshot = @{}
 try {
@@ -62,6 +63,7 @@ try {
         Move-Item -LiteralPath $InstallRoot -Destination $backup -Force
     }
     New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($InstallRoot)) -Force | Out-Null
+    $replacementStarted = $true
     Move-Item -LiteralPath $temp -Destination $InstallRoot
 
     $env:TUNNELTEND_CLI_PATH = Join-Path $InstallRoot 'tunneltend.ps1'
@@ -122,8 +124,8 @@ catch {
         Uninstall-TtAutomation | Out-Null
         foreach ($name in $automationSnapshot.Keys) { Register-ScheduledTask -TaskName $name -TaskPath '\TunnelTend\' -Xml $automationSnapshot[$name] -Force | Out-Null }
     }
-    if (Test-Path -LiteralPath $InstallRoot) { Remove-Item -LiteralPath $InstallRoot -Recurse -Force -ErrorAction SilentlyContinue }
-    if ($backup -and (Test-Path -LiteralPath $backup)) { Move-Item -LiteralPath $backup -Destination $InstallRoot -Force }
+    if ($replacementStarted -and (Test-Path -LiteralPath $InstallRoot)) { Remove-Item -LiteralPath $InstallRoot -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($backup -and (Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $InstallRoot)) { Move-Item -LiteralPath $backup -Destination $InstallRoot }
     throw $installError
 }
 finally {

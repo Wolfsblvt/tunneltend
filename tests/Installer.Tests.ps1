@@ -42,3 +42,34 @@ Describe 'Installer optional service selection' {
         Test-Path -LiteralPath (Join-Path $TestDrive 'program/install.json') | Should -BeTrue
     }
 }
+
+Describe 'Installer replacement rollback' {
+    BeforeEach {
+        $script:ExistingInstall = Join-Path $TestDrive 'existing-program'
+        New-Item -ItemType Directory -Path $script:ExistingInstall -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $script:ExistingInstall 'original.txt') -Value 'existing installation'
+        Mock Import-Module {}
+        Mock Install-TtAutomation { throw 'Automation must not be reached' }
+    }
+
+    It 'preserves an untouched installation when staging fails before backup' {
+        Mock Copy-Item { throw 'Simulated staging failure' }
+
+        { & $script:Installer -InstallRoot $script:ExistingInstall -StateRoot (Join-Path $TestDrive 'state') -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*Simulated staging failure*'
+
+        Get-Content -LiteralPath (Join-Path $script:ExistingInstall 'original.txt') | Should -Be 'existing installation'
+        @(Get-ChildItem -LiteralPath $TestDrive -Filter 'existing-program.previous-*').Count | Should -Be 0
+        Should -Invoke Install-TtAutomation -Exactly 0
+    }
+
+    It 'restores the original installation after replacement configuration fails' {
+        Mock Set-TtConfiguration { throw 'Simulated configuration failure' }
+
+        { & $script:Installer -InstallRoot $script:ExistingInstall -StateRoot (Join-Path $TestDrive 'state') -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*Simulated configuration failure*'
+
+        Get-Content -LiteralPath (Join-Path $script:ExistingInstall 'original.txt') | Should -Be 'existing installation'
+        Test-Path -LiteralPath (Join-Path $script:ExistingInstall 'tunneltend.ps1') | Should -BeFalse
+        @(Get-ChildItem -LiteralPath $TestDrive -Filter 'existing-program.previous-*').Count | Should -Be 0
+        Should -Invoke Install-TtAutomation -Exactly 0
+    }
+}

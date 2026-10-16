@@ -2,7 +2,7 @@
 
 ## Meaning
 
-This document carries TunnelTend's current near-term movement while no separate workplace owns it. The immediate outcome is a public, source-complete pre-release repository whose hosted CI is green, followed by bounded Windows lifecycle qualification, branding co-design, and an evidence-backed first release. It narrows sequence without shrinking the Vision.
+This document carries TunnelTend's durable near-term direction. Current execution, review Returns, and unresolved Work live in the selected shared workplace. The immediate outcome is a public, source-complete pre-release repository whose hosted CI is green, followed by bounded Windows lifecycle qualification, branding co-design, and an evidence-backed first release. It narrows sequence without shrinking the Vision.
 
 ## Current outcome
 
