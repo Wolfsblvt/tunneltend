@@ -1,6 +1,26 @@
 BeforeAll {
     Import-Module (Join-Path $PSScriptRoot '../src/TunnelTend/TunnelTend.psd1') -Force
     $script:Installer = Join-Path $PSScriptRoot '../scripts/Install-TunnelTend.ps1'
+    $script:Uninstaller = Join-Path $PSScriptRoot '../scripts/Uninstall-TunnelTend.ps1'
+}
+
+Describe 'Uninstall preview' {
+    It 'does not remove automation or stop services under WhatIf' {
+        $install = Join-Path $TestDrive 'preview-program'
+        $modulePath = Join-Path $install 'src/TunnelTend/TunnelTend.psd1'
+        New-Item -ItemType Directory -Path (Split-Path $modulePath) -Force | Out-Null
+        Set-Content -LiteralPath $modulePath -Value ''
+        Mock Import-Module {}
+        Mock Uninstall-TtAutomation {}
+        Mock Get-TtService { @(@{id='preview-service'}) }
+        Mock Stop-TtService {}
+
+        & $script:Uninstaller -InstallRoot $install -StateRoot (Join-Path $TestDrive 'preview-state') -PurgeState -WhatIf
+
+        Should -Invoke Uninstall-TtAutomation -Exactly 0
+        Should -Invoke Stop-TtService -Exactly 0
+        Test-Path -LiteralPath $modulePath | Should -BeTrue
+    }
 }
 
 Describe 'Installer optional service selection' {
