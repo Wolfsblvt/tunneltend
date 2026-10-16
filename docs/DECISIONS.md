@@ -87,3 +87,15 @@ This record preserves TunnelTend choices whose rationale cannot be reconstructed
 **Current consequence:** Official-client maintenance and registered-service application updates remain separate. The default application-update policy is disabled.
 
 **Source:** Product safety and automation co-design, 2026-10-04.
+
+## D-008: Quiet Windows tasks enter through a product-owned native launcher
+
+**Decision:** Use a small C# GUI executable to create the scheduled PowerShell process without a console. Include the helper in packages; source installations compile it with Windows' existing .NET Framework compiler. Keep the interpreter selection in the installation receipt, with a normal installation/user alias by default and an explicit portable override.
+
+**Why:** A real reinstall restored visible Terminal launches after a host-local repair. PowerShell's later window option does not control console creation by its parent. The native entry point repairs that seam while preserving streams, exit status, script cancellation and deliberately detached service lifetimes.
+
+**Rejected or superseded:** Capturing the installer's cached interpreter; depending on a private Leitsatz launcher; treating disabled startup/watchdog tasks as the solution; adding a separate service or SDK/NuGet toolchain.
+
+**Current consequence:** TunnelTend owns the native source/build boundary and its process-lifetime regression tests. Task and receipt configuration retain a stable interpreter coordinate; owned WindowsApps child identities resolve the installed executable before launch. Actual scheduler and installed behavior require their own lifecycle qualification.
+
+**Sources:** [Wolf's installer direction relayed by Tala](https://github.com/Wolfsblvt/emergency-meeting/issues/878#issuecomment-6223290730); [Katja's native-boundary judgment](https://github.com/Wolfsblvt/emergency-meeting/issues/878#issuecomment-6223620155); [Eira's source/package Return](https://github.com/Wolfsblvt/emergency-meeting/issues/878#issuecomment-6224774034).
