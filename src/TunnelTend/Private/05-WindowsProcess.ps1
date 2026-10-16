@@ -16,7 +16,10 @@ function Get-TtPowerShellExecutable {
         if (-not [IO.Path]::IsPathFullyQualified($path) -or -not [IO.File]::Exists($path)) { throw 'PowerShellPath must name an existing absolute PowerShell executable.' }
         return [IO.Path]::GetFullPath($path)
     }
-    foreach ($path in @((Join-Path $env:ProgramFiles 'PowerShell/7/pwsh.exe'), (Join-Path $env:LOCALAPPDATA 'Microsoft/WindowsApps/pwsh.exe'))) {
+    $candidates = @()
+    if (-not [string]::IsNullOrWhiteSpace($env:ProgramFiles)) { $candidates += Join-Path $env:ProgramFiles 'PowerShell/7/pwsh.exe' }
+    if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { $candidates += Join-Path $env:LOCALAPPDATA 'Microsoft/WindowsApps/pwsh.exe' }
+    foreach ($path in $candidates) {
         if ([IO.File]::Exists($path)) { return $path }
     }
     throw 'Install PowerShell 7.4 or newer normally, or supply -PowerShellPath to the TunnelTend installer for a portable installation.'
@@ -40,7 +43,7 @@ function Get-TtWindowsLauncherPath {
 function Resolve-TtPowerShellProcessPath {
     [CmdletBinding()]
     param([string]$Path)
-    $alias = if ($IsWindows) { Join-Path $env:LOCALAPPDATA 'Microsoft/WindowsApps/pwsh.exe' } else { '' }
+    $alias = if ($IsWindows -and -not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { Join-Path $env:LOCALAPPDATA 'Microsoft/WindowsApps/pwsh.exe' } else { '' }
     if ($IsWindows -and [string]::Equals([IO.Path]::GetFullPath($Path), $alias, [StringComparison]::OrdinalIgnoreCase)) {
         # Keep the stable alias in task/installation configuration, but bind an
         # owned process to the concrete package executable before starting it.
