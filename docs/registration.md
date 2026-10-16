@@ -21,6 +21,6 @@ tunneltend service register --id my-mcp --command pwsh --arg -NoProfile --arg -N
 tunneltend service register --id docs-mcp --url http://127.0.0.1:3001/mcp --health-url http://127.0.0.1:3001/health
 ```
 
-Repeat `--arg` for each argument so boundaries remain explicit. Use `--no-start` to retain the definition without starting it. Supply `--tunnel-id`, `--organization-id`, or `--workspace-id` as appropriate for your existing OpenAI setup, and keep credentials in secret references.
+Repeat `--arg` for each argument so boundaries remain explicit. Values retain commas, whitespace, empty strings, quotes, and backslashes. Use `--arg=VALUE` when the value starts with `--`, and `--arg=` for an empty argument. Organization/workspace selectors still accept comma-separated IDs. Use `--no-start` to retain the definition without starting it. Supply `--tunnel-id`, `--organization-id`, or `--workspace-id` as appropriate for your existing OpenAI setup, and keep credentials in secret references. Registration and later configuration edits reject likely inline credentials throughout service definitions, including MCP, health/readiness URLs and host/update commands, before saving them.
 
 Import existing official aliases with `tunneltend service import --all`. Inspect `service list` and `doctor` afterward; import does not itself prove a remote MCP call.

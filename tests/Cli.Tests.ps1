@@ -2,6 +2,25 @@ BeforeAll {
     Import-Module (Join-Path $PSScriptRoot '../src/TunnelTend/TunnelTend.psd1') -Force
 }
 
+Describe 'CLI command argument preservation' {
+    It 'persists repeated arguments literally while retaining comma-separated scope selectors' {
+        Mock Write-TtCliResult -ModuleName TunnelTend {}
+        $root = Join-Path $TestDrive 'literal-arguments'
+        $expected = @('a,b', '  padded  ', '', 'say "hello"', 'C:\trailing\', '--literal')
+        $arguments = @('service','register','--command','fixture.exe','--id','literal','--no-start','--state-root',$root,'--organization-id','org_one,org_two')
+        foreach ($value in $expected) { $arguments += "--arg=$value" }
+
+        Invoke-TtCli $arguments | Should -Be 0
+
+        $service = Get-TtService -Id literal -StateRoot $root
+        @($service.mcp.command.arguments).Count | Should -Be $expected.Count
+        for ($index = 0; $index -lt $expected.Count; $index++) {
+            $service.mcp.command.arguments[$index] | Should -BeExactly $expected[$index]
+        }
+        $service.tunnel.organizationIds | Should -Be @('org_one','org_two')
+    }
+}
+
 Describe 'CLI convergence reporting' {
     BeforeEach {
         Mock Write-TtCliResult -ModuleName TunnelTend {}

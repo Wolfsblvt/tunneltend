@@ -238,7 +238,7 @@ function Test-TtLikelySecretMaterial {
         'sk-[A-Za-z0-9_-]{12,}',
         '(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}',
         '(?i)\b(api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)\s*[=:]\s*\S+',
-        '://[^/\s:@]+:[^/\s:@]+@'
+        '://[^/\s@]+@'
     )
     foreach ($pattern in $patterns) { if ($Value -match $pattern) { return $true } }
     return $false

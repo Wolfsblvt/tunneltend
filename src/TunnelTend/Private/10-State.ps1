@@ -189,6 +189,7 @@ function Set-TtRunningServiceIntent {
 function Assert-TtServiceDefinition {
     [CmdletBinding()]
     param([Parameter(Mandatory)][hashtable]$Service)
+    Assert-TtNoInlineSecrets $Service 'service'
     foreach ($key in @('id','enabled','desiredState','autostart','watchdog','mcp','tunnel','recovery')) {
         if (-not $Service.Contains($key)) { throw "Service definition is missing '$key'." }
     }
@@ -198,11 +199,9 @@ function Assert-TtServiceDefinition {
     if ([string]$Service.mcp.kind -notin @('command','commandString','url')) { throw "Service '$($Service.id)' has unsupported mcp.kind '$($Service.mcp.kind)'." }
     if ($Service.mcp.kind -eq 'command') {
         if (-not $Service.mcp.command -or [string]::IsNullOrWhiteSpace([string]$Service.mcp.command.file)) { throw "Command service '$($Service.id)' requires mcp.command.file." }
-        Assert-TtNoInlineSecrets $Service.mcp.command.arguments "services.$($Service.id).mcp.command.arguments"
     }
     if ($Service.mcp.kind -eq 'commandString') {
         if ([string]::IsNullOrWhiteSpace([string]$Service.mcp.commandString)) { throw "Command-string service '$($Service.id)' requires mcp.commandString." }
-        Assert-TtNoInlineSecrets ([string]$Service.mcp.commandString) "services.$($Service.id).mcp.commandString"
     }
     if ($Service.mcp.kind -eq 'url') {
         $uri = $null
