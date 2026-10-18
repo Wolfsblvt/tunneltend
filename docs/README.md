@@ -4,11 +4,19 @@
 
 This is the maintained map of TunnelTend product, operator, development, compatibility, security, and release documentation. It helps readers find the one source that owns a question and prevents the root README from becoming the complete manual.
 
+## Start as a user
+
+- [TunnelTend Docs](user-guide.md): the public documentation entrance and reader journeys.
+- [FAQ](faq.md): product fit, relationships, trust, alternatives, and current limits.
+- [Get started](getting-started.md): first installation and connection, with human and local-agent paths.
+
+This repository map also includes contributor and product-maintenance material. It is not the website's public documentation index. The [documentation site integration note](documentation-site.md) selects the public source pages and their intended page identities.
+
 ## Product and design
 
 - [Vision](VISION.md): durable product promise, experience, and boundaries.
 - [Current direction](DIRECTION.md): selected near-term movement and release sequence.
-- [Product model](product-model.md): registered services, desired state, session intent, and operations.
+- [Service state](product-model.md): registered services, desired state, session intent, and observations.
 - [Decisions](DECISIONS.md): durable choices and rationale.
 - [Branding](branding.md): current identity standing and asset boundary.
 
