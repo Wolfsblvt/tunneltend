@@ -22,7 +22,10 @@ jobs:
         shell: pwsh
         run: |
           $snapshot = 'docs/research/openai-tunnel-client-release.json'
-          if (git diff --quiet -- $snapshot) {
+          git diff --quiet -- $snapshot
+          $comparisonExitCode = $LASTEXITCODE
+          if ($comparisonExitCode -notin @(0, 1)) { throw "Git snapshot comparison failed (exit $comparisonExitCode)." }
+          if ($comparisonExitCode -eq 0) {
             "changed=false" >> $env:GITHUB_OUTPUT
           } else {
             "changed=true" >> $env:GITHUB_OUTPUT
