@@ -21,12 +21,38 @@ Describe 'Uninstall preview' {
         Mock Get-TtService { @(@{id='preview-service'}) }
         Mock Stop-TtService {}
 
-        & $script:Uninstaller -InstallRoot $install -StateRoot (Join-Path $TestDrive 'preview-state') -PurgeState -WhatIf
+        & $script:Uninstaller -InstallRoot $install -StateRoot (Join-Path $TestDrive 'preview-state') -PurgeState -Force -WhatIf
 
         Should -Invoke Uninstall-TtAutomation -Exactly 0
         Should -Invoke Stop-TtService -Exactly 0
         Test-Path -LiteralPath $modulePath | Should -BeTrue
     }
+    It 'removes selected program files with Force in non-interactive PowerShell and preserves state' {
+        $install = Join-Path $TestDrive 'forced-program'
+        $state = Join-Path $TestDrive 'forced-state'
+        New-Item -ItemType Directory -Path $install,$state -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $install 'payload.txt') -Value 'disposable program'
+        Set-Content -LiteralPath (Join-Path $state 'registry.json') -Value 'retained state'
+        $start = [Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path)
+        $start.UseShellExecute = $false
+        $start.CreateNoWindow = $true
+        $start.Environment['NO_COLOR'] = '1'
+        $start.RedirectStandardOutput = $true
+        $start.RedirectStandardError = $true
+        foreach ($argument in @('-NoProfile','-NonInteractive','-File',$script:Uninstaller,'-InstallRoot',$install,'-StateRoot',$state,'-SkipPath','-Force')) { $start.ArgumentList.Add($argument) }
+        $process = [Diagnostics.Process]::Start($start)
+        try {
+            $stdout = $process.StandardOutput.ReadToEndAsync()
+            $stderr = $process.StandardError.ReadToEndAsync()
+            if (-not $process.WaitForExit(30000)) { $process.Kill($true); throw 'Forced uninstall specimen timed out.' }
+            $process.ExitCode | Should -Be 0 -Because $stderr.GetAwaiter().GetResult()
+            $stdout.GetAwaiter().GetResult() | Should -Match 'TunnelTend uninstalled'
+        }
+        finally { $process.Dispose() }
+        Test-Path -LiteralPath $install | Should -BeFalse
+        Get-Content -LiteralPath (Join-Path $state 'registry.json') | Should -Be 'retained state'
+    }
+
 }
 
 Describe 'Installer optional service selection' {
@@ -209,7 +235,7 @@ Describe 'Installation state custody' {
     }
 
     It 'refuses a nested state collision with staged program payload before replacement' {
-        $collisionState = Join-Path $script:CustodyInstall 'assets/state'
+        $collisionState = Join-Path $script:CustodyInstall 'brand/state'
         New-Item -ItemType Directory -Path $collisionState -Force | Out-Null
         Set-Content -LiteralPath (Join-Path $collisionState 'registry.json') -Value 'collision state'
         { & $script:Installer -InstallRoot $script:CustodyInstall -StateRoot $collisionState -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*own directory*'

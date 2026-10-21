@@ -1,6 +1,6 @@
 @{
     RootModule = 'TunnelTend.psm1'
-    ModuleVersion = '0.1.0'
+    ModuleVersion = '1.0.0'
     CompatiblePSEditions = @('Core')
     GUID = '856f4c88-94bf-4d62-b209-352a424489d4'
     Author = 'Wolfsblvt Works'
@@ -25,7 +25,6 @@
             Tags = @('MCP','OpenAI','tunnel','supervisor','Windows','automation')
             LicenseUri = 'https://www.gnu.org/licenses/agpl-3.0.html'
             ProjectUri = 'https://github.com/Wolfsblvt/tunneltend'
-            Prerelease = 'preview1'
         }
     }
 }

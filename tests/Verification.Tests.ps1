@@ -66,6 +66,22 @@ Describe 'Repository verification failure propagation' {
         Test-Path -LiteralPath (Join-Path $package 'tests/Fixtures/mcp-stdio-echo.ps1') | Should -BeTrue
         Test-Path -LiteralPath (Join-Path $package 'bin/TunnelTend.TaskHost.exe') | Should -BeTrue
         Test-Path -LiteralPath (Join-Path $package 'artifacts/tunnel-client.exe') | Should -BeFalse
+
+        $packagedModule = Import-PowerShellDataFile (Join-Path $package 'src/TunnelTend/TunnelTend.psd1')
+        $packagedModule.ModuleVersion | Should -Be '0.1.0'
+        $packagedModule.PrivateData.PSData.Prerelease | Should -Be 'test'
+        $installerTokens = $null
+        $installerErrors = $null
+        $installerAst = [Management.Automation.Language.Parser]::ParseFile((Join-Path $package 'scripts/Install-TunnelTend.ps1'), [ref]$installerTokens, [ref]$installerErrors)
+        $receiptTables = @($installerAst.FindAll({
+            param($node)
+            if ($node -isnot [Management.Automation.Language.HashtableAst]) { return $false }
+            $keys = @($node.KeyValuePairs | ForEach-Object { $_.Item1.SafeGetValue() })
+            return $keys -contains 'product' -and $keys -contains 'installedAt'
+        }, $true))
+        $receiptTables.Count | Should -Be 1
+        $versionPair = $receiptTables[0].KeyValuePairs | Where-Object { $_.Item1.SafeGetValue() -eq 'version' }
+        $versionPair.Item2.PipelineElements[0].Expression.Value | Should -Be '0.1.0-test'
         & (Join-Path $package 'scripts/Invoke-RepositoryValidation.ps1')
         $? | Should -BeTrue
         $manifest = Get-Content -Raw -LiteralPath (Join-Path $artifacts 'tunneltend-0.1.0-test.manifest.json') | ConvertFrom-Json
