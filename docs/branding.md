@@ -20,18 +20,19 @@ TunnelTend is the unofficial, local-first Windows caretaker for registered MCP t
 
 ![The Fold on graphite and chalk at 160 px, with actual-size 16, 20, 24, 32, and 64 px renderings, the exported 512 px PNG scaled down, and the fallback ICO frames](assets/brand-contact-sheet.png)
 
-*Contact sheet rendered from the exported assets by `brand/source/tunneltend/export.py`.*
+*Contact sheet rendered from the exported assets by `brand/source/tunneltend/export.py`. The application icon is a graphite tile, so on the dark panel it blends into the ground by design.*
 
 The master is a 24×24 viewBox with two 2 px strokes, rounded joins and caps, and no fill. The inner stroke is deliberately asymmetrical. Never mirror it, close either path, add a third nested line, rotate it to echo MCP's symbol, or read it as health status.
 
 | Role | Use | Files under `brand/bundle/tunneltend/assets/` |
 | --- | --- | --- |
 | `mark.primary` | 24 px and larger, on the matching background | `mark-primary/on-dark.svg`, `on-light.svg`, and 512 px PNGs of each |
-| `mark.primary` (tintable) | One inherited ink colour (`currentColor`) where the mark follows text | `mark-primary/universal-tintable.svg` |
+| `mark.primary` (tintable) | One inherited ink colour (`currentColor`) where the mark follows text | `mark-primary/on-dark-tintable.svg`, `on-light-tintable.svg` (the same file for each background class) with 512 px PNG fallbacks in that class's text ink |
 | `icon.favicon` | 16–20 px: an optically heavier variant (2.35 px stroke, shorter tails) | `icon-favicon/on-dark.svg`, `on-light.svg`, 32 px PNGs, and the adaptive `universal-adaptive.svg` |
+| `icon.application` | Square avatar and application-sized tile: the Fold at 62% on a graphite ground, opaque so it reads on any surface | `icon-application/universal.svg`, `universal-64x64.png`, `universal-128x128.png` |
 | `icon.favicon` (fixed ICO) | Browsers that need `.ico`: 16, 32, and 48 px on a graphite ground, so it stays legible in any browser theme | `icon-favicon/universal-48x48.ico` |
 
-Use the `on-dark` artwork on dark surfaces and `on-light` on light ones; consumers select an appearance and never recolour approved strokes to repair contrast. The tintable file is a monochrome single-ink projection of the same geometry: no gradient, inset highlight, status badge, shield, lock, MCP wordmark, or logo overlay. It has no fixed-colour PNG because it has no fixed colour.
+Use the `on-dark` artwork on dark surfaces and `on-light` on light ones; consumers select an appearance and never recolour approved strokes to repair contrast. The tintable files are a single-ink projection of the same geometry: no gradient, inset highlight, status badge, shield, lock, MCP wordmark, or logo overlay. The allowed treatment is one ink only: the text colour or the accent of the background class the file is named for (`#F0EDF3` or `#79CAD9` on dark; `#25222D` or `#167B91` on light), never an arbitrary colour. Each PNG fallback is the master rendered in that class's text ink. The contact sheet shows both inks and the fallback on both backgrounds.
 
 Below 24 px use the favicon variant. For standalone placements keep at least three canonical units of clear space around the 24-unit glyph; at small sizes prefer the whole viewBox and keep labels and badges away from it.
 

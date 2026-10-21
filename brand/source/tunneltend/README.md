@@ -10,12 +10,13 @@ The SVGs and tokens are the exact bytes approved by Wolf on 2026-10-17 and depos
 
 | Here | Origin (`assets/` or `tokens/` there) | SHA-256 |
 | --- | --- | --- |
-| `tunneltend-fold.svg` | `tunneltend-fold.svg` (byte-identical to its `-mono` twin, kept once) | `f0b34ebf99cc899c559e8e4992985caca8e01f3f455d45c1e45759ef8262b77c` |
+| `tunneltend-fold.svg` | `tunneltend-fold.svg` (byte-identical to its `-mono` twin, kept once; exported unchanged as the tintable `on-dark` and `on-light` files) | `f0b34ebf99cc899c559e8e4992985caca8e01f3f455d45c1e45759ef8262b77c` |
 | `tunneltend-fold-dark.svg` | same name | `1184c5b945eea088a2d21ed9754812160cd73ea2035d6f911995923cab72771e` |
 | `tunneltend-fold-light.svg` | same name | `76bb5a404918211f94df50131e59ea9d82c6ab6c96e4f6195ec8fd55f3e0ff37` |
 | `favicon.svg` | same name | `86a75a31cb78d2208bcd7c2352d862bf9959cd702f416cd13fe29519b5bf0f35` |
 | `favicon-dark.svg` | same name | `cf002a605b944e0e29c20cb48a527b39866664e2b10759e9e464fea24f9f73bc` |
 | `favicon-light.svg` | same name | `05ec92f2bae401237af35f3e4d137a94cde19a9cbc98b565054287c9a4578a5a` |
+| `application-icon.svg` | Authored here, not in the deposit: the approved dark mark's path data, unchanged, scaled to 62% and centred on a graphite square (the deposit's avatar recipe, `padded_icon` at 0.62 coverage, expressed as SVG) | `39575c1d504f25336127b42e75b0573a3c5a2afe11fa86fc32b07cc48567d423` |
 | `palette.css` | same name | `cf0ce56cb2632d50dfbd61b4d6751306f14e3f44cd20a2e29065f85b656e68a6` |
 | `palette.json` | same name | `eaca8414b42bcedf6fb36155439a51eef174152c838f154cc1fb9d44efda40b6` |
 
