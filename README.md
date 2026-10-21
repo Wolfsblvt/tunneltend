@@ -8,7 +8,7 @@
 
 TunnelTend is a local-first Windows manager for OpenAI's official `tunnel-client`. It remembers registered services and their desired state, then handles startup, connection, health checks, bounded recovery, source-change restarts, and verified client updates.
 
-**[Get started](#quick-start-from-source)** · **[Documentation](docs/README.md)** · **[Install with a local agent](docs/getting-started.md#install-with-a-local-agent)**
+**[Get started](docs/getting-started.md)** · **[Documentation](docs/user-guide.md)** · **[FAQ](docs/faq.md)** · **[Install with a local agent](docs/getting-started.md#install-with-a-local-agent)**
 
 > [!IMPORTANT]
 > This is an unofficial project, unaffiliated with and not endorsed or supported by OpenAI. TunnelTend is a source preview: Windows lifecycle qualification is incomplete, and no public release has been published. See the [release checklist](docs/release-checklist.md) before relying on unattended operation.
@@ -45,7 +45,7 @@ The [getting-started guide](docs/getting-started.md) covers deterministic instal
 | Start the fleet | Current-user Startup, Watchdog, and Maintenance tasks under `\TunnelTend\`. |
 | Respect a deliberate stop | Desired state and current-logon suppression control what recovery may restart. |
 | Recover a failed service | Ownership checks, thresholds, backoff, and persisted retry budgets. |
-| React to source changes | Opt-in local watching with exclusions and stable debounce. |
+| React to source changes | Project registration enables local watching by default, with exclusions and stable debounce; `--no-source-watch` disables it. |
 | Maintain the official client | Official Windows asset selection, digest verification, guarded extraction, backup, replacement, and rollback. |
 | Understand a failure | Read-only facts and diagnosis with structured output for local agents. |
 

@@ -1,8 +1,6 @@
-# Product model
+# Service state
 
-## Meaning
-
-This document defines TunnelTend's user-facing state model and operational relationships. It explains what a registered service means, how durable desired state differs from current observations, and how startup, watchdog, maintenance, and manual actions interact. Schemas remain the machine-readable contract.
+A service being registered, intended to run, observed running, and usable from your consumer are separate facts. TunnelTend keeps those distinctions so you can see what it knows and what still needs attention.
 
 ## Registered service
 
@@ -27,11 +25,14 @@ Registration is durable even if the first start fails. This lets the service rem
 
 - startup activates eligible autostart services;
 - a manual start activates a service in the current session;
-- a manual stop suppresses it for the current session;
-- maintenance restores only services intended to remain active; and
+- an ordinary manual stop saves durable stopped intent;
+- `service stop ID --session-only` keeps durable intent but suppresses automatic recovery for this session;
+- official-client maintenance restores the intended active fleet; and
 - a new logon creates a new session boundary.
 
 Disabled services and services with `desiredState=stopped` remain inactive until explicitly changed.
+
+Manual `repair --apply` and default `reconcile` can act on enabled, desired-running services even if inactive or session-suppressed. Optional application-update commands have their own maintenance selection rule and can run even for a stopped or disabled registration. Read [manual intent](OPERATIONS.md#manual-intent) and [application updates](OPERATIONS.md#source-watching-and-application-updates) before treating a temporary stop as a complete maintenance pause.
 
 ## Observation
 
@@ -45,17 +46,19 @@ An observation keeps independent dimensions rather than compressing everything i
 - last error and last observed time; and
 - source fingerprint standing.
 
-The CLI projects these facts into Wolf Ops-compatible summaries while retaining protected native detail in structured output.
+The CLI presents a readable summary and retains separate observations in `--json` output. An absent probe does not prove MCP behavior, and health alone does not establish consumer access. [Verify the connection from the consumer](getting-started.md#verify-the-whole-connection).
 
 ## Recovery
 
-Watchdog recovery occurs only when the service is registered, intended to be active, configuration-ready, and within its recovery budget. An attempt is persisted before disruption. Success resets the budget; repeated failure produces backoff and eventual exhaustion that remains visible to `doctor`.
+Watchdog recovery occurs only when the service is registered, intended to be active, configuration-ready, and within its recovery budget. An attempt is persisted before disruption. Success resets the budget; repeated failure produces backoff and exhaustion within a rolling window that remains visible to `doctor`. Later attempts can become eligible as old attempts age out of that window.
 
 `--force` can bypass the budget for an explicit operator action, but cannot bypass process ownership or other hard safety boundaries.
 
 ## Source change
 
 Source watching establishes an initial applied fingerprint, detects a different stable candidate, waits for the configured debounce, and restarts only after the change remains stable. Generated, dependency, VCS, state, log, and likely secret paths are excluded by default.
+
+Watching is enabled by default for project-path registration; it can be disabled with `--no-source-watch` or explicit descriptor policy. It does not infer builds or updates.
 
 ## Official-client lifecycle
 
