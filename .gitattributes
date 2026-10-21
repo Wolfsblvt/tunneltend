@@ -8,3 +8,5 @@
 *.zip binary
 *.png binary
 *.webp binary
+brand/bundle/** -text -filter -ident -working-tree-encoding
+*.ico binary

@@ -18,7 +18,7 @@ This repository map also includes contributor and product-maintenance material. 
 - [Current direction](DIRECTION.md): selected near-term movement and release sequence.
 - [Service state](product-model.md): registered services, desired state, session intent, and observations.
 - [Decisions](DECISIONS.md): durable choices and rationale.
-- [Branding](branding.md): current identity standing and asset boundary.
+- [Branding](branding.md): the approved Fold identity, palette, voice, and asset use rules.
 
 ## System and data
 
