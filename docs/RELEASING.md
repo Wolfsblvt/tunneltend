@@ -6,13 +6,15 @@ This document defines TunnelTend's local release-candidate, qualification, publi
 
 ## Release standing
 
-TunnelTend is pre-release. `main` is the public integration line. The first stable release is `v0.1.0` after the disposable-Windows checklist and current hosted CI pass for the exact candidate.
+`main` is the public integration line. The first stable release line is `v1.0.0`; publication requires the isolated-Windows checklist and current hosted CI for the exact candidate.
 
 ## Release communication
 
 The release audience is the Windows user or local agent operating registered MCP services. The leading audience account belongs in `docs/releases/<version>.md` when a release is actually prepared; the GitHub Release projects that account rather than keeping a separate history. No audience release is asserted by a local candidate build.
 
 Lead with what changes in installation, routine operation, recovery, or compatibility. Distinguish source availability, a tested package, Windows qualification, and publication. Credit accepted material contributors, and call out any remaining operator action or limitation that changes whether users should update. Follow the shared Works release-communication standard; do not substitute a file inventory or internal Work chronology for the user-facing account.
+
+The first official public release moves material maintainer work to the PR-preferred posture declared in `AGENTS.md`. It does not create a `next` branch or add a required-approval gate.
 
 ## Prepare the candidate
 
@@ -31,7 +33,7 @@ pwsh -NoProfile -NonInteractive -File .\scripts\Invoke-RepositoryValidation.ps1
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
-  -Version 0.1.0 `
+  -Version 1.0.0 `
   -SkipTests
 ```
 
@@ -39,7 +41,7 @@ pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
 
 ## Qualify on Windows
 
-Run `docs/release-checklist.md` against the exact candidate commit and package on a disposable Windows account. Preserve command output and resulting observations without copying secrets or user state into the repository.
+Run `docs/release-checklist.md` against the exact candidate commit and package using isolated disposable current-user paths on Windows 11. A separate VM is not required. Preserve command output and resulting observations without copying secrets or user state into the repository.
 
 Any repair produces a new commit and invalidates affected evidence. Rerun only the boundaries changed by that repair plus the final root gate.
 
@@ -61,7 +63,7 @@ After publication, verify:
 - GitHub Release assets match local SHA-256 values;
 - source archive and license are reachable;
 - README install route points at the real release;
-- a fresh disposable user can download, verify, install, run `doctor`, and uninstall; and
+- a fresh disposable current-user installation can download, verify, install, run `doctor`, and uninstall; and
 - no workflow or package claims a deployment that did not occur.
 
 ## Rollback and correction

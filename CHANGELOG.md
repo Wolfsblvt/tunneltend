@@ -2,9 +2,11 @@
 
 ## Meaning
 
-This changelog records user-visible TunnelTend changes by release line. The current source is pre-release, so implemented v0.1 capabilities remain under Unreleased until an authorized GitHub Release is published.
+This changelog records user-visible TunnelTend changes by release line. The first stable release account is [TunnelTend 1.0.0](docs/releases/1.0.0.md); downloadable availability is established by the matching GitHub Release.
 
 ## [Unreleased]
+
+## [1.0.0]
 
 ### Added
 
@@ -20,6 +22,13 @@ This changelog records user-visible TunnelTend changes by release line. The curr
 - Read-only `status`, `health`, `doctor`, `repair`, and reconcile-plan operations.
 - Stable JSON output envelopes for agents and automation.
 - Versioned schemas, Pester tests, portable fallback tests, CI, release-candidate packaging, and Windows qualification guidance.
-- Branding, local-validation, compatibility, security/recovery, and release-integration carriers.
+- The approved Fold identity, Moonpool palette, and public installation guidance.
+
+### Fixed
+
+- Non-interactive uninstall now honors `-Force` while preserving `-WhatIf` and retained state.
+- Release packaging stamps module, CLI and installer versions consistently, including prerelease candidates built from stable source.
 
 [Unreleased]: https://github.com/Wolfsblvt/tunneltend/commits/main
+
+[1.0.0]: https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.0

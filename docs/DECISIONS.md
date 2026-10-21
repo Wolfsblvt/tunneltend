@@ -99,3 +99,16 @@ This record preserves TunnelTend choices whose rationale cannot be reconstructed
 **Current consequence:** TunnelTend owns the native source/build boundary and its process-lifetime regression tests. Task and receipt configuration retain a stable interpreter coordinate; owned WindowsApps child identities resolve the installed executable before launch. Actual scheduler and installed behavior require their own lifecycle qualification.
 
 **Sources:** [Wolf's installer direction relayed by Tala](https://github.com/Wolfsblvt/emergency-meeting/issues/878#issuecomment-6223290730); [Katja's native-boundary judgment](https://github.com/Wolfsblvt/emergency-meeting/issues/878#issuecomment-6223620155); [Eira's source/package Return](https://github.com/Wolfsblvt/emergency-meeting/issues/878#issuecomment-6224774034).
+
+
+## D-009: Windows qualification uses disposable paths on the existing host
+
+**Decision:** Qualify the first stable release on Windows 11 with isolated disposable current-user installation, state, profile, log, backup and test-service paths. A VM is not a prerequisite.
+
+**Why:** Wolf explicitly rejected a VM requirement on 2026-10-21 after real sign-in, resume, connected recovery and remote MCP proof had already been collected on the existing Windows host. Isolation and exact observations protect the real estate without adding a separate machine requirement.
+
+**Rejected or superseded:** The release checklist's blanket disposable-VM/account requirement. Portable tests still do not substitute for Windows behavior, and a missing observation is not recorded as a pass.
+
+**Current consequence:** Reuse source-bound evidence for unchanged boundaries, exercise remaining meaningful behavior in disposable paths, and state exact limits. Website authorship/co-design follows separately with Wolf; it is not a dependency on source branding and release preparation.
+
+**Source:** Wolf's direct product direction, 2026-10-21: “we do not need a VM. I don't want that.” Katja carries the resulting qualification and release delivery.

@@ -4,7 +4,9 @@
 
 This checklist qualifies Windows behavior that portable source tests cannot prove. It is a disposable-host evidence route for one exact candidate, not a claim that source presence or Linux tests establish logon, task, locking, process, or resume behavior.
 
-Run on a disposable current Windows VM under a non-administrator user.
+Use disposable installation, state, profile, log, backup and test-service paths on a current Windows 11 host. A separate VM is not required. Run current-user tasks at their normal limited privilege. Keep the operator's real services and credentials outside the specimen.
+
+Bind each observation to its actual source/package and environment. Reuse evidence only while the relevant bytes and boundary are unchanged; name an unobserved boundary instead of promoting a source test to lived Windows proof.
 
 1. Install PowerShell 7 and extract the release ZIP.
 2. Run guided install and noninteractive install in separate snapshots.

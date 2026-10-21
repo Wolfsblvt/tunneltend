@@ -89,7 +89,7 @@ Run the root gate and repository validation first, then:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
-  -Version 0.1.0-preview.1 `
+  -Version 1.0.0 `
   -SkipTests
 ```
 
@@ -116,7 +116,7 @@ Then inspect the official release, command help, JSON output, and adapter tests.
 
 ## Windows qualification
 
-Run `docs/release-checklist.md` on a disposable Windows account before a public release and after changes to installer, automation, process ownership, updater, or service lifecycle behavior.
+Run `docs/release-checklist.md` using isolated disposable current-user paths on Windows 11 before a public release and after changes to installer, automation, process ownership, updater, or service lifecycle behavior.
 
 Portable tests prove source behavior and contract logic. They do not prove:
 

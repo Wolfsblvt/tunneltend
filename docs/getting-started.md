@@ -2,11 +2,11 @@
 
 ## Meaning
 
-This guide owns installation, policy selection, credential references, the first registered service, local-agent setup, and uninstall for the source preview. It describes the supported command path without claiming completed Windows lifecycle qualification or a published release.
+This guide owns installation, policy selection, credential references, the first registered service, local-agent setup, and uninstall. It describes the supported command path; downloadable availability belongs to the matching GitHub Release.
 
 ## Before installation
 
-Use Windows 11 and PowerShell 7.4 or newer. Clone this repository and run installation from its root. The official client is acquired separately from `openai/tunnel-client` and verified; no OpenAI binary is bundled.
+Use Windows 11 and PowerShell 7.4 or newer. Download the ZIP and its SHA-256 file from the [release](https://github.com/Wolfsblvt/tunneltend/releases/latest), verify the ZIP with `Get-FileHash -Algorithm SHA256`, and extract it. Run installation from the extracted root. Cloning the repository is also supported. The official client is acquired separately from `openai/tunnel-client` and verified; no OpenAI binary is bundled.
 
 An operational tunnel also needs an existing OpenAI tunnel setup: an appropriate runtime/admin credential reference and organization/workspace scope or an existing tunnel ID. Do not put raw credentials in arguments, descriptors, registry files, or diagnostics.
 
@@ -89,7 +89,7 @@ Plain-language constraints such as “disable automatic client updates” or “
 Run from the source checkout, supplying `-InstallRoot` if you selected a custom program directory. The installation receipt resolves a custom state root unless you explicitly override it:
 
 ```powershell
-pwsh -NoProfile -NonInteractive -File .\scripts\Uninstall-TunnelTend.ps1 -Confirm:$false
+pwsh -NoProfile -NonInteractive -File .\scripts\Uninstall-TunnelTend.ps1 -Force
 ```
 
 Normal uninstall removes tasks, program files, and the managed PATH entry while preserving registered state. `-RemoveOfficialClient` also removes a managed client inside the installation. `-PurgeState` explicitly removes the selected registry, logs, and backups; use it only when those are disposable or already preserved.

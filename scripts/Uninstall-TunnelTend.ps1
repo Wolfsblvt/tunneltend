@@ -10,6 +10,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
+if ($Force) { $ConfirmPreference='None' }
 if (-not $InstallRoot) { $InstallRoot=Join-Path $env:LOCALAPPDATA 'Programs/TunnelTend' }
 $InstallRoot=[IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($InstallRoot))
 . (Join-Path $PSScriptRoot 'InstallationPaths.ps1')

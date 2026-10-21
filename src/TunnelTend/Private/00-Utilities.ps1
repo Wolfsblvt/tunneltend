@@ -2,7 +2,7 @@ Set-StrictMode -Version Latest
 
 $script:TtProductName = 'tunneltend'
 $script:TtSchemaVersion = 1
-$script:TtModuleVersion = '0.1.0-preview.1'
+$script:TtModuleVersion = '1.0.0'
 
 function Test-TtWindows {
     [CmdletBinding()]

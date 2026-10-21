@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$Version = '0.1.0-preview.1',
+    [string]$Version = '1.0.0',
     [switch]$SkipTests
 )
 
@@ -44,6 +44,8 @@ $manifestText = [regex]::Replace($manifestText, "ModuleVersion\s*=\s*'[^']+'", "
 if ($prerelease) {
     if ($manifestText -match "Prerelease\s*=") {
         $manifestText = [regex]::Replace($manifestText, "Prerelease\s*=\s*'[^']*'", "Prerelease = '$prerelease'")
+    } else {
+        $manifestText = $manifestText.Replace('PSData = @{', ('PSData = @{' + [Environment]::NewLine + "            Prerelease = '$prerelease'"))
     }
 } else {
     $manifestText = [regex]::Replace($manifestText, "(?m)^\s*Prerelease\s*=.*\r?\n", '')
@@ -60,7 +62,7 @@ $utilityText = [regex]::Replace($utilityText, $versionPattern, "`$script:TtModul
 Set-Content $stagedUtilities $utilityText -Encoding utf8NoBOM
 $stagedInstaller = Join-Path $stage 'scripts/Install-TunnelTend.ps1'
 $installerText = Get-Content $stagedInstaller -Raw
-$installerText = $installerText.Replace("version='0.1.0-preview.1'", "version='$Version'")
+$installerText = [regex]::Replace($installerText, "(\bversion\s*=\s*)'[^']*'", ('$1' + "'$Version'"))
 Set-Content $stagedInstaller $installerText -Encoding utf8NoBOM
 
 $zip = Join-Path $artifacts "tunneltend-$Version.zip"

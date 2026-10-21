@@ -240,7 +240,7 @@ Build a candidate after those gates:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
-  -Version 0.1.0-preview.1 `
+  -Version 1.0.0 `
   -SkipTests
 ```
 
@@ -255,7 +255,7 @@ Full prerequisites and command meanings live in `docs/DEVELOPMENT.md`.
 
 ## Windows release evidence
 
-Before any public release, execute `docs/release-checklist.md` on a disposable Windows account. It covers Task Scheduler registration, sign-in startup, session suppression, watchdog recovery, wrong-PID protection, sleep/resume, concurrent reconciliation, official-client update/rollback, and uninstall/adoption behavior.
+Before any public release, execute `docs/release-checklist.md` in disposable current-user paths on Windows 11. A separate VM is not required. It covers Task Scheduler registration, sign-in startup, session suppression, watchdog recovery, wrong-PID protection, sleep/resume, concurrent reconciliation, official-client update/rollback, and uninstall/adoption behavior.
 
 Do not claim Windows lifecycle validation from Linux or source-only checks.
 
@@ -263,17 +263,17 @@ Do not claim Windows lifecycle validation from Linux or source-only checks.
 
 ```text
 main:
-  maintainer integration: direct allowed
+  maintainer integration: PR preferred
   external contributions: PR required
   required pre-integration evidence: CI / Test and package for the exact candidate when provider-visible
   required approval/review: none
   resolved conversations: no
   automatic CI: CI; Upstream compatibility watch
   automatic retained branch effects: none
-  other pre-update evidence: disposable-Windows lifecycle validation before the first public release
+  other pre-update evidence: isolated current-user Windows lifecycle validation before the first public release
 ```
 
-The repository is early, founder-controlled, and pre-release. Public release publication, tags, packages, settings changes, or other retained effects still require their own current authority.
+The first official public release selects PR-preferred maintainer delivery. `main` remains the only durable branch until real release-line separation is needed. The repository is founder-controlled. Public release publication, tags, packages, settings changes, or other retained effects still require their own current authority.
 
 ## Contribution discipline
 
