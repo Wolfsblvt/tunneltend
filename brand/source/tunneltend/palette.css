@@ -1,0 +1,39 @@
+/* Moonpool After Dark: owner-approved identity source, pending product adoption. */
+:root, [data-theme="light"] {
+  --tt-canvas: #FAF9FB;
+  --tt-surface: #EFEAF3;
+  --tt-text: #25222D;
+  --tt-muted: #635D6B;
+  --tt-accent: #167B91;
+  --tt-accent-on-surface: #126B7E;
+  --tt-healthy: #246D4C;
+  --tt-degraded: #916019;
+  --tt-failed: #A33F50;
+  --tt-neutral: #5E5767;
+}
+[data-theme="dark"] {
+  --tt-canvas: #191821;
+  --tt-surface: #35303F;
+  --tt-text: #F0EDF3;
+  --tt-muted: #AAA4B2;
+  --tt-accent: #79CAD9;
+  --tt-accent-on-surface: #79CAD9;
+  --tt-healthy: #6BBC96;
+  --tt-degraded: #E4B368;
+  --tt-failed: #F08A97;
+  --tt-neutral: #BAB3C3;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tt-canvas: #191821;
+    --tt-surface: #35303F;
+    --tt-text: #F0EDF3;
+    --tt-muted: #AAA4B2;
+    --tt-accent: #79CAD9;
+    --tt-accent-on-surface: #79CAD9;
+    --tt-healthy: #6BBC96;
+    --tt-degraded: #E4B368;
+    --tt-failed: #F08A97;
+    --tt-neutral: #BAB3C3;
+  }
+}

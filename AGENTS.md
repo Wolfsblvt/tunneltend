@@ -287,7 +287,7 @@ The repository is early, founder-controlled, and pre-release. Public release pub
 
 ## Branding
 
-The current product name is **TunnelTend** and the command/repository slug is **`tunneltend`**. Treat that as the incumbent durable identity. No final icon is approved yet. Follow `docs/branding.md` and `carriers/Threshold-CoDesign-Branding.md`; do not imitate OpenAI marks or imply endorsement.
+The current product name is **TunnelTend** and the command/repository slug is **`tunneltend`**. Treat that as the incumbent durable identity. The approved identity is The Fold with the Moonpool After Dark palette. Follow `docs/branding.md`; the artwork lives under `brand/`, where `brand/bundle/` is generated from `brand/source/` and never edited by hand. Do not redraw the mark, imitate OpenAI or MCP marks, or imply endorsement. A wordmark, website, and social composition are not yet designed.
 
 ## License
 

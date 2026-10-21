@@ -10,7 +10,7 @@ This is the maintained map of TunnelTend product, operator, development, compati
 - [Current direction](DIRECTION.md): selected near-term movement and release sequence.
 - [Product model](product-model.md): registered services, desired state, session intent, and operations.
 - [Decisions](DECISIONS.md): durable choices and rationale.
-- [Branding](branding.md): current identity standing and asset boundary.
+- [Branding](branding.md): the approved Fold identity, palette, voice, and asset use rules.
 
 ## System and data
 

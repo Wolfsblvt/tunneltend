@@ -20,6 +20,7 @@ This changelog records user-visible TunnelTend changes by release line. The curr
 - Read-only `status`, `health`, `doctor`, `repair`, and reconcile-plan operations.
 - Stable JSON output envelopes for agents and automation.
 - Versioned schemas, Pester tests, portable fallback tests, CI, release-candidate packaging, and Windows qualification guidance.
+- The approved TunnelTend identity: The Fold mark, Moonpool After Dark palette, voice, and README entrance, with generated SVG, PNG, and ICO assets under `brand/`.
 - Branding, local-validation, compatibility, security/recovery, and release-integration carriers.
 
 [Unreleased]: https://github.com/Wolfsblvt/tunneltend/commits/main

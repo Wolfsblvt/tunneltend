@@ -209,7 +209,7 @@ Describe 'Installation state custody' {
     }
 
     It 'refuses a nested state collision with staged program payload before replacement' {
-        $collisionState = Join-Path $script:CustodyInstall 'assets/state'
+        $collisionState = Join-Path $script:CustodyInstall 'brand/state'
         New-Item -ItemType Directory -Path $collisionState -Force | Out-Null
         Set-Content -LiteralPath (Join-Path $collisionState 'registry.json') -Value 'collision state'
         { & $script:Installer -InstallRoot $script:CustodyInstall -StateRoot $collisionState -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*own directory*'

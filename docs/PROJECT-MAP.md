@@ -14,6 +14,7 @@ This map explains where TunnelTend's product behavior, contracts, tooling, and e
 | `tunneltend.cmd` | Windows command wrapper. |
 | `Install-TunnelTend.cmd` | Double-click installer launcher. |
 | `LICENSE` | AGPL-3.0-only legal text. |
+| `brand/` | Approved identity: authored masters in `brand/source/tunneltend/`, generated assets in `brand/bundle/tunneltend/`. |
 
 ## Implementation
 

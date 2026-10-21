@@ -1,19 +1,22 @@
-# TunnelTend
+# <picture><source media="(prefers-color-scheme: dark)" srcset="brand/bundle/tunneltend/assets/mark-primary/on-dark.svg"><img src="brand/bundle/tunneltend/assets/mark-primary/on-light.svg" alt="" width="32" height="32"></picture> TunnelTend
 
 [![CI](https://github.com/Wolfsblvt/tunneltend/actions/workflows/ci.yml/badge.svg)](https://github.com/Wolfsblvt/tunneltend/actions/workflows/ci.yml)
 [![PowerShell 7.4+](https://img.shields.io/badge/PowerShell-7.4%2B-5391FE?logo=powershell&logoColor=white)](docs/DEVELOPMENT.md)
 [![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-663399.svg)](LICENSE)
 
-**Register an MCP service once. Let TunnelTend tend its connection.**
+**Register once. Leave the routine to TunnelTend.**
 
-TunnelTend is a local-first Windows manager for OpenAI's official `tunnel-client`. It remembers registered services and their desired state, then handles startup, connection, health checks, bounded recovery, source-change restarts, and verified client updates.
+TunnelTend is a local-first Windows manager for MCP services connected through OpenAI's official `tunnel-client`. Register one or many services, and it takes care of logon startup, tunnel connection, health observation, bounded recovery, source-change restarts, and verified updates of the official client. It respects deliberate stops and reports clearly when it cannot recover something.
 
-**[Get started](#quick-start-from-source)** · **[Documentation](docs/README.md)** · **[Install with a local agent](docs/getting-started.md#install-with-a-local-agent)**
+**[Get started](#install-and-get-running)** · **[Documentation](docs/README.md)** · **[Install with a local agent](docs/getting-started.md#install-with-a-local-agent)**
 
 > [!IMPORTANT]
-> This is an unofficial project, unaffiliated with and not endorsed or supported by OpenAI. TunnelTend is a source preview: Windows lifecycle qualification is incomplete, and no public release has been published. See the [release checklist](docs/release-checklist.md) before relying on unattended operation.
+> TunnelTend is an independent open-source project. It is not affiliated with or endorsed by OpenAI. It manages the official client; it does not replace that client or host a tunnel service.
 
-## Quick start from source
+> [!NOTE]
+> TunnelTend is pre-release: no release has been published, and Windows lifecycle qualification is incomplete. The first tagged release depends on the [release checklist](docs/release-checklist.md). The commands below install from source.
+
+## Install and get running
 
 You need Windows 11, PowerShell 7.4 or later, and an existing OpenAI tunnel setup with credentials and organization/workspace scope or a tunnel ID. The installer downloads and verifies the official client; TunnelTend never bundles it.
 
@@ -28,15 +31,18 @@ The guided installer explains the recommended defaults: logon startup, a watchdo
 Open a new terminal, register a project, and inspect the result:
 
 ```powershell
-tunneltend service register C:\src\my-mcp
+tunneltend service register C:\src\internal-tools
 tunneltend status
-tunneltend health
 tunneltend doctor
 ```
 
-Registration is retained if startup fails. Use `doctor` to resolve missing scope, credentials, or launch configuration; a saved registration alone does not prove a healthy tunnel. Discovery refuses ambiguous projects and returns the explicit choice needed.
+Registration is retained if startup fails. Use `doctor` to resolve missing scope, credentials, or launch configuration; a saved registration alone does not prove a healthy tunnel. Discovery refuses ambiguous projects and returns the explicit choice needed. TunnelTend does not invent credentials or edit your MCP project.
 
-The [getting-started guide](docs/getting-started.md) covers deterministic installation, policy switches, credential references, agent setup, and uninstall. The [registration guide](docs/registration.md) covers explicit commands, HTTP services, descriptors, and existing aliases.
+**Prefer a local coding agent?** Give it the repository and this instruction:
+
+> Install TunnelTend from its current repository instructions on my Windows machine. Check prerequisites and the official tunnel-client configuration; use the supported installer and public CLI, never hand-edit TunnelTend JSON. Register only MCP services I identify. Configure the documented default logon/watchdog/client-update automation unless I override it. Use read-only `tunneltend status --json`, `health --json`, `doctor --json`, and `automation status --json` to verify the real result. Ask for my involvement at account sign-in or secret/authorization boundaries; don't invent keys or claim success from process launch alone. Show the final service state and any remaining manual dependency.
+
+The [getting-started guide](docs/getting-started.md) covers deterministic installation, policy switches, credential references, and uninstall. The [registration guide](docs/registration.md) covers explicit commands, HTTP services, descriptors, and existing aliases.
 
 ## What it takes care of
 

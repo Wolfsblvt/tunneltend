@@ -1,0 +1,107 @@
+{
+  "status": "Owner-selected palette and visually approved Fold reference; not yet integrated into product source",
+  "name": "Moonpool After Dark",
+  "colors": {
+    "darkCanvas": "#191821",
+    "darkSurface": "#35303F",
+    "lightCanvas": "#FAF9FB",
+    "lightSurface": "#EFEAF3",
+    "accentDark": "#79CAD9",
+    "accentLight": "#167B91",
+    "accentLightOnSurface": "#126B7E",
+    "textDark": "#F0EDF3",
+    "mutedDark": "#AAA4B2",
+    "textLight": "#25222D",
+    "mutedLight": "#635D6B",
+    "healthyDark": "#6BBC96",
+    "healthyLight": "#246D4C",
+    "degradedDark": "#E4B368",
+    "degradedLight": "#916019",
+    "failedDark": "#F08A97",
+    "failedLight": "#A33F50",
+    "neutralDark": "#BAB3C3",
+    "neutralLight": "#5E5767"
+  },
+  "testedPairs": {
+    "accent on dark canvas": {
+      "foreground": "#79CAD9",
+      "background": "#191821",
+      "ratio": 9.43
+    },
+    "accent on dark surface": {
+      "foreground": "#79CAD9",
+      "background": "#35303F",
+      "ratio": 6.84
+    },
+    "accent on light canvas": {
+      "foreground": "#167B91",
+      "background": "#FAF9FB",
+      "ratio": 4.68
+    },
+    "accent text on light surface": {
+      "foreground": "#126B7E",
+      "background": "#EFEAF3",
+      "ratio": 5.17
+    },
+    "dark text": {
+      "foreground": "#F0EDF3",
+      "background": "#191821",
+      "ratio": 15.17
+    },
+    "dark muted text": {
+      "foreground": "#AAA4B2",
+      "background": "#191821",
+      "ratio": 7.26
+    },
+    "light text": {
+      "foreground": "#25222D",
+      "background": "#FAF9FB",
+      "ratio": 14.87
+    },
+    "light muted text": {
+      "foreground": "#635D6B",
+      "background": "#FAF9FB",
+      "ratio": 6.05
+    },
+    "healthy on dark canvas": {
+      "foreground": "#6BBC96",
+      "background": "#191821",
+      "ratio": 7.75
+    },
+    "healthy on light canvas": {
+      "foreground": "#246D4C",
+      "background": "#FAF9FB",
+      "ratio": 5.94
+    },
+    "degraded on dark canvas": {
+      "foreground": "#E4B368",
+      "background": "#191821",
+      "ratio": 9.17
+    },
+    "degraded on light canvas": {
+      "foreground": "#916019",
+      "background": "#FAF9FB",
+      "ratio": 5.14
+    },
+    "failed on dark canvas": {
+      "foreground": "#F08A97",
+      "background": "#191821",
+      "ratio": 7.36
+    },
+    "failed on light canvas": {
+      "foreground": "#A33F50",
+      "background": "#FAF9FB",
+      "ratio": 5.91
+    },
+    "neutral on dark canvas": {
+      "foreground": "#BAB3C3",
+      "background": "#191821",
+      "ratio": 8.65
+    },
+    "neutral on light canvas": {
+      "foreground": "#5E5767",
+      "background": "#FAF9FB",
+      "ratio": 6.59
+    }
+  }
+}

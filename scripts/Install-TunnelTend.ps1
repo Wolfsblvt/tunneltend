@@ -69,7 +69,7 @@ try {
     foreach ($item in Get-ChildItem -LiteralPath $sourceRoot -Force) {
         if ($item.Name -in $exclude) { continue }
         if ($nestedState -and (Test-TtInstallationPathWithin $StateRoot $item.FullName)) {
-            if ($item.Name -in @('src','scripts','schemas','tests','docs','assets','carriers','examples')) {
+            if ($item.Name -in @('src','scripts','schemas','tests','docs','brand','carriers','examples')) {
                 throw 'A nested StateRoot must use its own directory, separate from TunnelTend program payload paths (for example InstallRoot/data/state).'
             }
             continue
