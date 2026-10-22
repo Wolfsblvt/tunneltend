@@ -21,17 +21,17 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "3.7.4",
-    "@astrojs/starlight": "0.42.2",
-    "@iconify-json/lucide": "1.2.135",
-    "@iconify-json/simple-icons": "1.2.97",
+    "@astrojs/starlight": "0.42.6",
+    "@iconify-json/lucide": "1.2.146",
+    "@iconify-json/simple-icons": "1.2.100",
     "@wolfsblvt/icons": "0.3.0",
-    "astro": "7.3.3",
+    "astro": "7.4.1",
     "sharp": "0.35.5",
     "yaml": "2.9.1"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.10",
-    "typescript": "6.0.3",
-    "wrangler": "4.150.0"
+    "@astrojs/check": "0.9.11",
+    "typescript": "7.0.2",
+    "wrangler": "4.151.2"
   }
 }
