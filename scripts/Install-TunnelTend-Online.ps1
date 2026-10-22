@@ -30,16 +30,18 @@ Where the verified release is extracted. Default: %LOCALAPPDATA%\TunnelTend\down
 .PARAMETER NoInstall
 Download, verify and extract the release, then stop and print where it is.
 
-.PARAMETER InstallerArguments
-Every remaining argument is passed to scripts\Install-TunnelTend.ps1 unchanged, for example
--NonInteractive, -DisableAutostart, -DisableAutoUpdate, -DisableWatchdog or -InstallRoot.
+.NOTES
+Every argument this script does not itself declare is passed to scripts\Install-TunnelTend.ps1
+as named parameters, for example -NonInteractive, -DisableAutostart, -DisableAutoUpdate,
+-DisableWatchdog, -InstallRoot or -AutostartAliases a,b. This script deliberately has no
+[CmdletBinding()] and no declared catch-all parameter: both would drop the "this is a parameter
+name" marking that splatting @args preserves, and `-NonInteractive` would reach the installer
+as a positional InstallRoot value.
 #>
-[CmdletBinding()]
 param(
     [string]$Version,
     [string]$DownloadRoot,
-    [switch]$NoInstall,
-    [Parameter(ValueFromRemainingArguments)][string[]]$InstallerArguments
+    [switch]$NoInstall
 )
 
 Set-StrictMode -Version Latest
@@ -114,7 +116,8 @@ if ($NoInstall) {
 }
 
 # 5. Run the ordinary installer from the verified release, in this console, so the guided
-#    questions still work. Every remaining argument reaches it unchanged.
-Write-Step 'starting the guided installer'
-& $installer @InstallerArguments
+#    questions still work. Splatting the automatic $args keeps each switch and value bound to its
+#    parameter name; a typed string array would turn them all into positional values.
+Write-Step 'starting the installer'
+& $installer @args
 Write-Step "done. Open a new terminal, then run: tunneltend status"

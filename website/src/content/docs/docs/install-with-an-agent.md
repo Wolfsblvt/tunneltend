@@ -6,7 +6,7 @@ identity:
     eyebrow: Documentation
 ---
 
-A local coding agent, such as Codex or Claude Code running on the Windows computer you want to set up, can install TunnelTend and register your service for you. It uses the same installer, the same CLI and the same read-only checks a person would. There is no separate agent-only mechanism, and nothing here gives the agent access to OpenAI; that part stays yours.
+A local coding agent, such as Codex or Claude Code running on the Windows computer you want to set up, can install TunnelTend and register your service for you. It uses the same installer, the same CLI and the same read-only checks a person would. There is no separate agent-only mechanism, and installing it does not hand the agent your OpenAI account or its access. Signing in to OpenAI stays with you; see [What the agent may do beyond installing](#what-the-agent-may-do-beyond-installing).
 
 ## For you
 
@@ -26,7 +26,7 @@ Give the agent:
 A cloud-only chat without access to your computer can explain these steps but cannot run them, and cannot prove a remote tool call succeeded. Expect the agent to stop and ask you at the OpenAI sign-in and secret boundaries; that is the correct behavior, not a failure.
 
 :::note
-TunnelTend is an independent open-source project, not affiliated with OpenAI. The agent installs OpenAI’s official tunnel client as a separate, verified download; it does not create tunnels, keys or ChatGPT connectors.
+TunnelTend is an independent open-source project, not affiliated with OpenAI. The installer fetches OpenAI’s official tunnel client as a separate, verified download. It does not create tunnels, keys or ChatGPT connectors itself.
 :::
 
 ## For the agent
@@ -102,13 +102,22 @@ Report, from those outputs: the registered target and working directory, the tun
 
 ### Boundaries
 
-- Ask the human at every OpenAI sign-in, account or secret boundary. Do not create tunnels, keys or connectors on their behalf, and do not read secret values back.
+- Ask the human at every OpenAI sign-in, account or secret boundary, and do not read secret values back. Authorization to install and register TunnelTend is not authority to create accounts, tunnels, keys, connectors or other provider-side access; see [What the agent may do beyond installing](#what-the-agent-may-do-beyond-installing).
 - Use the installer and the public CLI. Never hand-edit or normalize `registry.json`, `runtime.json` or any other TunnelTend JSON.
 - Preserve download verification and process-ownership checks. `--force` never bypasses process identity, credential-reference validation, scope, digest verification or archive safety; do not reach for it to make a check pass.
-- A process launch, a saved registration or installed tasks are not success. Success is the observed state above plus, separately, a real harmless tool call from the human’s consumer (ChatGPT or another OpenAI product). You cannot perform that call; say so.
+- A process launch, a saved registration or installed tasks are not success. Success is the observed state above plus, separately, a real harmless tool call from the human’s consumer (ChatGPT or another OpenAI product). Make that call only if the human authorized it and you can reach the consumer from this machine; otherwise report it as unobserved.
 - Distinguish local setup from the consumer side and from later Windows lifecycle behavior (a future sign-in, sleep/resume, a watchdog cycle). Name each check you could not perform as unobserved rather than assumed.
 - Elevate only when the chosen installation boundary genuinely needs it. Do not change machine-wide settings.
 
+### What the agent may do beyond installing
+
+Installing and registering are covered by the task above. Provider and consumer work is a separate grant: creating or changing a tunnel, a key or credential, a connector or any other OpenAI-side resource, and making a real tool call through the consumer. A capable local agent may carry that work when the human has explicitly authorized it, and then only for the exact effect named.
+
+- **Authentication stays human.** The human completes OpenAI sign-in, two-factor prompts and consent screens themselves, or in a session they deliberately opened for the agent. Do not work around a sign-in, and do not use an account, browser session or token the human did not provide for this task.
+- **Authority is per effect.** “Install TunnelTend” does not authorize creating an account, a tunnel, a key or a connector. When the human names an effect, do that effect and stop; do not widen it.
+- **Secrets stay mediated.** A key value is created, stored and read through the provider’s own interface or the human’s secret store, then reached only by reference (`env:` or `file:`). It never appears in a command line, a descriptor, a log or your report.
+- **Say what you observed.** Report each provider or consumer step as done, failed or unobserved, with the evidence you saw.
+
 ## What “done” looks like
 
-TunnelTend is installed for the current user, the named service is registered with a credential reference, `status`, `health` and `doctor` report the expected facts, and the intended Scheduled Tasks exist. The human still owns the last step: configuring the consumer on OpenAI’s side and making one real tool call, as described in [Connect it in ChatGPT](/docs/getting-started/#connect-it-in-chatgpt). If that call fails while local checks pass, [Troubleshooting](/docs/troubleshooting/) separates the two.
+TunnelTend is installed for the current user, the named service is registered with a credential reference, `status`, `health` and `doctor` report the expected facts, and the intended Scheduled Tasks exist. The last step is configuring the consumer on OpenAI’s side and making one real tool call, by the human or by the agent under the authorization above, as described in [Connect it in ChatGPT](/docs/getting-started/#connect-it-in-chatgpt). If that call fails while local checks pass, [Troubleshooting](/docs/troubleshooting/) separates the two.

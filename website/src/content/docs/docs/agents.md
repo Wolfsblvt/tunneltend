@@ -40,7 +40,7 @@ The [home page](/#agents) has copy buttons for the most common sentences.
 
 A good agent stops and asks you at these points, and TunnelTend is built so that it has to:
 
-- **Your OpenAI access.** Creating a tunnel, getting a runtime key, adding a connector in ChatGPT: those happen in your OpenAI organization and in ChatGPT, with your account. See [Prepare your OpenAI access](/docs/getting-started/#prepare-your-openai-access).
+- **Your OpenAI access.** Creating a tunnel, getting a runtime key, adding a connector in ChatGPT: those happen in your OpenAI organization and in ChatGPT, under your account. You sign in yourself; an agent carries one of these steps only when you explicitly authorize that exact step. See [Prepare your OpenAI access](/docs/getting-started/#prepare-your-openai-access).
 - **Any secret.** The agent asks you to put the key in an environment variable or a protected file and uses only the reference. If it ever asks you to paste a key into the chat, refuse.
 - **Anything it cannot verify.** `status` showing `running` is a local fact. Whether ChatGPT can actually use your tool is proven by [one real tool call](/docs/getting-started/#verify-the-whole-connection), and a careful agent says so instead of declaring success.
 - **Your intent.** A deliberate stop stays stopped. An agent should not "repair" a service you stopped on purpose, and TunnelTend's watchdog will not either.

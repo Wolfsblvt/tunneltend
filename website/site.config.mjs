@@ -106,7 +106,7 @@ export default {
       provision:
         'Your browser has to send the request data to receive a page. There is no account, form, newsletter or tracking on this site, so no further information is required from you.',
       storage:
-        'The site uses no cookies and no tracking. The only browser storage is your light/dark theme choice, which the page keeps in your browser’s local storage because you asked for it (§ 25(2) TDDDG); it is never sent anywhere. Cloudflare’s security layer may set a strictly necessary short-lived cookie to tell people from bots.',
+        'The site uses no cookies and no tracking. The only browser storage is what you choose on the page itself: your light/dark theme choice (and, for the system setting, which theme the next toggle switches to) and your plain or developer reading mode. The site keeps them in your browser’s local storage because you asked for them (§ 25(2) TDDDG); they are never sent anywhere, and clearing the site’s local storage resets them. Cloudflare’s security layer may set a strictly necessary short-lived cookie to tell people from bots.',
       contact:
         'If you write to the contact address on the Impressum, we process your email address and what you wrote only to answer you. Legal basis: Art. 6(1)(b) GDPR where you ask about the product, otherwise Art. 6(1)(f) GDPR. Messages are kept as long as the conversation needs it and deleted afterwards. Writing to us is voluntary.',
     },
