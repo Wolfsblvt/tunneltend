@@ -67,16 +67,21 @@ To pass installer switches, or to download and verify without installing:
 
 ### Download and verify yourself
 
-Get `tunneltend-<version>.zip` and `tunneltend-<version>.zip.sha256` from the [latest release](https://github.com/Wolfsblvt/tunneltend/releases/latest). Compare the hashes, extract, and run the installer:
+Get `tunneltend-<version>.zip` and `tunneltend-<version>.zip.sha256` from the [latest release](https://github.com/Wolfsblvt/tunneltend/releases/latest) and save both in one folder. This script compares the ZIP's SHA-256 with the published one and throws on a mismatch before anything is extracted or run; otherwise it extracts and starts the installer. Use the version you downloaded:
 
 ```powershell
-Get-FileHash .\tunneltend-1.0.1.zip -Algorithm SHA256
-Get-Content .\tunneltend-1.0.1.zip.sha256
-Expand-Archive .\tunneltend-1.0.1.zip -DestinationPath .\tunneltend
-.\tunneltend\Install-TunnelTend.cmd
+$zip = '.\tunneltend-1.0.1.zip'
+$expected = ((Get-Content "$zip.sha256" -Raw) -split '\s+' | Select-Object -First 1).ToLowerInvariant()
+$actual = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($expected -notmatch '^[0-9a-f]{64}$' -or $actual -ne $expected) {
+  throw "Checksum mismatch for $zip. Expected $expected but downloaded $actual. Nothing was extracted. Delete the download and get it again."
+} else {
+  Expand-Archive $zip -DestinationPath .\tunneltend
+  .\tunneltend\Install-TunnelTend.cmd
+}
 ```
 
-The two hashes must match exactly. If they do not, delete the download and get it again.
+If it refuses, delete the download and get it again. Do not extract a ZIP that failed the comparison.
 
 ### From source
 

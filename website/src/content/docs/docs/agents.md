@@ -17,7 +17,7 @@ TunnelTend was built from the ground up to be operated by software as well as by
 - **It refuses to guess.** Ambiguous project discovery returns the candidates and the exact command to continue. A missing tunnel ID or credential reference is an error with a message, not an invented value.
 - **Secrets are references.** `env:CONTROL_PLANE_API_KEY` or `file:C:\secure\runtime-key.txt` is all the agent ever handles; it never needs, sees or stores the key itself.
 - **Ownership is proven before anything is stopped.** A recorded PID is only touched when its executable path and start time still match. An agent asked to "fix it" cannot make TunnelTend kill an unrelated process. See [Security](/docs/security/).
-- **Exit codes mean something.** `0` success, `2` degraded or failed operations, `3` usage, `4` command failure, so a script or an agent can tell them apart without parsing prose.
+- **Exit codes mean something.** `0` success, `2` degraded or failed operations, `4` a command that failed validation or execution, so a script or an agent can tell them apart without parsing prose.
 
 ## Things you can say
 

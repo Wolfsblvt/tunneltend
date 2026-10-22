@@ -6,6 +6,8 @@ import site from '../site.config.mjs';
 import publicPages from '../src/data/public-pages.mjs';
 import { assetUrl, siteBasePath } from './identity-model.mjs';
 import { resolvedPages } from './site-pages.mjs';
+import { manualVerifyScript } from '../src/data/manual-verify.mjs';
+import { RELEASE_VERSION } from '../src/data/site.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = resolve(projectRoot, 'artifacts/site');
@@ -60,6 +62,19 @@ for (const page of pages.values()) {
     if (!payload || JSON.parse(payload).url !== page.structuredData.url) {
       throw new Error(`Built Home structured identity disagrees with ${page.path}.`);
     }
+  }
+}
+// The homepage and the manual must both show the one executable verification script.
+const visibleText = (html) => html.replace(/<[^>]+>/gu, '')
+  .replace(/&#x([0-9a-f]+);/giu, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+  .replace(/&#(\d+);/gu, (_, dec) => String.fromCodePoint(Number(dec)))
+  .replace(/&(quot|amp|lt|gt);/gu, (_, name) => ({ quot: '"', amp: '&', lt: '<', gt: '>' })[name])
+  .replace(/\s+/gu, '');
+// Highlighted lines carry no separator between them, so the comparison ignores whitespace.
+const expectedScript = manualVerifyScript(RELEASE_VERSION).replace(/\s+/gu, '');
+for (const output of ['index.html', 'docs/getting-started/index.html']) {
+  if (!visibleText(readFileSync(resolve(outputRoot, output), 'utf8')).includes(expectedScript)) {
+    throw new Error(`The manual verification script on ${output} is not the shared executable script.`);
   }
 }
 console.log('Built pages, sitemap, robots policy and structured Home identity match resolved source.');

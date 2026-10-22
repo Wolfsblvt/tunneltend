@@ -102,7 +102,7 @@ export default {
       recipientsAndTransfers:
         'Cloudflare, Inc., San Francisco, USA, delivers the site through its global network, so a request may be answered from a server outside the EU. The transfer relies on the EU–US Data Privacy Framework and Cloudflare’s standard contractual clauses.',
       retention:
-        'We do not keep request logs ourselves. Cloudflare keeps short-lived request logs for security and operations and deletes them under its own retention policy.',
+        'We do not keep request logs ourselves. Cloudflare, which delivers the site, processes request data such as your IP address and the page you asked for in order to deliver it and to run its security layer; how long it keeps that data is set by Cloudflare’s own policy, not by us.',
       provision:
         'Your browser has to send the request data to receive a page. There is no account, form, newsletter or tracking on this site, so no further information is required from you.',
       storage:

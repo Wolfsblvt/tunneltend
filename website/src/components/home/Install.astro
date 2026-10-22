@@ -7,11 +7,9 @@ import Icon from '../Icon.astro';
 import CommandStrip from '../CommandStrip.astro';
 import CodeBlock from '../CodeBlock.astro';
 import SectionHead from '../SectionHead.astro';
+import { manualVerifyScript } from '../../data/manual-verify.mjs';
 import { AGENT_PROMPT, INSTALL_COMMAND, LATEST_RELEASE, RELEASES, RELEASE_VERSION, docPaths, paths } from '../../data/site';
-const verify = `Get-FileHash .\\tunneltend-${RELEASE_VERSION}.zip -Algorithm SHA256
-Get-Content .\\tunneltend-${RELEASE_VERSION}.zip.sha256
-Expand-Archive .\\tunneltend-${RELEASE_VERSION}.zip -DestinationPath .\\tunneltend
-.\\tunneltend\\Install-TunnelTend.cmd`;
+const verify = manualVerifyScript(RELEASE_VERSION);
 const register = `tunneltend service register C:\\src\\my-mcp --id my-mcp \`
   --tunnel-id YOUR_EXISTING_TUNNEL_ID \`
   --runtime-key-ref env:CONTROL_PLANE_API_KEY
@@ -31,7 +29,7 @@ tunneltend doctor`;
       </article>
       <article class="card route">
         <div class="route-head"><h3 class="route-title"><span class="route-index">B</span>Download and verify yourself</h3><span class="route-meta">latest release · ZIP + SHA-256</span></div>
-        <p class="card-body">Get the release ZIP and its checksum file from GitHub, compare the hashes, extract, and run the installer. Same result as the one-liner, with your own eyes on every step. The current release is {RELEASE_VERSION}; use the version you downloaded.</p>
+        <p class="card-body">Get the release ZIP and its checksum file from GitHub and save both in one folder. This script compares the hashes and stops on a mismatch, before anything is extracted or run. Same result as the one-liner, with every step in view. The current release is {RELEASE_VERSION}; use the version you downloaded.</p>
         <CodeBlock code={verify} lang="powershell" file="PowerShell 7" />
         <div class="route-actions">
           <a class="btn btn-primary" href={LATEST_RELEASE} rel="noopener"><Icon name="download" size={14} />Download the latest release</a>
