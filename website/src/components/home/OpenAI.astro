@@ -1,0 +1,56 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// #openai: what the reader needs from OpenAI's side, said once, with the official sources
+// linked. TunnelTend does not grant access, provision tunnels or configure ChatGPT; OpenAI's
+// documents are the authority for all of that, so this section points rather than restates.
+import Icon from '../Icon.astro';
+import SectionHead from '../SectionHead.astro';
+import { docPaths, openai } from '../../data/site';
+const needs = [
+  { title: 'A tunnel ID', body: 'Created in your OpenAI organization (and workspace, where it applies) on the Platform Tunnels page or through the onboarding guide. If someone else administers that organization, ask them for the ID.' },
+  { title: 'A runtime key, by reference', body: 'An API key with the tunnel Read and Use permissions. You never paste it into TunnelTend; you put it in an environment variable or a protected file and register the reference, such as env:CONTROL_PLANE_API_KEY.' },
+  { title: 'A connector in ChatGPT', body: 'Once the tunnel is up, you add the tool in ChatGPT the way OpenAI’s current guide describes for your plan and workspace. Then make one real, harmless tool call. That call, not a green light on your PC, proves the connection.' },
+];
+const links = [
+  { label: 'Secure MCP Tunnels guide', note: 'The official overview: what it is, which products can consume it, how to configure them', href: openai.tunnelsGuide },
+  { label: 'tunnel-client on GitHub', note: 'OpenAI’s official client, its README, releases and command surface', href: openai.clientRepo },
+  { label: 'Onboarding', note: 'Creating a tunnel in your organization and getting the first connection up', href: openai.onboarding },
+  { label: 'Permissions', note: 'Which key permissions a running tunnel needs, and why admin keys should not be the runtime key', href: openai.permissions },
+  { label: 'Platform · Tunnels', note: 'The management page in your OpenAI organization settings', href: openai.platformTunnels },
+  { label: 'Model Context Protocol', note: 'What MCP is and how to make or find an MCP server for your tool', href: openai.mcp },
+];
+---
+<section class="section" data-section="openai">
+  <div class="wrap">
+    <SectionHead id="openai" title="What you need from OpenAI" body="TunnelTend is independent and unofficial. The tunnel itself, the access to it and the ChatGPT side are OpenAI’s, so here is exactly what to bring and where OpenAI explains it." />
+    <div class="openai-grid">
+      <ol class="needs">
+        {needs.map(need => <li><h3 class="card-title">{need.title}</h3><p class="card-body">{need.body}</p></li>)}
+      </ol>
+      <ul class="resources">
+        {links.map(link => (
+          <li><a class="resource" href={link.href} rel="noopener">
+            <span class="resource-text"><span class="resource-label">{link.label}</span><span class="resource-note">{link.note}</span></span>
+            <Icon name="external" size={12} class="resource-arrow" />
+          </a></li>
+        ))}
+      </ul>
+    </div>
+    <p class="notice"><strong>Who can use this?</strong> OpenAI documents consumers including ChatGPT, Codex, the Responses API and AgentKit; availability, organization or workspace scope and permissions are controlled by OpenAI and may depend on your plan. Installing TunnelTend does not change that. <a class="link-quiet" href={docPaths.prepareOpenAI}>Prepare your OpenAI access</a> before you register a service.</p>
+  </div>
+</section>
+
+<style>
+  .openai-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  .needs { margin: 0; padding: 0; list-style: none; counter-reset: need; display: flex; flex-direction: column; gap: 14px; }
+  .needs li { counter-increment: need; position: relative; padding: 18px 20px 18px 56px; border: 1px solid var(--hair); border-radius: var(--r-block); background: var(--bg-raised); display: flex; flex-direction: column; gap: 6px; }
+  .needs li::before { content: counter(need); position: absolute; left: 18px; top: 18px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--accent); color: var(--accent-text); font-family: var(--font-mono); font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .resources { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .resource { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--hair); border-radius: var(--r-block); transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease); }
+  .resource:hover { border-color: var(--hair-strong); background: var(--bg-raised); }
+  .resource-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .resource-label { font-weight: 600; font-size: 14px; }
+  .resource-note { font-size: 12.5px; color: var(--fg-2); line-height: 1.4; }
+  .resource-arrow { color: var(--fg-3); }
+  @media (max-width: 900px) { .openai-grid { grid-template-columns: minmax(0, 1fr); } }
+</style>

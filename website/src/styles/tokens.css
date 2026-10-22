@@ -1,0 +1,95 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
+/* TunnelTend design tokens: Moonpool After Dark (docs/branding.md), projected onto the site.
+   Dark is the reference theme; light is the authored companion, not an inversion. Cyan is
+   identity, selection and primary action, never a health signal: healthy is green, degraded
+   amber, failed rose, and each always comes with a word. Machine surfaces (terminal, code)
+   keep the graphite ground in both themes.
+   Theme selection: [data-theme="dark"|"light"] on <html>, written before first paint. */
+
+:root {
+  /* ── type: the system sans first, Cascadia for code. No web font leaves this origin. ── */
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, ui-monospace, "SF Mono", Menlo, monospace;
+  --tracking-display: -.022em;
+  --tracking-h2: -.015em;
+
+  /* ── spacing (4-base) and frames ── */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+  --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 64px;
+  --page-gutter: clamp(1rem, 2.5vw, 2rem);
+  --measure-prose: 68ch;
+  --frame-focused: 48rem;
+  --frame-content: 80rem;
+  --frame-wide: 96rem;
+  --section-y: 64px;
+  --header-h: 62px;
+
+  /* ── radii ── */
+  --r-card: 14px; --r-block: 10px; --r-control: 6px; --r-chip: 4px; --r-pill: 999px;
+
+  /* ── motion ── */
+  --dur: 160ms; --ease: cubic-bezier(.2, .7, .2, 1);
+
+  /* ── machine ground: the same in both themes ── */
+  --machine-bg: #121118;
+  --machine-fg: #f0edf3;
+  --machine-fg-2: #aaa4b2;
+  --machine-fg-3: #7d7686;
+  --machine-hair: #2b2834;
+  --machine-accent: #79cad9;
+  --machine-ok: #6bbc96;
+  --machine-degraded: #e4b368;
+  --machine-failed: #f08a97;
+  --machine-neutral: #bab3c3;
+}
+
+/* ────────────────────────────── DARK (reference) ────────────────────────────── */
+:root, [data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #191821;             /* Graphite canvas */
+  --bg-raised: #211f2a;      /* cards and panels, a step above the canvas */
+  --bg-raised-2: #2b2835;    /* interactive controls, selected chips */
+  --bg-slate: #35303f;       /* Violet Slate: the approved raised surface, used for emphasis */
+  --hair: #2d2a36;
+  --hair-strong: #45404f;
+  --fg: #f0edf3;
+  --fg-2: #c3bdcb;
+  --fg-3: #aaa4b2;           /* approved muted text */
+  --accent: #79cad9;         /* Mist Cyan: identity and primary action */
+  --accent-hover: #93d7e3;
+  --accent-text: #79cad9;
+  --on-accent: #10171a;
+  --focus: #79cad9;
+  --ok: #6bbc96;
+  --degraded: #e4b368;
+  --failed: #f08a97;
+  --neutral: #bab3c3;
+  --shadow-panel: 0 10px 30px rgb(0 0 0 / 35%);
+}
+
+/* ────────────────────────────── LIGHT (authored) ────────────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #faf9fb;             /* Chalk */
+  --bg-raised: #ffffff;
+  --bg-raised-2: #efeaf3;    /* Pale Slate */
+  --bg-slate: #efeaf3;
+  --hair: #e3dde8;
+  --hair-strong: #c9c2d0;
+  --fg: #25222d;
+  --fg-2: #4a4552;
+  --fg-3: #635d6b;
+  --accent: #167b91;         /* Deep Cyan */
+  --accent-hover: #126b7e;
+  --accent-text: #126b7e;    /* small accent text on the pale raised surface */
+  --on-accent: #ffffff;
+  --focus: #167b91;
+  --ok: #246d4c;
+  --degraded: #916019;
+  --failed: #a33f50;
+  --neutral: #5e5767;
+  --shadow-panel: 0 10px 30px rgb(37 34 45 / 12%);
+}
+
+@media (prefers-reduced-motion: reduce) { :root { --dur: 0ms; } }

@@ -65,7 +65,7 @@ $stateContainer = if ($nestedState) { Join-Path $InstallRoot $stateDirectory } e
 $preservedState = "$InstallRoot.state-$([Guid]::NewGuid().ToString('N'))"
 try {
     New-Item -ItemType Directory -Path $temp -Force | Out-Null
-    $exclude = @('.git','artifacts','.validation')
+    $exclude = @('.git','artifacts','.validation','website')
     foreach ($item in Get-ChildItem -LiteralPath $sourceRoot -Force) {
         if ($item.Name -in $exclude) { continue }
         if ($nestedState -and (Test-TtInstallationPathWithin $StateRoot $item.FullName)) {
@@ -100,7 +100,7 @@ try {
     $PowerShellPath = & (Get-Module TunnelTend | Select-Object -First 1) { param($path) Get-TtPowerShellExecutable $path } $PowerShellPath
     # Acquisition and optional service registration also launch PowerShell. Make
     # the selected runtime available to them inside this rollback transaction.
-    $manifest = [ordered]@{ product='tunneltend'; version='1.0.0'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot; powerShellPath=$PowerShellPath }
+    $manifest = [ordered]@{ product='tunneltend'; version='1.0.1'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot; powerShellPath=$PowerShellPath }
     $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $InstallRoot 'install.json') -Encoding utf8NoBOM
     Set-TtConfiguration -Path 'settings.automation.autostart' -Value (-not $DisableAutostart) -StateRoot $StateRoot | Out-Null
     Set-TtConfiguration -Path 'settings.automation.autoUpdate' -Value (-not $DisableAutoUpdate) -StateRoot $StateRoot | Out-Null

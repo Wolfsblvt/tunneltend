@@ -1,0 +1,21 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+import Base from '../layouts/Base.astro';
+import { docPaths, paths } from '../data/site';
+---
+<Base>
+  <section class="wrap missing">
+    <p class="eyebrow">404</p>
+    <h1 class="h2">This address does not point to a page.</h1>
+    <p class="lede">The docs and the FAQ moved around during the site’s first build, so an older link may have gone stale.</p>
+    <ul class="section-links">
+      <li><a class="link" href={paths.home}>Product home</a></li>
+      <li><a class="link" href={paths.docs}>Docs</a></li>
+      <li><a class="link" href={docPaths.getStarted}>Get started</a></li>
+      <li><a class="link" href={paths.faq}>FAQ</a></li>
+    </ul>
+  </section>
+</Base>
+<style>
+  .missing { padding-block: 96px 120px; display: flex; flex-direction: column; gap: 14px; max-width: calc(var(--frame-focused) + 2 * var(--page-gutter)); }
+</style>

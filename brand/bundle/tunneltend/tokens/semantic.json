@@ -1,0 +1,37 @@
+{
+  "dark": {
+    "surface-canvas": "#191821",
+    "surface-raised": "#35303F",
+    "text-primary": "#F0EDF3",
+    "text-muted": "#AAA4B2",
+    "action-primary": "#79CAD9",
+    "action-primary-hover": "#93D7E3",
+    "link": "#79CAD9",
+    "focus-ring": "#79CAD9",
+    "border-default": "#45404F",
+    "status-healthy": "#6BBC96",
+    "status-degraded": "#E4B368",
+    "status-failed": "#F08A97",
+    "status-neutral": "#BAB3C3"
+  },
+  "light": {
+    "surface-canvas": "#FAF9FB",
+    "surface-raised": "#EFEAF3",
+    "text-primary": "#25222D",
+    "text-muted": "#635D6B",
+    "action-primary": "#167B91",
+    "action-primary-hover": "#126B7E",
+    "link": "#126B7E",
+    "focus-ring": "#167B91",
+    "border-default": "#C9C2D0",
+    "status-healthy": "#246D4C",
+    "status-degraded": "#916019",
+    "status-failed": "#A33F50",
+    "status-neutral": "#5E5767"
+  },
+  "fonts": {
+    "interface": "\"Segoe UI Variable Text\", \"Segoe UI\", system-ui, sans-serif",
+    "reading": "\"Segoe UI Variable Text\", \"Segoe UI\", system-ui, sans-serif",
+    "mono": "\"Cascadia Code\", \"Cascadia Mono\", Consolas, ui-monospace, monospace"
+  }
+}

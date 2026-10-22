@@ -58,15 +58,24 @@ function Write-TtCliResult {
         'status' {
             foreach ($service in @($Envelope.data.services)) {
                 $mark = if ($service.healthy) { 'OK' } elseif ($service.observedState -eq 'stopped') { '--' } else { '!!' }
-                [Console]::Out.WriteLine("[{0}] {1,-24} desired={2,-7} observed={3,-9} autostart={4} watchdog={5}" -f $mark,$service.id,$service.desiredState,$service.observedState,$service.autostart,$service.watchdog)
+                # Build the line first: inside a method argument list the commas would split the
+                # format arguments into separate WriteLine arguments.
+                $line = "[{0}] {1,-24} desired={2,-7} observed={3,-9} autostart={4} watchdog={5}" -f $mark,$service.id,$service.desiredState,$service.observedState,$service.autostart,$service.watchdog
+                [Console]::Out.WriteLine($line)
             }
         }
         'health' {
-            foreach ($service in @($Envelope.data.services)) { [Console]::Out.WriteLine("{0,-24} healthy={1} ready={2} state={3}" -f $service.serviceId,$service.healthy,$service.ready,$service.state) }
+            foreach ($service in @($Envelope.data.services)) {
+                $line = "{0,-24} healthy={1} ready={2} state={3}" -f $service.serviceId,$service.healthy,$service.ready,$service.state
+                [Console]::Out.WriteLine($line)
+            }
         }
         'doctor' {
             if (@($Envelope.diagnostics).Count -eq 0) { [Console]::Out.WriteLine('No problems detected.') }
-            foreach ($diagnostic in @($Envelope.diagnostics)) { [Console]::Out.WriteLine("[{0}] {1}: {2}" -f ([string]$diagnostic.severity).ToUpperInvariant(),$diagnostic.code,$diagnostic.message) }
+            foreach ($diagnostic in @($Envelope.diagnostics)) {
+                $line = "[{0}] {1}: {2}" -f ([string]$diagnostic.severity).ToUpperInvariant(),$diagnostic.code,$diagnostic.message
+                [Console]::Out.WriteLine($line)
+            }
         }
         default {
             if ($null -ne $Envelope.data) { [Console]::Out.WriteLine(($Envelope.data | ConvertTo-Json -Depth 30)) }

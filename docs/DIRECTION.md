@@ -2,35 +2,34 @@
 
 ## Meaning
 
-This document carries TunnelTend's durable near-term direction. Current execution, review Returns, and unresolved Work live in the selected shared workplace. The immediate outcome is the first stable Windows release, with the approved brand identity, qualified installation and recovery behavior, exact-head hosted CI, and downloadable verified artifacts. It narrows sequence without shrinking the Vision.
+This document carries TunnelTend's durable near-term direction. The first stable Windows CLI release is published. The current outcome is to deliver the owner-co-designed website and manual using the approved Fold identity, and prepare its public Home with Wolf Ops. Current execution, review Returns and exact operating obligations live in the shared workplace. The Vision and autonomous local-manager scope remain unchanged.
 
 ## Current outcome
 
-1. Publish the coherent PowerShell source repository to `Wolfsblvt/tunneltend`.
-2. Consume hosted CI for the exact pushed commit and repair candidate-owned failures.
-3. Run the Windows validation carrier in disposable current-user paths against that exact candidate.
-4. Reconcile any Windows findings into source and rerun affected evidence.
-5. Adopt the owner-approved Fold artwork, Moonpool palette and public wording.
-6. Cut `v1.0.0` only after the release checklist and candidate evidence support it.
+1. Fold the returned Astro/Starlight website, plain-language manual, FAQ, outlined wordmark and Moonpool treatment into the product source.
+2. Qualify the actual homepage-to-install/docs journey, the public bootstrap, responsive navigation/search and the locked build.
+3. Deliver the 1.0.1 patch so the website's latest-release route includes the plain diagnostic-output and installer-forwarding repairs.
+4. Prepare the relevant-input GitHub Actions build/publication route and its exact production inputs.
+5. Join Wolf Ops in one publication room for https://tunneltend.com, the direct www alias, production legal projection, DNS/TLS, public discovery, monitoring and practical rollback.
 
-The owner selected finishing branding and release delivery on 21 October, with isolated current-user qualification on the existing Windows host and no VM requirement. Website authorship and co-design follow separately with Wolf.
+Wolf selected finishing the CLI release on 21 October without a VM prerequisite. On 22 October he asked Katja to “handle and fold the website co-design, with the approved branding, docs and current 1.0 release context,” prepare build/CI and create the shared publication room with Wolf Ops. He separately authorized publishing the qualified 1.0.1 patch. The returned design includes his wordmark selection and second-round experience changes; its substantive choices remain the implementation baseline.
 
 ## Constraints
 
 - Do not bundle the official OpenAI client.
-- Do not publish a release merely because source CI is green.
-- Do not weaken digest verification, process ownership, secret references, or read-only grammar to make tests pass.
-- Keep the default autonomous experience: logon startup, watchdog recovery, and verified official-client updates.
-- Preserve the no-hand-written-JSON normal journey.
+- Preserve the default autonomous behavior, secret references, process ownership and read/plan/apply grammar.
+- Preserve the no-hand-written-JSON normal journey for humans and local coding agents.
+- Keep website source, build/preview, public hosting and actual consumer operation distinct.
+- Product copy, identity and manual remain in TunnelTend; provider/DNS/credential and live publication evidence remain with Wolf Ops.
 
 ## Not now
 
 - A tray application or graphical dashboard.
 - Non-Windows automation backends.
 - A hosted TunnelTend service.
-- Automatic source-control, package, build, migration, or container update strategies.
-- Package-manager publication before the direct release route is proven.
+- Automatic source-control, package, build, migration or container update strategies.
+- Package-registry publication.
 
-## Completion boundary for this tranche
+## Completion boundary
 
-This tranche is complete when the accepted source and approved identity are on public main, all applicable hosted CI is terminal and green for that commit, Windows qualification supports the stated release behavior, and the v1.0.0 tag and GitHub Release expose the exact verified artifacts with a fresh download/install readback. Material unobserved boundaries remain explicit. Website authorship and co-design follow separately with Wolf.
+The website preparation is complete when its accepted source and approved identity are integrated, applicable exact-head CI passes, the rendered journeys and repaired installer have their own evidence, and the shared publication room carries an executable Ops handoff. The 1.0.1 delivery additionally requires qualified artifacts, the correct tag/Release and a fresh anonymous download/install readback. Public Home completion depends on the actual publication and reader/provider observations returned through that shared room; a source build does not complete it.

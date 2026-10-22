@@ -112,3 +112,39 @@ This record preserves TunnelTend choices whose rationale cannot be reconstructed
 **Current consequence:** Reuse source-bound evidence for unchanged boundaries, exercise remaining meaningful behavior in disposable paths, and state exact limits. Website authorship/co-design follows separately with Wolf; it is not a dependency on source branding and release preparation.
 
 **Source:** Wolf's direct product direction, 2026-10-21: “we do not need a VM. I don't want that.” Katja carries the resulting qualification and release delivery.
+
+## D-010: The website authors its own user-facing manual
+
+**Decision:** The public manual at `tunneltend.com/docs/` is written for its readers inside `website/src/content/docs/` (Starlight). The repository's `docs/` tree remains maintainer and contributor documentation and is not generated into the site.
+
+**Why:** Wolf's direction on 2026-10-22: pages that begin with a source-description section are maintainer documents, and the site's first reader is someone using ChatGPT who does not yet know what MCP or a tunnel is. Rewriting for that reader is a different document from the repository contract, so one writable copy per audience is the honest shape.
+
+**Rejected or superseded:** Generating the site from the repository `docs/` allowlist at build time (the earlier integration note's plan).
+
+**Current consequence:** Product facts changed in `docs/` must be carried into the matching website page in the same change. The FAQ keeps its stable answer ids. The agent handoff destination is `https://tunneltend.com/docs/install-with-an-agent/`.
+
+**Source:** Wolf's website direction, 2026-10-22, carried by Tala.
+
+## D-011: One-line installation is served from the product domain
+
+**Decision:** `scripts/Install-TunnelTend-Online.ps1` is served verbatim at `https://tunneltend.com/install.ps1`. It resolves the selected GitHub release, downloads the ZIP and its `.sha256`, refuses a checksum mismatch, extracts into `%LOCALAPPDATA%\TunnelTend\downloads\tunneltend-<version>\`, and runs the ordinary installer in the same console.
+
+**Why:** Wolf selected the one-liner for the website on 2026-10-22. The route keeps the release ZIP and the published digest as the only trust anchors and reuses the existing installer, so it adds no second installation path.
+
+**Rejected or superseded:** A separate bootstrap that extracts and copies files itself; hosting the installer or the release assets anywhere but GitHub Releases.
+
+**Current consequence:** The script never bundles the official client, uses no expression evaluation itself, and is part of the website's publish inputs. Changing its download root or release source is a product decision.
+
+**Source:** Wolf's website direction, 2026-10-22, carried by Tala.
+
+## D-012: The wordmark is outlined Manrope beside the Fold
+
+**Decision:** The TunnelTend wordmark is “TunnelTend” set in Manrope 700 at −0.025 em tracking, outlined to paths; the default lockup is the Fold at the header ratio beside it. Both are exported with the identity as a Works-standard brand bundle.
+
+**Why:** Wolf chose it on 2026-10-22 from three in-site candidates (Nunito lowercase, Manrope, Sora): it reads the same as the product name in prose and serves both the ChatGPT reader and the developer. Outlining removes any runtime font dependency.
+
+**Rejected or superseded:** Nunito lowercase (warmer, more consumer-app), Sora (more overtly technical); a text-only header.
+
+**Current consequence:** `brand/source/tunneltend/tunneltend-wordmark*.svg` and `tunneltend-lockup*.svg` are masters; the lockup carries `titleCompatible` for README and site use. Manrope's OFL licence travels in the bundle as provenance; no font file is distributed.
+
+**Source:** Wolf's selection, 2026-10-22, carried by Tala.

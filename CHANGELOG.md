@@ -4,7 +4,18 @@
 
 This changelog records user-visible TunnelTend changes by release line. The first stable release account is [TunnelTend 1.0.0](docs/releases/1.0.0.md); downloadable availability is established by the matching GitHub Release.
 
-## [Unreleased]
+## [1.0.1]
+
+### Added
+
+- The product website at `website/` (tunneltend.com): the front door, a user-facing manual at `/docs/`, the FAQ, legal pages, and the TunnelTend brand bundle mirrored at `/brand/tunneltend/`.
+- `scripts/Install-TunnelTend-Online.ps1`, served as `https://tunneltend.com/install.ps1`: one PowerShell line downloads the latest release, verifies its published SHA-256, extracts it and runs the ordinary installer.
+- The TunnelTend wordmark and default lockup (outlined Manrope lettering beside the Fold), exported with the identity as a Works-standard brand bundle with `manifest.json`, tokens and CSS.
+
+### Fixed
+
+- Plain `status`, `health` and `doctor` output no longer fails with a string-formatting error once a service or diagnostic exists; `--json` was unaffected.
+- The online installer forwards named installer switches and values correctly instead of treating them as positional paths.
 
 ## [1.0.0]
 
@@ -33,3 +44,4 @@ This changelog records user-visible TunnelTend changes by release line. The firs
 [Unreleased]: https://github.com/Wolfsblvt/tunneltend/commits/main
 
 [1.0.0]: https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.0
+[1.0.1]: https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.1

@@ -5,12 +5,17 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $failures = [Collections.Generic.List[string]]::new()
-# Generated packages, local tooling, and Git objects are not repository source.
+# Generated packages, local tooling, Git objects, and the website's installed or generated
+# trees are not repository source.
+$generatedWebsiteTrees = @('node_modules', 'artifacts', '.astro', '.wrangler') | ForEach-Object { Join-Path (Join-Path $root 'website') $_ }
 $ownedFiles = @(Get-ChildItem -LiteralPath $root -Force | Where-Object {
     $_.Name -notin @('.git', 'artifacts', '.validation')
 } | ForEach-Object {
     if ($_.PSIsContainer) { Get-ChildItem -LiteralPath $_.FullName -Recurse -File -Force }
     else { $_ }
+} | Where-Object {
+    $file = $_
+    -not ($generatedWebsiteTrees | Where-Object { $file.FullName.StartsWith($_ + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) })
 })
 
 $required = @(
@@ -69,6 +74,8 @@ foreach ($markdown in $ownedFiles | Where-Object Extension -EQ '.md') {
     foreach ($match in [regex]::Matches($text, '\[[^\]]+\]\((?<target>[^)]+)\)')) {
         $target = $match.Groups['target'].Value.Split('#')[0]
         if ($target -match '^(?:https?:|mailto:|#)' -or [string]::IsNullOrWhiteSpace($target)) { continue }
+        # Website content links by published route (/docs/...), which the built site resolves, not the repository.
+        if ($target.StartsWith('/') -and $markdown.FullName.StartsWith((Join-Path $root 'website') + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { continue }
         $decoded = [Uri]::UnescapeDataString($target)
         $candidate = [IO.Path]::GetFullPath((Join-Path $markdown.DirectoryName $decoded))
         if (-not (Test-Path -LiteralPath $candidate)) {

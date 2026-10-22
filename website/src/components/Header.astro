@@ -1,0 +1,61 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// The one site header, identical on every route including the manual: identity, discovery,
+// navigation, one divider, utilities and one trailing action, in the Works header grammar.
+import Fold from './Fold.astro';
+import Wordmark from './Wordmark.astro';
+import Icon from './Icon.astro';
+import Search from './Search.astro';
+import ThemeControl from './ThemeControl.astro';
+import DestinationRows from './DestinationRows.astro';
+import { community } from '../data/destinations';
+import { GITHUB, INSTALL_COMMAND, paths } from '../data/site';
+interface Props { surface?: string | undefined; current?: string | undefined }
+const { surface, current } = Astro.props;
+const here = Astro.url;
+const isHere = (href: string) => { const target = new URL(href, here); return target.origin === here.origin && target.pathname === here.pathname; };
+const links = [
+  { href: paths.docs, label: 'Docs', key: 'docs' },
+  { href: paths.faq, label: 'FAQ', key: 'faq' },
+  { href: paths.install, label: 'Install', key: 'install' },
+] as const;
+---
+<header class="site-header" data-site-header>
+  <div class="wrap">
+    <div class="brand">
+      <a class="brand-link" href={paths.home} aria-label="TunnelTend home">
+        <Fold size={26} class="brand-mark" />
+        <Wordmark height={17} class="brand-word" />
+      </a>
+      {surface && <span class="surface-title" data-surface-label>{surface}</span>}
+    </div>
+    <div class="header-main">
+      <Search />
+      <nav class="primary-nav" aria-label="Site">
+        <ul class="site-nav">
+          {links.map(item => (
+            <li><a href={item.href} aria-current={isHere(item.href) && item.key !== 'install' ? 'page' : undefined} data-in-section={current === item.key ? '' : undefined}><span class="nav-label" data-label={item.label}>{item.label}</span></a></li>
+          ))}
+        </ul>
+      </nav>
+      <div class="disclosure-host compact-menu">
+        <button class="menu-trigger" type="button" aria-expanded="false" aria-controls="panel-menu" data-panel-trigger>Menu<Icon name="chevron" size={10} class="chevron" /></button>
+        <div class="dest-panel" id="panel-menu" data-panel data-align="start" hidden>
+          <ul class="dest-rows">{links.map(item => <li><a class="dest-row dest-row-plain" href={item.href} aria-current={isHere(item.href) && item.key !== 'install' ? 'page' : undefined}><span class="dest-label">{item.label}</span></a></li>)}</ul>
+        </div>
+      </div>
+      <span class="header-sep" aria-hidden="true"></span>
+      <div class="utilities">
+        <a class="utility utility-direct" href={GITHUB} rel="noopener" aria-label="Source on GitHub" title="Source on GitHub" data-direct-source><Icon name="github" size={16} /></a>
+        <div class="disclosure-host">
+          <button class="utility utility-social" type="button" aria-expanded="false" aria-controls="panel-community" aria-label="Community and social links" title="Community" data-panel-trigger><Icon name="social-links" size={16} /><Icon name="chevron" size={10} class="chevron" /></button>
+          <div class="dest-panel" id="panel-community" data-panel data-align="end" hidden><p class="dest-heading">Community</p><DestinationRows rows={community} kind="community" /></div>
+        </div>
+        <ThemeControl />
+      </div>
+      <button class="trailing-action trailing-copy" type="button" data-copy={INSTALL_COMMAND} data-copy-state aria-label={`Copy the install command: ${INSTALL_COMMAND}`} data-trailing="install">
+        <span class="copy-swap"><span class="copy-swap-rest">{INSTALL_COMMAND}</span><span class="copy-swap-done" aria-hidden="true">Copied ✓</span></span><Icon name="copy" size={13} class="copy-glyph" />
+      </button>
+    </div>
+  </div>
+</header>

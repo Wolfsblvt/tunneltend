@@ -1,0 +1,20 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Global search: one launcher in the shared header and one modal, on every route including
+// the manual. The launcher is a button, not a field: full (190 × 30, with the shortcut),
+// compact (156, no shortcut) and icon-only (30 × 30) are the same control and open the same
+// dialog, which queries the Pagefind index written over the whole built site.
+import Icon from './Icon.astro';
+---
+<button class="search-trigger" type="button" data-search-open aria-haspopup="dialog" aria-label="Search" aria-keyshortcuts="Control+K Meta+K">
+  <Icon name="search" size={14} /><span class="search-trigger-label" aria-hidden="true">Search</span><kbd class="search-kbd" aria-hidden="true" data-search-shortcut>Ctrl K</kbd>
+</button>
+<dialog class="search-dialog" data-search-dialog aria-label="Search TunnelTend">
+  <form method="dialog" class="search-form" role="search" data-search-form>
+    <Icon name="search" size={16} />
+    <input class="search-input" type="search" name="q" placeholder="Search the site, the docs and the FAQ" aria-label="Search the site, the docs and the FAQ" autocomplete="off" spellcheck="false" data-search-input />
+    <button class="search-close" type="submit" value="close" aria-label="Close search">Esc</button>
+  </form>
+  <p class="search-status" role="status" aria-live="polite" data-search-status>Searches product pages, the docs and individual FAQ answers.</p>
+  <ol class="search-results" data-search-results></ol>
+</dialog>

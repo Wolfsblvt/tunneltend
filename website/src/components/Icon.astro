@@ -1,0 +1,13 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// One semantic icon slot for the whole site. Callers name a meaning (`social-links`,
+// `github`, `download`), never a drawing; src/data/icons.ts resolves it through the shared
+// catalogue. Controls carry their own accessible name; `label` is only for an informative
+// standalone icon.
+import { resolveIcon, type IconName } from '../data/icons';
+interface Props { name: IconName; size?: number | undefined; class?: string | undefined; label?: string | undefined }
+const { name, size = 16, class: extra, label } = Astro.props;
+const icon = resolveIcon(name);
+---
+<svg class:list={['icon', extra]} data-icon={name} width={size} height={size} viewBox={icon.viewBox}
+  aria-hidden={label ? undefined : 'true'} role={label ? 'img' : undefined} aria-label={label} set:html={icon.body} />

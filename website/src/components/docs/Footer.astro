@@ -1,0 +1,8 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Starlight's own footer (pagination) stays inside the content pane; the shared site footer
+// is rendered by the PageFrame override at full page width.
+import Default from '@astrojs/starlight/components/Footer.astro';
+const props = Astro.props;
+---
+<Default {...props}><slot /></Default>

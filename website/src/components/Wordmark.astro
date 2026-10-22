@@ -1,0 +1,14 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// The TunnelTend wordmark (outlined Manrope lettering, owner-approved 2026-10-22), inlined
+// from the brand bundle's tintable projection so it follows the current ink beside the Fold.
+// The geometry is the exact exported master; it is never redrawn here.
+import source from '../../../brand/bundle/tunneltend/assets/wordmark/on-dark-tintable.svg?raw';
+interface Props { height?: number | undefined; class?: string | undefined; label?: string | undefined }
+const { height = 17, class: extra, label = 'TunnelTend' } = Astro.props;
+const viewBox = /viewBox="([^"]+)"/u.exec(source)?.[1] ?? '0 0 539 79';
+const [, , w, h] = viewBox.split(' ').map(Number) as [number, number, number, number];
+const width = Math.round((w / h) * height * 100) / 100;
+const paths = [...source.matchAll(/<path[^>]*\/>/gu)].map(match => match[0]).join('');
+---
+<svg class:list={['wordmark', extra]} width={width} height={height} viewBox={viewBox} fill="currentColor" role="img" aria-label={label} set:html={paths} />

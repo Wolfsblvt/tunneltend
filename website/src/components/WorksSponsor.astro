@@ -1,0 +1,26 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Stack binding only: Works owns the markup, copy, artwork and motion in its vendored bundle
+// (vendor/brand/works, pinned by its manifest). The host supplies placement, enabled links,
+// one product-context line and the admitted presentation variables.
+import template from '../../vendor/brand/works/components/works-sponsor.html?raw';
+import site from '../../site.config.mjs';
+import { renderWorksSponsor } from '../lib/works-sponsor.mjs';
+import '../../vendor/brand/works/css/works-sponsor.css';
+interface Props { idPrefix?: string | undefined; heading?: number | undefined; context?: string | undefined }
+const { idPrefix = 'sp-works', heading = 2, context = 'TunnelTend is free and open source. Support keeps the Windows qualification, the releases and the quiet caretaking honest.' } = Astro.props;
+const html = renderWorksSponsor(template, { github: site.sponsors.github, kofi: site.sponsors.kofi, idPrefix, heading, context })
+  .replace('class="works-sponsor"', 'class="works-sponsor host-tunneltend"');
+---
+<Fragment set:html={html} />
+<script>
+  import { mountWorksSponsors } from '../../vendor/brand/works/components/works-sponsor.mjs';
+  mountWorksSponsors();
+</script>
+<style is:global>
+  /* Host inputs only: panel background and border, the host's two radii, type, buttons and spacing. */
+  .host-tunneltend { --works-sponsor-background: #140d14; --works-sponsor-veil: #140d14; --works-sponsor-border: 1px solid rgb(243 232 220 / 12%); --works-sponsor-radius-top-right: var(--r-block); --works-sponsor-radius-bottom-left: var(--r-block); --works-sponsor-text: #f3e8dc; --works-sponsor-font: var(--font-ui); --works-sponsor-heading-font: 600 clamp(30px, 3vw, 42px)/1.05 var(--font-display); --works-sponsor-button-background: #f3e8dc; --works-sponsor-button-text: #140d14; --works-sponsor-spacing: 0; }
+  .host-tunneltend p { color: #d1c0b8; }
+  .host-tunneltend .add { color: #e6d8cc; }
+  .host-tunneltend .secondary { border: 1px solid rgb(243 232 220 / 35%); color: #f3e8dc; }
+</style>

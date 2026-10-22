@@ -33,7 +33,7 @@ pwsh -NoProfile -NonInteractive -File .\scripts\Invoke-RepositoryValidation.ps1
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
-  -Version 1.0.0 `
+  -Version 1.0.1 `
   -SkipTests
 ```
 

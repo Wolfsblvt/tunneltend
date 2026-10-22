@@ -1,0 +1,52 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// #agents: TunnelTend is built to be set up, watched and operated through a local coding
+// agent, not only by typing commands. Each row is a sentence you can say, with the real
+// commands the agent will run for it; the copy button copies the sentence. The agent reads
+// the same read-only JSON a person reads as text.
+import Icon from '../Icon.astro';
+import CommandStrip from '../CommandStrip.astro';
+import SectionHead from '../SectionHead.astro';
+import SectionLinks from '../SectionLinks.astro';
+import { docPaths } from '../../data/site';
+const prompts = [
+  { say: 'Connect my Blender MCP add-on to ChatGPT through TunnelTend: register it from C:\\src\\blender-mcp with my existing tunnel ID, start it, and show me status and doctor.', runs: ['tunneltend service register C:\\src\\blender-mcp --id blender-mcp --tunnel-id … --runtime-key-ref env:CONTROL_PLANE_API_KEY', 'tunneltend status blender-mcp --json', 'tunneltend doctor blender-mcp --json'], note: 'Registration, first start and the read-only facts. The agent asks you for the tunnel ID and the credential reference; it never invents either.' },
+  { say: 'My notes-search service shows as unhealthy in TunnelTend. Find out why and fix what you safely can.', runs: ['tunneltend doctor notes-search --json', 'tunneltend repair notes-search', 'tunneltend repair notes-search --apply'], note: 'Diagnosis, the plan, then the explicit apply. A repair never kills a process TunnelTend cannot prove it owns.' },
+  { say: 'Stop my photo-tagger service with TunnelTend until I sign in again.', runs: ['tunneltend service stop photo-tagger --session-only', 'tunneltend status photo-tagger --json'], note: 'A session-only stop; the watchdog leaves it alone. Without the flag the stop is durable.' },
+  { say: 'Check whether OpenAI’s tunnel client has a newer stable release, update it through TunnelTend and show me the result.', runs: ['tunneltend client update --check-only', 'tunneltend client update', 'tunneltend client status --json'], note: 'Verified download, staged check, swap with backup, fleet restore; rollback if anything fails.' },
+];
+---
+<section class="section" data-section="agents">
+  <div class="wrap">
+    <SectionHead id="agents" title="Or just say it to your agent" body="TunnelTend was built to be installed, watched and operated through a local coding agent such as Codex, not only by typing. Every command reads or changes exactly what its name says, answers in the same JSON an agent can act on, and refuses to guess. So you can say what you want and let the agent run the commands." />
+    <ol class="prompts">
+      {prompts.map((prompt, index) => (
+        <li class="prompt">
+          <div class="prompt-say">
+            <p class="label">Say</p>
+            <p class="prompt-text">“{prompt.say}”</p>
+            <button class="btn btn-quiet prompt-copy" type="button" data-copy={prompt.say} data-copy-done="Copied ✓"><Icon name="copy" size={13} /><span data-copy-label>Copy the sentence</span></button>
+          </div>
+          <div class="prompt-runs">
+            <p class="label">The agent runs</p>
+            <pre class="terminal prompt-terminal" aria-label={`Commands for prompt ${index + 1}`}>{prompt.runs.map(line => <><span class="p">PS&gt; </span><span class="c">{line}</span>{'\n'}</>)}</pre>
+            <p class="prompt-note">{prompt.note}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="notice"><strong>Where the agent stops.</strong> At your OpenAI sign-in, at any secret, and at anything it cannot verify. It reports what it observed; a launched process is not a working tunnel until one real tool call from ChatGPT succeeds.</p>
+    <SectionLinks links={[['Use TunnelTend through an agent', docPaths.agents], ['Install with an agent', docPaths.agent], ['CLI reference', docPaths.cli]]} />
+  </div>
+</section>
+
+<style>
+  .prompts { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--hair-strong); }
+  .prompt { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px 32px; padding: 22px 0; border-bottom: 1px solid var(--hair); }
+  .prompt-say, .prompt-runs { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .prompt-text { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 500; }
+  .prompt-copy { align-self: flex-start; }
+  .prompt-terminal { font-size: 12px; padding: 12px 14px; border-radius: var(--r-block); border: 1px solid var(--machine-hair); background: var(--machine-bg); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .prompt-note { margin: 0; font-size: 13px; color: var(--fg-3); line-height: 1.5; }
+  @media (max-width: 900px) { .prompt { grid-template-columns: minmax(0, 1fr); } }
+</style>

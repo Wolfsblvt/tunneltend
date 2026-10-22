@@ -1,0 +1,15 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// The compact bouncing theme control: one 72 × 28 button, three preferences, four traversal
+// positions: Dark → Auto → Light → Auto → Dark → … The whole control is one target. One
+// capsule previews the real appearance and, in Automatic, stretches to take the centre dot
+// inside it. State lives on <html> (`data-theme-pref`, `data-theme`), written before first
+// paint by lib/theme-script.mjs, so the capsule never jumps on load.
+import Icon from './Icon.astro';
+---
+<button class="theme-control" type="button" aria-label="Theme" data-theme-control>
+  <span class="theme-capsule" aria-hidden="true"></span>
+  <Icon name="theme-dark" size={13} class="theme-glyph theme-glyph-dark" />
+  <span class="theme-dot" aria-hidden="true"></span>
+  <Icon name="theme-light" size={13} class="theme-glyph theme-glyph-light" />
+</button>

@@ -1,0 +1,46 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// The same footer on every route. First column: product, one line, maker, open source.
+// Two product-owned middle columns from site.config.mjs. Last column: Project, with real
+// destinations only. Socials are icons only, never collapsed, complete.
+import Fold from './Fold.astro';
+import Wordmark from './Wordmark.astro';
+import Icon from './Icon.astro';
+import site from '../../site.config.mjs';
+import { footerSocials } from '../data/destinations';
+import { COMPANY } from '../data/site';
+type Item = { label: string; href: string };
+const project: Item[] = [];
+if (site.links.source) project.push({ label: 'Source on GitHub', href: site.links.source });
+if (site.links.releases) project.push({ label: 'Releases', href: site.links.releases });
+if (site.links.status) project.push({ label: 'Status', href: site.links.status });
+if (site.links.security) project.push({ label: 'Security', href: site.links.security });
+if (site.links.licences) project.push({ label: 'Licences', href: site.links.licences });
+project.push({ label: 'Privacy and data', href: '/privacy/' }, { label: 'Impressum', href: '/impressum/' });
+const rel = (href: string) => (href.startsWith('http') ? 'noopener' : undefined);
+---
+<footer class="site-footer" data-pagefind-ignore>
+  <div class="wrap">
+    <div class="grid">
+      <div class="footer-brand">
+        <a class="brand-link" href="/" aria-label="TunnelTend home"><Fold size={22} class="brand-mark" /><Wordmark height={15} class="brand-word" /></a>
+        <p class="line">Register once. Leave the routine to TunnelTend.</p>
+        <p class="muted">A {COMPANY} product · Open source · Not affiliated with OpenAI</p>
+      </div>
+      {site.footerGroups.map(group => (
+        <nav aria-label={group.title}><h2>{group.title}</h2><ul>{group.links.map(link => <li><a href={link.href} rel={rel(link.href)}>{link.label}</a></li>)}</ul></nav>
+      ))}
+      <nav aria-label="Project"><h2>Project</h2><ul>{project.map(link => <li><a href={link.href} rel={rel(link.href)}>{link.label}</a></li>)}</ul></nav>
+    </div>
+    <div class="footer-base">
+      <p class="muted">© {new Date().getUTCFullYear()} {COMPANY}</p>
+      <ul class="footer-socials" aria-label="Community">
+        {footerSocials.map(item => (
+          <li>{item.href
+            ? <a class="footer-social" href={item.href} rel="noopener" aria-label={`${item.label} · ${item.note}`} title={item.label} data-social={item.id}><Icon name={item.icon} size={15} /></a>
+            : <span class="footer-social is-unconfigured" role="img" aria-label={`${item.label} · not up yet`} title={`${item.label}: not up yet`} data-social={item.id}><Icon name={item.icon} size={15} /></span>}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</footer>

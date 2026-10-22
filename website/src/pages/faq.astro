@@ -1,0 +1,134 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// The FAQ: evaluation, relationships and honest comparisons, grouped the way people ask.
+// Every answer heading keeps its stable id; those ids are the link contract and must not
+// change when wording does. Detailed procedures live in the docs and are linked, not copied.
+import Base from '../layouts/Base.astro';
+import { docPaths, openai } from '../data/site';
+interface Qa { id: string; q: string; a: string[] }
+interface Group { title: string; items: Qa[] }
+const groups: Group[] = [
+  { title: 'Fit and relationships', items: [
+    { id: 'what-tunneltend-does', q: 'What does TunnelTend actually do?', a: [
+      'It remembers the MCP services you registered and looks after their local lifecycle: starting them at sign-in, keeping the official OpenAI tunnel connected, checking health, recovering within limits, restarting on source changes if you want that, and updating OpenAI’s tunnel client through verified releases.',
+      `You bring a working tool with an MCP server and the required OpenAI access. TunnelTend supplies the routine. [How it works](${docPaths.howItWorks}) draws the whole chain.`,
+    ] },
+    { id: 'openai-relationship', q: 'Is this an OpenAI product?', a: [
+      'No. TunnelTend is an independent Wolfsblvt Works project. It is not affiliated with, endorsed by or supported by OpenAI.',
+      `It uses OpenAI’s official \`tunnel-client\` as a separate program. OpenAI owns that client, the tunnel protocol, the hosted side and the access rules; TunnelTend owns the local care around it. [See what you need from OpenAI](/#openai).`,
+    ] },
+    { id: 'chatgpt-local-tool', q: 'I just want ChatGPT to use a tool on my PC. Is this for me?', a: [
+      'If that tool has an MCP server, yes. ChatGPT reaches it through OpenAI’s Secure MCP Tunnels, and TunnelTend keeps that tunnel and your tool running on your Windows PC without you starting anything by hand after the first setup.',
+      `You still need the OpenAI side: a tunnel in your organization, a runtime key and a connector in ChatGPT. [Get started](${docPaths.getStarted}) walks through all of it in order, and explains the words along the way.`,
+    ] },
+    { id: 'official-client-alone', q: 'Why not just use the official tunnel client?', a: [
+      'You can. The official client already connects MCP services, runs detached and lets you inspect and control the runtime. If that is enough, TunnelTend is optional.',
+      `TunnelTend adds remembered intent, Windows sign-in automation, a bounded watchdog, source watching and verified client maintenance. The difference is ongoing care, not access. [Read the official client’s guide](${openai.clientRepo}#readme).`,
+    ] },
+    { id: 'existing-mcp-service', q: 'Do I need an MCP server already?', a: [
+      'Yes. TunnelTend can register a project folder, a command or an HTTP MCP endpoint, but the server has to run on its own with its own dependencies. It does not turn an arbitrary program or web API into an MCP server.',
+      `Project discovery helps find a launch target and refuses to guess when several are plausible. [Choose a registration method](${docPaths.registration}).`,
+    ] },
+    { id: 'local-or-hosted', q: 'Is TunnelTend a hosting service?', a: [
+      'No. It runs on your computer and manages locally launched services or connects the official client to an HTTP endpoint you run. There is no TunnelTend cloud, account, dashboard or control plane.',
+      'If you need availability independent of your desktop, use an always-on machine. A sleeping or powered-off PC serves nothing, and TunnelTend will not pretend otherwise.',
+    ] },
+    { id: 'platform-support', q: 'Does it work on macOS or Linux?', a: [
+      `The supported setup is Windows 11 with PowerShell 7.4 or newer. Installation, process handling and unattended automation are Windows-first, and this release offers no supported macOS or Linux installation. The official client’s own platform support is a separate matter. [Check the prerequisites](${docPaths.getStarted}#before-installation).`,
+    ] },
+    { id: 'preview-status', q: 'Is it ready for unattended use?', a: [
+      'The first stable release targets current-user Windows 11 operation. Sign-in startup, sleep/resume recovery, bounded recovery, client rollback and a real remote tool call were exercised during its qualification. Read the [release notes](https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.0) for the exact limits, then confirm your own service and consumer.',
+      'This is desktop automation, not an uptime promise.',
+    ] },
+  ] },
+  { title: 'Access and trust', items: [
+    { id: 'openai-access', q: 'Which OpenAI products and accounts can use it?', a: [
+      `TunnelTend uses OpenAI’s Secure MCP Tunnel route. OpenAI documents consumers including ChatGPT, Codex, the Responses API and AgentKit; availability, organization or workspace scope and permissions are controlled by OpenAI and may depend on your plan. [OpenAI’s current guide](${openai.tunnelsGuide}) is the authority; installing TunnelTend grants no access.`,
+    ] },
+    { id: 'network-exposure', q: 'Do I have to open a port on my router?', a: [
+      `No. The official client makes one outbound connection to OpenAI, and ChatGPT talks to your service through it. TunnelTend never asks for port forwarding. Your network still has to let the client connect outward, and a tunnel does not change how an HTTP service you already run listens or authenticates. [OpenAI’s guidance](${openai.tunnelsGuide}) owns those requirements.`,
+    ] },
+    { id: 'data-and-credentials', q: 'What stays on my computer, and where do keys go?', a: [
+      `Service definitions, policy, observations, logs and client backups stay on your PC. There is no TunnelTend telemetry. Your MCP requests and responses travel through the official client and OpenAI’s infrastructure, as they would without TunnelTend.`,
+      `Credentials are stored as references, such as \`env:CONTROL_PLANE_API_KEY\` or \`file:C:\\secure\\runtime-key.txt\`, never as raw keys. The secret stays in your environment or file and is resolved when needed. [Read privacy and data](${docPaths.privacyAndData}).`,
+    ] },
+    { id: 'agent-setup', q: 'Can my local coding agent set it up and run it for me?', a: [
+      `Yes, if it can run commands on your Windows computer. Hand it the [agent guide](${docPaths.agent}) and name the service you want registered. It uses the same installer and CLI as you would, works with credential references, and reports what it actually observed. A cloud-only chat without access to your computer cannot do the local part.`,
+      `It does not stop at installation. TunnelTend's commands read or change exactly what their names say and answer in one JSON envelope, so you can keep saying things like “stop my photo-tagger until I sign in again” and let the agent run them. [See what you can say](${docPaths.agents}).`,
+    ] },
+  ] },
+  { title: 'Automation and control', items: [
+    { id: 'windows-session', q: 'What happens when I close the terminal, sign out or sleep?', a: [
+      'Closing the terminal is fine: TunnelTend uses current-user Scheduled Tasks and detached runtimes. Eligible services start when you sign in, not before anyone logs in.',
+      `Do not rely on availability while signed out, asleep, disconnected or powered off. A new sign-in starts a new session. Sleep/resume recovery was observed during qualification; check your own service after waking. [Read the automation model](${docPaths.operations}).`,
+    ] },
+    { id: 'stopping-services', q: 'Will it restart something I deliberately stopped?', a: [
+      `No. An ordinary \`service stop\` saves a durable stopped state that the watchdog and later sign-ins respect. \`service stop --session-only\` keeps it down until your next sign-in or an explicit start. [See the exact commands](${docPaths.stops}).`,
+    ] },
+    { id: 'source-and-app-updates', q: 'Will it rebuild my project or pull new code?', a: [
+      `No build or pull is ever inferred. Project registration enables source watching by default, which restarts the service after stable local file changes; \`--no-source-watch\` turns that off. Application updates are a separate, explicit opt-in command you define. [Read the rules](${docPaths.operations}#source-watching-and-application-updates).`,
+    ] },
+    { id: 'automatic-updates', q: 'What gets updated automatically?', a: [
+      `Only OpenAI’s official tunnel client, and only through stable releases whose published digest verifies. TunnelTend stages and checks the new client before replacing the old one and keeps a backup for rollback. It does not update itself or your project’s dependencies. Automatic client updates can be disabled. [Read the update and rollback behavior](${docPaths.updates}).`,
+    ] },
+    { id: 'recovery-limits', q: 'What if a service keeps failing?', a: [
+      `The watchdog limits attempts within a rolling window and backs off between them. Exhaustion is visible in \`doctor\`, and attempts become eligible again as old ones leave the window. One failing service never blocks the rest. \`--force\` never authorizes killing an unrelated process or skipping credential, scope or download checks. [Follow the failure route](${docPaths.troubleshooting}).`,
+    ] },
+    { id: 'health-and-readiness', q: 'Does “healthy” mean ChatGPT can use my tools?', a: [
+      `No single local status proves that. TunnelTend can see the host process, the official runtime and the health and readiness checks you configured, and it reports them separately. Finish setup with one real, harmless tool call from ChatGPT. [See the verification steps](${docPaths.verify}).`,
+    ] },
+    { id: 'existing-supervision', q: 'Can I keep my existing aliases or supervisor?', a: [
+      `You can deliberately import an existing official alias; it then becomes part of TunnelTend’s registry. Do not run two supervisors against the same runtime: choose one owner, review an alias before importing it, and stop a hand-managed runtime before starting a competing one. [See alias import](${docPaths.registration}#import-an-existing-official-alias).`,
+    ] },
+  ] },
+  { title: 'Cost and leaving', items: [
+    { id: 'cost-and-license', q: 'What does it cost, and what is the licence?', a: [
+      'Nothing. TunnelTend is open source under [AGPL-3.0-only](https://github.com/Wolfsblvt/tunneltend/blob/main/LICENSE), with no account or subscription. OpenAI’s client is a separate work under its own licence, and OpenAI access and any provider charges are between you and OpenAI.',
+    ] },
+    { id: 'leaving-tunneltend', q: 'Can I remove it without losing my projects?', a: [
+      `Yes. Normal uninstall stops the registered services, removes TunnelTend’s tasks, program files and PATH entry, and keeps your registrations and logs. Your project source and your OpenAI tunnel objects are never touched. You can leave runtimes running or purge the state on purpose. [Use the uninstall guide](${docPaths.uninstall}).`,
+    ] },
+  ] },
+];
+/** Minimal inline Markdown: links, inline code, bold. Author-controlled strings only. */
+const inline = (text: string): string => text
+  .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+  .replace(/`([^`]+)`/gu, '<code class="code-inline">$1</code>')
+  .replace(/\[([^\]]+)\]\(([^)]+)\)/gu, (_match, label: string, href: string) => `<a href="${href}"${href.startsWith('http') ? ' rel="noopener"' : ''}>${label}</a>`);
+---
+<Base surface="FAQ" current="faq">
+  <section class="faq wrap">
+    <div class="faq-head">
+      <p class="eyebrow">Frequently asked questions</p>
+      <h1 class="h2">Before you install</h1>
+      <p class="lede">TunnelTend tends the local work around your MCP tunnels. These answers explain where it helps, what it owns, and what to expect from the Windows release. Looking for your first connection? <a href={docPaths.getStarted}>Start with Get started</a>. Looking for a command? <a href={docPaths.cli}>Use the CLI reference</a>.</p>
+    </div>
+    {groups.map(group => (
+      <section class="faq-group" aria-labelledby={`group-${group.title.toLowerCase().replaceAll(/[^a-z]+/gu, '-')}`}>
+        <h2 class="faq-group-title label" id={`group-${group.title.toLowerCase().replaceAll(/[^a-z]+/gu, '-')}`}>{group.title}</h2>
+        {group.items.map(item => (
+          <article class="faq-item" data-pagefind-body>
+            <h3 class="faq-q" id={item.id}><a class="faq-anchor" href={`#${item.id}`}>{item.q}</a></h3>
+            <div class="faq-answer">{item.a.map(paragraph => <p class="faq-a plain" set:html={inline(paragraph)} />)}</div>
+          </article>
+        ))}
+      </section>
+    ))}
+  </section>
+</Base>
+
+<style>
+  .faq { padding-block: 56px 88px; display: flex; flex-direction: column; gap: 40px; max-width: calc(96ch + 2 * var(--page-gutter)); margin-inline: 0; }
+  .faq-head { max-width: 68ch; display: flex; flex-direction: column; gap: 10px; }
+  .faq-head .lede a { color: var(--fg); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair-strong); }
+  .faq-group { display: flex; flex-direction: column; }
+  /* the group label hangs where the questions hang; the hairline runs the full width */
+  .faq-group-title { padding-bottom: 10px; border-bottom: 1px solid var(--hair-strong); color: var(--accent-text); }
+  .faq-item { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 6px 36px; padding: 20px 0; border-bottom: 1px solid var(--hair); align-items: start; }
+  .faq-q { font-size: 17px; line-height: 1.35; font-weight: 600; }
+  .faq-anchor { color: var(--fg); }
+  .faq-anchor:hover::after { content: " #"; color: var(--accent-text); font-family: var(--font-mono); font-weight: 400; }
+  .faq-answer { display: flex; flex-direction: column; gap: 8px; }
+  .faq-a { margin: 0; color: var(--fg-2); line-height: 1.6; font-size: 15px; }
+  @media (max-width: 760px) { .faq-item { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
+</style>

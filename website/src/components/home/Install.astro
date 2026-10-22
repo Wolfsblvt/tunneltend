@@ -1,0 +1,95 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// #install: three honest ways in. 01 the one-liner, 02 the verified download, 03 a local
+// coding agent that follows the canonical guide. Every route ends at the same installer
+// and the same read-only checks; none of them invents OpenAI access.
+import Icon from '../Icon.astro';
+import CommandStrip from '../CommandStrip.astro';
+import CodeBlock from '../CodeBlock.astro';
+import SectionHead from '../SectionHead.astro';
+import { manualVerifyScript } from '../../data/manual-verify.mjs';
+import { AGENT_PROMPT, INSTALL_COMMAND, LATEST_RELEASE, RELEASES, RELEASE_VERSION, docPaths, paths } from '../../data/site';
+const verify = manualVerifyScript(RELEASE_VERSION);
+const register = `tunneltend service register C:\\src\\my-mcp --id my-mcp \`
+  --tunnel-id YOUR_EXISTING_TUNNEL_ID \`
+  --runtime-key-ref env:CONTROL_PLANE_API_KEY
+tunneltend status
+tunneltend doctor`;
+---
+<section class="section" data-section="install">
+  <div class="wrap">
+    <SectionHead id="install" title="Install on Windows" body="Three ways in; pick one. You need Windows 11, PowerShell 7.4 or newer, an MCP service that already works on your PC, and tunnel access from OpenAI. Every route ends at the same installer, which downloads and verifies OpenAI’s official client; it never ships inside TunnelTend." />
+    <div class="routes">
+      <article class="card card-strong route">
+        <div class="route-head"><h3 class="route-title"><span class="route-index">A</span>One line</h3><span class="route-meta">PowerShell 7 · current user</span></div>
+        <p class="card-body for-plain">Paste this into a PowerShell 7 window. The script fetches the latest release, verifies its published SHA-256, extracts it and starts the guided installer, which asks about sign-in startup, the watchdog and client updates before it changes anything.</p>
+        <p class="card-body for-dev">Fetches the latest GitHub release, verifies the published SHA-256, extracts to <code class="code-inline">%LOCALAPPDATA%\TunnelTend\downloads\</code> and runs <code class="code-inline">scripts\Install-TunnelTend.ps1</code> in this console. Unattended: <code class="code-inline">&amp; ([scriptblock]::Create((irm https://tunneltend.com/install.ps1))) -NonInteractive -DisableAutoUpdate</code>. Add <code class="code-inline">-NoInstall</code> to download and verify only.</p>
+        <CommandStrip command={INSTALL_COMMAND} label="Copy the one-line install command" class="route-command" />
+        <p class="route-fine">Want to read it first? Open <a class="link-quiet" href={paths.installScript}>install.ps1</a>. It is 100-odd lines of plain PowerShell and it refuses a checksum mismatch.</p>
+      </article>
+      <article class="card route">
+        <div class="route-head"><h3 class="route-title"><span class="route-index">B</span>Download and verify yourself</h3><span class="route-meta">latest release · ZIP + SHA-256</span></div>
+        <p class="card-body">Get the release ZIP and its checksum file from GitHub and save both in one folder. This script compares the hashes and stops on a mismatch, before anything is extracted or run. Same result as the one-liner, with every step in view. The current release is {RELEASE_VERSION}; use the version you downloaded.</p>
+        <CodeBlock code={verify} lang="powershell" file="PowerShell 7" />
+        <div class="route-actions">
+          <a class="btn btn-primary" href={LATEST_RELEASE} rel="noopener"><Icon name="download" size={14} />Download the latest release</a>
+          <a class="route-link" href={RELEASES} rel="noopener">All releases →</a>
+        </div>
+      </article>
+      <article class="card route" id="install-agent" data-disclosure-host>
+        <div class="route-head"><h3 class="route-title"><span class="route-index">C</span>Let a local coding agent do it</h3><span class="route-meta">one sentence + a URL</span></div>
+        <p class="card-body">Using Codex, or another coding agent that can run commands on this Windows machine? Hand it the guide. It installs with the same installer, registers only the service you name, and finishes with the read-only checks. It will ask you at the OpenAI sign-in and secret boundaries rather than invent keys.</p>
+        <div class="route-actions">
+          <button class="btn btn-primary" type="button" data-copy={AGENT_PROMPT} data-copy-done="Copied ✓ — paste it to your agent"><Icon name="bot" size={14} /><span data-copy-label>Copy the agent task</span></button>
+          <a class="route-link" href={docPaths.agent}>Read the agent guide →</a>
+          <a class="route-link" href="#agents">Then keep talking to it →</a>
+        </div>
+        <div class="route-details" id="install-agent-details" hidden>
+          <figure class="machine machine-inner">
+            <figcaption class="machine-head"><span>task · copied verbatim</span><button type="button" data-copy data-copy-from="agent-prompt-text" data-copy-done="Copied ✓"><span data-copy-label>Copy</span></button></figcaption>
+            <pre class="code-body"><code id="agent-prompt-text">{AGENT_PROMPT}</code></pre>
+          </figure>
+          <p class="route-fine">A cloud-only chat without access to your computer can explain the steps but cannot run them. The guide carries the contract: prerequisites, the installer, credential references, and which observations count as done.</p>
+        </div>
+        <button class="disclosure" type="button" aria-expanded="false" aria-controls="install-agent-details" data-disclosure data-label-closed="See the exact task" data-label-open="Hide the task">
+          <span class="label-text"><span class="label-main" data-disclosure-label>See the exact task</span><span class="label-sub">prompt · boundaries</span></span>
+          <span class="box" aria-hidden="true"></span>
+        </button>
+      </article>
+    </div>
+    <div class="after-install">
+      <div>
+        <p class="label">Then, in a new terminal</p>
+        <p class="card-body">Register your first service with the tunnel ID and credential <em>reference</em> you prepared with OpenAI, and read what TunnelTend observed. Registration is kept even when the first start fails; <code class="code-inline">doctor</code> tells you why.</p>
+      </div>
+      <CodeBlock code={register} lang="powershell" file="PowerShell 7" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .routes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+  .route { display: flex; flex-direction: column; gap: 14px; padding: 0; overflow: hidden; }
+  .route > :not(.disclosure):not(.route-details) { margin-inline: 24px; }
+  .route > .route-head { margin-top: 22px; }
+  .route > :last-child:not(.disclosure) { margin-bottom: 22px; }
+  .route-head { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 16px; flex-wrap: wrap; }
+  .route-title { display: inline-flex; align-items: baseline; gap: 12px; font-size: 18px; font-weight: 700; }
+  .route-index { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid var(--accent); font-family: var(--font-mono); font-weight: 600; font-size: 12px; color: var(--accent-text); align-self: center; }
+  .route-meta { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); }
+  .route-command { align-self: flex-start; max-width: 100%; }
+  .route-fine { margin: 0; font-size: 13px; color: var(--fg-3); line-height: 1.5; }
+  .route-fine .link-quiet { color: var(--fg-2); }
+  .route-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: auto; }
+  .route-link { font-size: 13.5px; color: var(--fg-2); font-weight: 600; }
+  .route-link:hover { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
+  .route-details { border-top: 1px solid var(--hair); padding: 16px 24px 4px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); }
+  .route-details[hidden] { display: none; }
+  .route.is-open { border-color: var(--accent); }
+  .after-install { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 24px; align-items: center; padding-top: 8px; }
+  .after-install .label { margin-bottom: 8px; }
+  .after-install em { font-style: normal; font-weight: 600; color: var(--fg); }
+  @media (max-width: 1000px) { .routes { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 900px) { .after-install { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 640px) { .route > :not(.disclosure):not(.route-details) { margin-inline: 16px; } .route-details { padding-inline: 16px; } }
+</style>

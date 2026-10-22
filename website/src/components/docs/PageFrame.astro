@@ -1,0 +1,14 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Starlight's page frame, then the shared site footer *outside* it at full page width. The
+// sidebar is made sticky instead of fixed (styles/starlight.css), so it releases at the end
+// of the frame and the footer runs under it like on every other route.
+import Default from '@astrojs/starlight/components/PageFrame.astro';
+import SiteFooter from '../Footer.astro';
+---
+<Default {...Astro.props}>
+  <slot name="header" slot="header" />
+  <slot name="sidebar" slot="sidebar" />
+  <slot />
+</Default>
+<SiteFooter />

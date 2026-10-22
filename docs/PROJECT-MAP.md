@@ -14,7 +14,8 @@ This map explains where TunnelTend's product behavior, contracts, tooling, and e
 | `tunneltend.cmd` | Windows command wrapper. |
 | `Install-TunnelTend.cmd` | Double-click installer launcher. |
 | `LICENSE` | AGPL-3.0-only legal text. |
-| `brand/` | Approved identity: authored masters in `brand/source/tunneltend/`, generated assets in `brand/bundle/tunneltend/`. |
+| `brand/` | Approved identity: authored masters in `brand/source/tunneltend/`, the exported Works-standard bundle in `brand/bundle/tunneltend/`. |
+| `website/` | The product website and user manual (Astro + Starlight) published at tunneltend.com; see `website/README.md`. |
 
 ## Implementation
 
@@ -47,6 +48,8 @@ This map explains where TunnelTend's product behavior, contracts, tooling, and e
 | `scripts/Build-Release.ps1` | Version-stamped release-layout ZIP, checksum, and manifest. |
 | `scripts/Build-WindowsLauncher.ps1` | Build the native task launcher with the existing Windows Framework compiler. |
 | `scripts/Update-UpstreamSnapshot.ps1` | Refresh current stable official-client release metadata. |
+| `scripts/Install-TunnelTend-Online.ps1` | The one-line online installer served at `tunneltend.com/install.ps1`: download, verify, extract, run the installer. |
+| `tools/brand-bundle/` | Vendored Brand Bundle Contract validator and schema used by `website/scripts/export-brand.mjs`. |
 
 ## Contracts and evidence
 
@@ -57,7 +60,7 @@ This map explains where TunnelTend's product behavior, contracts, tooling, and e
 | `tests/` | Pester behavior tests and dependency-free fallback tests. |
 | `docs/research/` | Dated or upstream-bound compatibility evidence. |
 | `carriers/` | Copy-ready bounded co-design, validation, and integration assignments. |
-| `.github/workflows/` | Hosted CI, compatibility observation, and release-candidate build routes. |
+| `.github/workflows/` | Hosted CI, compatibility observation, release-candidate build, and the website build/publish route. |
 
 ## Documentation map
 

@@ -47,6 +47,18 @@ pwsh -NoProfile -NonInteractive -File .\scripts\Invoke-RepositoryValidation.ps1
 
 This checks required entry points, JSON syntax, broken relative Markdown links, prohibited broad process termination, unverified-update defaults, bundled official binaries, and obvious persistence inside read-only operations.
 
+## Website
+
+The product website lives under `website/` (Astro + Starlight, Node 24). It is a separate Node project with its own lock file and is excluded from the PowerShell gates and the installer payload.
+
+```powershell
+Set-Location .\website
+npm ci
+npm test
+```
+
+`npm test` validates the brand bundles, runs Astro diagnostics, builds `website/artifacts/site/` and checks the emitted identity. `npm run dev` serves a local preview; `npm run brand:export` regenerates `brand/bundle/tunneltend/` from its masters and `npm run brand:check` validates it. See [the website README](https://github.com/Wolfsblvt/tunneltend/blob/main/website/README.md) and the [integration note](documentation-site.md).
+
 ## Focused iteration
 
 Portable fallback tests:
@@ -89,7 +101,7 @@ Run the root gate and repository validation first, then:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
-  -Version 1.0.0 `
+  -Version 1.0.1 `
   -SkipTests
 ```
 
