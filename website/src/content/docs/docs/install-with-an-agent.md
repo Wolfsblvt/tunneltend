@@ -23,7 +23,7 @@ Give the agent:
 - the **credential reference** you prepared, such as `env:CONTROL_PLANE_API_KEY` or `file:C:\secure\runtime-key.txt`, never the key itself; and
 - any **policy wishes** in plain words, for example “keep client updates manual”. They map to the same switches a person would use.
 
-A cloud-only chat without access to your computer can explain these steps but cannot run them, and cannot prove a remote tool call succeeded. Expect the agent to stop and ask you at the OpenAI sign-in and secret boundaries; that is the correct behavior, not a failure.
+A cloud-only chat without access to your computer can explain local installation but cannot run it. A configured consumer may still make and verify its own remote tool call; that proves a separate boundary. OpenAI sign-in stays with you. A capable agent can use an already authorized credential reference or mediated provider route without reading secret values.
 
 :::note
 TunnelTend is an independent open-source project, not affiliated with OpenAI. The installer fetches OpenAI’s official tunnel client as a separate, verified download. It does not create tunnels, keys or ChatGPT connectors itself.
@@ -102,7 +102,7 @@ Report, from those outputs: the registered target and working directory, the tun
 
 ### Boundaries
 
-- Ask the human at every OpenAI sign-in, account or secret boundary, and do not read secret values back. Authorization to install and register TunnelTend is not authority to create accounts, tunnels, keys, connectors or other provider-side access; see [What the agent may do beyond installing](#what-the-agent-may-do-beyond-installing).
+- Keep OpenAI authentication human and obtain any missing authority before account or access changes. Use authorized credential references and mediated provider routes without reading secret values back. Authorization to install and register TunnelTend is not authority to create accounts, tunnels, keys, connectors or other provider-side access; see [What the agent may do beyond installing](#what-the-agent-may-do-beyond-installing).
 - Use the installer and the public CLI. Never hand-edit or normalize `registry.json`, `runtime.json` or any other TunnelTend JSON.
 - Preserve download verification and process-ownership checks. `--force` never bypasses process identity, credential-reference validation, scope, digest verification or archive safety; do not reach for it to make a check pass.
 - A process launch, a saved registration or installed tasks are not success. Success is the observed state above plus, separately, a real harmless tool call from the human’s consumer (ChatGPT or another OpenAI product). Make that call only if the human authorized it and you can reach the consumer from this machine; otherwise report it as unobserved.

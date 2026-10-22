@@ -127,7 +127,7 @@ This record preserves TunnelTend choices whose rationale cannot be reconstructed
 
 ## D-011: One-line installation is served from the product domain
 
-**Decision:** `scripts/Install-TunnelTend-Online.ps1` is served verbatim at `https://tunneltend.com/install.ps1`. It resolves the selected GitHub release, downloads the ZIP and its `.sha256`, refuses a checksum mismatch, extracts into `%LOCALAPPDATA%\TunnelTend\downloads	unneltend-<version>\`, and runs the ordinary installer in the same console.
+**Decision:** `scripts/Install-TunnelTend-Online.ps1` is served verbatim at `https://tunneltend.com/install.ps1`. It resolves the selected GitHub release, downloads the ZIP and its `.sha256`, refuses a checksum mismatch, extracts into `%LOCALAPPDATA%\TunnelTend\downloads\tunneltend-<version>\`, and runs the ordinary installer in the same console.
 
 **Why:** Wolf selected the one-liner for the website on 2026-10-22. The route keeps the release ZIP and the published digest as the only trust anchors and reuses the existing installer, so it adds no second installation path.
 
