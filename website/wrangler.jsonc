@@ -1,0 +1,18 @@
+{
+  // The TunnelTend website: Cloudflare Workers Static Assets from the Astro build. No custom
+  // Worker script; the static assets are the whole site. tunneltend.com is a Cloudflare zone,
+  // so the Workers route (not Pages) is the adopted Wolf Ops split for a dedicated domain.
+  //
+  // Deliberately dormant until Wolf Ops admits the Home: no account ID, no routes, no custom
+  // domain are recorded here. Activation adds the custom domain through the operating route
+  // and supplies CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN to the publishing workflow.
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tunneltend-website",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./artifacts/site",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  "observability": { "enabled": false }
+}

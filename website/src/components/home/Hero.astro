@@ -1,0 +1,67 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Hero: the promise beside a real Windows terminal. The specimen lines are what the CLI
+// prints (src/TunnelTend/Public/90-Cli.ps1, human status and doctor renderers); nothing is
+// a fictional dashboard. No Mac window chrome: this is a Windows tool.
+import Icon from '../Icon.astro';
+import CommandStrip from '../CommandStrip.astro';
+import { INSTALL_COMMAND, RELEASE_VERSION, docPaths, paths } from '../../data/site';
+---
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-text">
+      <p class="eyebrow">Unofficial Windows caretaker for OpenAI’s MCP tunnels</p>
+      <h1 class="display for-plain">Keep the tools on your PC connected to ChatGPT.</h1>
+      <h1 class="display for-dev">Your MCP servers, tunneled and tended.</h1>
+      <p class="strap">Register once. Leave the routine to TunnelTend.</p>
+      <p class="why for-plain">OpenAI’s official tunnel client lets ChatGPT reach a tool running on your own computer. TunnelTend remembers what you registered, starts it when you sign in, checks that the tunnel is really up, recovers what it safely can, and keeps the official client updated. When it can’t fix something, it says so.</p>
+      <p class="why for-dev">OpenAI’s <code class="code-inline">tunnel-client</code> connects a local MCP server to Secure MCP Tunnels. TunnelTend wraps it in desired state: current-user Scheduled Tasks at sign-in, a watchdog with ownership checks and a visible retry budget, source watching, verified client updates with rollback, and read-only <code class="code-inline">status</code>, <code class="code-inline">health</code> and <code class="code-inline">doctor</code> with a stable JSON envelope.</p>
+      <div class="hero-install">
+        <CommandStrip command={INSTALL_COMMAND} label="Copy the one-line install command" />
+        <p class="hero-fine">Windows 11 · PowerShell 7.4+ · v{RELEASE_VERSION} · free and open source · <button class="reader-quiet" type="button" data-reader-toggle data-label-plain="Excuse me, I’m a dev?!" data-label-dev="I’m not a dev, actually" aria-pressed="false"><span data-reader-label>Excuse me, I’m a dev?!</span></button></p>
+      </div>
+      <div class="hero-ctas">
+        <a class="btn btn-l btn-primary" href={docPaths.getStarted}>Get started</a>
+        <a class="btn btn-l btn-secondary" href={docPaths.howItWorks}>How it works</a>
+        <a class="hero-tertiary" href={paths.install}>Other ways to install →</a>
+      </div>
+    </div>
+    <figure class="win hero-win">
+      <div class="win-bar"><span class="win-tab"><Icon name="terminal" size={13} />PowerShell</span><span class="spacer"></span><span class="win-glyphs" aria-hidden="true">—▢✕</span></div>
+      <pre class="terminal" aria-label="A terminal showing tunneltend status and tunneltend doctor output"><span class="p">PS C:\Users\you&gt; </span><span class="c">tunneltend status</span>
+<span class="ok">[OK]</span> internal-tools           desired=<span class="k">running</span> observed=<span class="ok">running</span>   autostart=True watchdog=True
+<span class="ok">[OK]</span> notes-search             desired=<span class="k">running</span> observed=<span class="ok">running</span>   autostart=True watchdog=True
+<span class="neu">[--]</span> photo-tagger             desired=<span class="k">stopped</span> observed=<span class="neu">stopped</span>   autostart=True watchdog=True
+
+<span class="p">PS C:\Users\you&gt; </span><span class="c">tunneltend doctor</span>
+No problems detected.
+
+<span class="p">PS C:\Users\you&gt; </span><span class="c">tunneltend service stop photo-tagger --session-only</span>
+<span class="dim">{'{"serviceId": "photo-tagger", "stopped": true}'}</span>
+<span class="p">PS C:\Users\you&gt; </span><span class="cursor" aria-hidden="true">_</span></pre>
+      <figcaption class="machine-foot">Three registered services, one stopped on purpose. Green means observed healthy. A stop you asked for is respected until your next sign-in, not “repaired”.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero { padding: 72px 0 56px; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr); gap: 40px; align-items: center; }
+  .hero-text { display: flex; flex-direction: column; gap: 18px; }
+  .display { font-size: 52px; line-height: 1.04; letter-spacing: var(--tracking-display); font-weight: 700; max-width: 14ch; }
+  .strap { font-size: 20px; font-weight: 600; margin: 0; color: var(--accent-text); }
+  .why { margin: 0; font-size: 16px; line-height: 1.6; color: var(--fg-2); max-width: 52ch; }
+  .hero-install { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .hero-fine { margin: 0; font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); }
+  .hero-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .hero-tertiary { margin-left: 6px; font-size: 14px; font-weight: 600; color: var(--fg-2); }
+  .hero-tertiary:hover { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
+  /* a real terminal wraps at its width; so does this one, instead of growing a scrollbar */
+  .hero-win .terminal { font-size: 11.5px; white-space: pre-wrap; overflow: hidden; padding: 14px 14px; }
+  .cursor { color: var(--machine-fg); animation: blink 1.1s steps(2, start) infinite; }
+  @keyframes blink { to { visibility: hidden; } }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+  @media (max-width: 1100px) { .display { font-size: 44px; } }
+  @media (max-width: 900px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } .display { max-width: none; } }
+  @media (max-width: 640px) { .hero { padding-top: 36px; } .display { font-size: 34px; } .strap { font-size: 18px; } .hero-win .terminal { font-size: 11.5px; } }
+</style>

@@ -1,0 +1,23 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Read-only code on the machine ground, highlighted at build time by Shiki with the Moonpool
+// palette. Header row: filename left, scope and Copy right. Long lines wrap; a code block
+// never widens its page. No client script is shipped for highlighting.
+import { Code } from 'astro:components';
+import type { BundledLanguage } from 'shiki';
+import { moonpoolSyntax } from '../lib/shiki-theme';
+interface Props { code: string; lang: BundledLanguage | 'text'; file?: string | undefined; scope?: string | undefined; id?: string | undefined; copy?: boolean | undefined; class?: string | undefined }
+const { code, lang, file, scope, copy = true, class: className = '' } = Astro.props;
+const id = Astro.props.id ?? `code-${Math.random().toString(36).slice(2, 9)}`;
+---
+<figure class={`machine machine-inner code ${className}`}>
+  {(file || scope || copy) && (
+    <figcaption class="machine-head">
+      {file && <span>{file}</span>}
+      <span class="spacer" style="flex:1"></span>
+      {scope && <span>{scope}</span>}
+      {copy && <button type="button" data-copy data-copy-from={id} data-copy-done="Copied ✓" aria-label={`Copy ${file ?? 'code'}`}><span data-copy-label>Copy</span></button>}
+    </figcaption>
+  )}
+  <Code id={id} class="code-body" code={code} lang={lang === 'text' ? 'txt' : lang} theme={moonpoolSyntax} wrap />
+</figure>

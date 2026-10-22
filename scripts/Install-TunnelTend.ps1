@@ -65,7 +65,7 @@ $stateContainer = if ($nestedState) { Join-Path $InstallRoot $stateDirectory } e
 $preservedState = "$InstallRoot.state-$([Guid]::NewGuid().ToString('N'))"
 try {
     New-Item -ItemType Directory -Path $temp -Force | Out-Null
-    $exclude = @('.git','artifacts','.validation')
+    $exclude = @('.git','artifacts','.validation','website')
     foreach ($item in Get-ChildItem -LiteralPath $sourceRoot -Force) {
         if ($item.Name -in $exclude) { continue }
         if ($nestedState -and (Test-TtInstallationPathWithin $StateRoot $item.FullName)) {

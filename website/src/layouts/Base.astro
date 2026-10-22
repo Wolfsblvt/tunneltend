@@ -1,0 +1,75 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// The product-page shell: resolved page identity in <head>, the shared header, main, the
+// shared footer and one live region. Documentation pages use Starlight with the same
+// header, footer, theme and search through the component overrides in astro.config.mjs.
+import '../styles/tokens.css';
+import '../styles/global.css';
+import site from '../../site.config.mjs';
+import publicPages from '../data/public-pages.mjs';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { assetPath, resolvePageIdentity, routeFromPath } from '../../scripts/identity-model.mjs';
+import { normalizePublicRoute } from '../../scripts/social-preview-model.mjs';
+import { themeScript } from '../lib/theme-script.mjs';
+
+interface Props {
+  /** The short top-level section label shown beside the brand; never an article title. */
+  surface?: 'FAQ' | 'Legal' | undefined;
+  current?: string | undefined;
+}
+const { surface, current } = Astro.props;
+const path = routeFromPath(site, Astro.url.pathname);
+const source = publicPages.find(page => normalizePublicRoute(page.path) === path);
+if (!source) throw new Error(`Custom page needs one public-pages identity entry: ${path}`);
+const page = resolvePageIdentity(site, path, source);
+const robots = page.indexing === 'noindex' ? (page.role === 'legal' ? 'noindex, nosnippet' : 'noindex') : null;
+const structuredData = page.structuredData ? JSON.stringify(page.structuredData).replaceAll('<', '\\u003c') : null;
+const searchable = page.indexing === 'index';
+---
+<!doctype html>
+<html lang={page.language}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{page.title}</title>
+    <meta name="description" content={page.description} />
+    {robots && <meta name="robots" content={robots} />}
+    {page.canonical && <link rel="canonical" href={page.canonical} />}
+    {page.sharing === 'share' && <>
+      <meta property="og:type" content="website" />
+      <meta property="og:title" content={page.pageTitle} />
+      <meta property="og:description" content={page.description} />
+      <meta property="og:site_name" content={site.identity.hostSiteName} />
+      <meta property="og:locale" content={page.locale} />
+      {page.canonical && <meta property="og:url" content={page.canonical} />}
+      {page.imageUrl && <meta property="og:image" content={page.imageUrl} />}
+      {page.imageUrl && <meta property="og:image:alt" content={page.socialAlt} />}
+      <meta name="twitter:card" content={page.imageUrl ? 'summary_large_image' : 'summary'} />
+      <meta name="twitter:title" content={page.pageTitle} />
+      <meta name="twitter:description" content={page.description} />
+      {page.imageUrl && <meta name="twitter:image" content={page.imageUrl} />}
+      {page.imageUrl && <meta name="twitter:image:alt" content={page.socialAlt} />}
+    </>}
+    {structuredData && <script type="application/ld+json" set:html={structuredData} />}
+    <meta name="theme-color" content={site.identity.themeColor} />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href={assetPath(site, '/favicon.ico')} sizes="48x48" />
+    <link rel="icon" href={assetPath(site, site.identity.icons.svg)} type="image/svg+xml" />
+    <link rel="icon" href={assetPath(site, site.identity.icons.raster)} sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href={assetPath(site, site.identity.icons.touch)} sizes="180x180" />
+    <script is:inline set:html={themeScript}></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header surface={surface} current={current} />
+    <main id="main" {...(searchable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ignore': 'all' })}>
+      <slot />
+    </main>
+    <Footer />
+    <div class="live" role="status" aria-live="polite" data-live-region></div>
+    <script>
+      import '../lib/client';
+    </script>
+  </body>
+</html>

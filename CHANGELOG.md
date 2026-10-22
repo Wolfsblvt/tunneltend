@@ -6,6 +6,16 @@ This changelog records user-visible TunnelTend changes by release line. The firs
 
 ## [Unreleased]
 
+### Added
+
+- The product website at `website/` (tunneltend.com): the front door, a user-facing manual at `/docs/`, the FAQ, legal pages, and the TunnelTend brand bundle mirrored at `/brand/tunneltend/`.
+- `scripts/Install-TunnelTend-Online.ps1`, served as `https://tunneltend.com/install.ps1`: one PowerShell line downloads the latest release, verifies its published SHA-256, extracts it and runs the ordinary installer.
+- The TunnelTend wordmark and default lockup (outlined Manrope lettering beside the Fold), exported with the identity as a Works-standard brand bundle with `manifest.json`, tokens and CSS.
+
+### Fixed
+
+- Plain `status`, `health` and `doctor` output no longer fails with a string-formatting error once a service or diagnostic exists; `--json` was unaffected.
+
 ## [1.0.0]
 
 ### Added

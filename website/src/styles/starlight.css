@@ -1,0 +1,98 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
+/* Map Starlight's theme hooks onto the TunnelTend tokens so the manual follows the site's
+   dark/light/automatic theme, typography and machine surfaces. Starlight keys its own light
+   values on [data-theme="light"]; ours also carry the resolved automatic appearance, so
+   every mapping goes through the shared custom properties. */
+:root, [data-theme="dark"], [data-theme="light"] {
+  --sl-font: var(--font-ui);
+  --sl-font-mono: var(--font-mono);
+  --sl-color-white: var(--fg);
+  --sl-color-gray-1: var(--fg);
+  --sl-color-gray-2: var(--fg-2);
+  --sl-color-gray-3: var(--fg-2);
+  --sl-color-gray-4: var(--fg-3);
+  --sl-color-gray-5: var(--hair-strong);
+  --sl-color-gray-6: var(--bg-raised-2);
+  --sl-color-gray-7: var(--bg-raised);
+  --sl-color-black: var(--bg);
+  --sl-color-accent-low: var(--bg-raised-2);
+  --sl-color-accent: var(--accent);
+  --sl-color-accent-high: var(--accent-text);
+  --sl-color-text: var(--fg);
+  --sl-color-text-accent: var(--accent-text);
+  --sl-color-text-invert: var(--on-accent);
+  --sl-color-bg: var(--bg);
+  --sl-color-bg-nav: var(--bg);
+  --sl-color-bg-sidebar: var(--bg);
+  --sl-color-bg-inline-code: var(--bg-raised-2);
+  --sl-color-bg-accent: var(--accent);
+  --sl-color-hairline: var(--hair);
+  --sl-color-hairline-light: var(--hair);
+  --sl-color-hairline-shade: var(--hair);
+  --sl-color-backdrop-overlay: rgba(0, 0, 0, .55);
+  --sl-shadow-sm: none; --sl-shadow-md: none; --sl-shadow-lg: none;
+  --sl-sidebar-width: 240px;
+  --sl-content-width: 46rem;
+  --sl-nav-height: 62px;
+  --sl-text-code: 13px;
+  --sl-text-body: 15px;
+  --sl-line-height: 1.6;
+}
+/* note/tip/caution/danger asides keep their own hue on top of the raised ground */
+:root, [data-theme="dark"] { --sl-color-blue: var(--accent); --sl-color-blue-low: #1d2a30; --sl-color-blue-high: #b7e4ec; --sl-color-green: var(--ok); --sl-color-green-low: #1c2d25; --sl-color-green-high: #b9e6cf; --sl-color-orange: var(--degraded); --sl-color-orange-low: #332a1b; --sl-color-orange-high: #f1d9ab; --sl-color-red: var(--failed); --sl-color-red-low: #33222a; --sl-color-red-high: #f6c5cc; --sl-color-purple: #b8a8d8; --sl-color-purple-low: var(--bg-slate); --sl-color-purple-high: #e4dced; }
+[data-theme="light"] { --sl-color-blue: var(--accent); --sl-color-blue-low: #e1f1f4; --sl-color-blue-high: #0f5466; --sl-color-green: var(--ok); --sl-color-green-low: #e1f1e9; --sl-color-green-high: #1b5239; --sl-color-orange: var(--degraded); --sl-color-orange-low: #f7ecd9; --sl-color-orange-high: #6b4612; --sl-color-red: var(--failed); --sl-color-red-low: #f8e3e7; --sl-color-red-high: #7f2f3e; --sl-color-purple: #6e5f8a; --sl-color-purple-low: var(--bg-raised-2); --sl-color-purple-high: #3c3350; }
+
+.sl-markdown-content { font-size: 15px; line-height: 1.65; }
+.sl-markdown-content h1 { font-size: 32px; line-height: 1.15; letter-spacing: var(--tracking-h2); }
+.sl-markdown-content h2 { font-size: 23px; margin-top: 2.2em; letter-spacing: -.01em; }
+.sl-markdown-content h3 { font-size: 17.5px; }
+.sl-markdown-content code:not(pre code) { font-size: .92em; border: 1px solid var(--hair); border-radius: 4px; padding: 1px 5px; background: var(--bg-raised-2); color: var(--fg); }
+.sl-markdown-content table { font-size: 13.5px; }
+.sl-markdown-content th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--fg-3); font-weight: 500; }
+.sl-markdown-content td, .sl-markdown-content th { border-color: var(--hair); }
+.sl-markdown-content a { color: var(--fg); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair-strong); }
+.sl-markdown-content a:hover { text-decoration-color: var(--fg); }
+.sl-markdown-content blockquote { border-left: 3px solid var(--hair-strong); color: var(--fg-2); }
+.sl-markdown-content .starlight-aside { border-radius: var(--r-block); }
+/* the shared machine ground: code sits on graphite in both themes */
+.expressive-code { --ec-frm-edBg: var(--machine-bg); --ec-brdCol: var(--machine-hair); --ec-brdRad: var(--r-block); --ec-codeFontFml: var(--font-mono); }
+.expressive-code .frame { color-scheme: dark; }
+.expressive-code pre, .expressive-code .frame, .expressive-code .copy button { background: var(--machine-bg) !important; }
+.expressive-code .frame.is-terminal .header { border-bottom-color: var(--machine-hair); background: #1b1922 !important; }
+.expressive-code .frame.has-title .header { background: #1b1922 !important; }
+/* sidebar */
+.sidebar-content { font-size: 13.5px; }
+.sidebar-content summary, .sidebar-content .large { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--fg-3); font-weight: 500; }
+.sidebar-content a { border-radius: 6px; }
+.sidebar-content a[aria-current="page"] { background: var(--bg-raised-2); color: var(--fg); font-weight: 600; }
+/* right rail */
+.right-sidebar { border-inline-start-color: var(--hair); }
+starlight-toc a { font-size: 12.5px; }
+starlight-toc a[aria-current="true"] { color: var(--fg); font-weight: 600; }
+
+/* ── docs shell on the shared page grid ─────────────────────────────────────────────
+   The manual keeps the site header exactly. The navigation rail starts under the brand, on
+   the grid's left content edge; everything left of its divider is the raised ground. */
+:root {
+  --docs-nav-w: 240px;
+  --docs-edge: max(0px, calc((100% - var(--frame-content) - 2 * var(--page-gutter)) / 2));
+  --docs-rail: calc(var(--docs-edge) + var(--page-gutter) + var(--docs-nav-w));
+}
+.page > .header { padding: 0; border-bottom-color: var(--hair); background: var(--bg); }
+.page > .header .site-header { position: static; width: 100%; height: 100%; border: 0; background: transparent; }
+.header .site-title { display: none; }
+@media (min-width: 50rem) {
+  .page > .header { background: linear-gradient(to right, var(--bg-raised) 0, var(--bg-raised) calc(var(--docs-rail) - 1px), var(--hair) calc(var(--docs-rail) - 1px), var(--hair) var(--docs-rail), var(--bg) var(--docs-rail)); }
+  .sidebar-pane { width: var(--docs-rail); background: var(--bg-raised); border-inline-end: 1px solid var(--hair); scrollbar-width: thin; }
+  .sidebar-content { width: calc(var(--docs-nav-w) + var(--page-gutter)); margin-inline-start: auto; padding: 18px 14px 0 calc(var(--page-gutter) + 5px); }
+  .main-frame { padding-inline-start: var(--docs-rail); padding-inline-end: var(--docs-edge); }
+}
+@media (max-width: 49.99rem) { .sl-menu-button { top: calc(var(--sl-nav-height) + (var(--sl-mobile-toc-height) - var(--sl-menu-button-size)) / 2); inset-inline-end: var(--page-gutter); } }
+.pagination-links a { border-color: var(--hair); border-radius: var(--r-block); box-shadow: none; }
+.pagination-links a:hover { border-color: var(--hair-strong); }
+.pagination-links .link-title { font-size: 14px; }
+.sl-menu-button { background: var(--bg-raised); color: var(--fg); border: 1px solid var(--hair-strong); border-radius: var(--r-control); box-shadow: none; }
+.sl-menu-button svg { color: var(--fg); }
+/* the shared site footer sits below Starlight's own pagination footer, on the page grid */
+.page > footer, .main-pane > footer { padding: 0; }
+.docs-foot { margin-top: 32px; }

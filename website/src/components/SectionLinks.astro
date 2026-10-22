@@ -1,0 +1,10 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Deep links into the manual and other pages, as the closing row of a section: the first
+// link carries the weight, the rest stay secondary.
+interface Props { links: ReadonlyArray<readonly [string, string]>; class?: string | undefined }
+const { links, class: extra } = Astro.props;
+---
+<ul class:list={['section-links', extra]}>
+  {links.map(([label, href]) => <li><a class="link" href={href}>{label}</a></li>)}
+</ul>

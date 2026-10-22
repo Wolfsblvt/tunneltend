@@ -1,0 +1,22 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+import Base from '../layouts/Base.astro';
+import Hero from '../components/home/Hero.astro';
+import Fits from '../components/home/Fits.astro';
+import Day from '../components/home/Day.astro';
+import Install from '../components/home/Install.astro';
+import OpenAI from '../components/home/OpenAI.astro';
+import Inspect from '../components/home/Inspect.astro';
+import Trust from '../components/home/Trust.astro';
+import WorksSponsor from '../components/WorksSponsor.astro';
+---
+<Base>
+  <Hero />
+  <Fits />
+  <Day />
+  <Install />
+  <OpenAI />
+  <Inspect />
+  <Trust />
+  <section class="section" data-section="support"><div class="wrap"><WorksSponsor /></div></section>
+</Base>

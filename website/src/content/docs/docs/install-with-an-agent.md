@@ -1,0 +1,114 @@
+---
+title: "Install with an agent"
+description: "Hand the TunnelTend installation to a local coding agent on your Windows PC: what to give it, what it will do, and which observations count as done."
+identity:
+  social:
+    eyebrow: Documentation
+---
+
+A local coding agent, such as Codex or Claude Code running on the Windows computer you want to set up, can install TunnelTend and register your service for you. It uses the same installer, the same CLI and the same read-only checks a person would. There is no separate agent-only mechanism, and nothing here gives the agent access to OpenAI; that part stays yours.
+
+## For you
+
+Copy this task into your agent, then supply the inputs it asks for in the same conversation:
+
+```text
+Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: https://tunneltend.com/docs/install-with-an-agent/
+```
+
+Give the agent:
+
+- the **project folder, launch command or HTTP MCP address** of the service you want registered;
+- your **existing tunnel ID** from OpenAI (see [Prepare your OpenAI access](/docs/getting-started/#prepare-your-openai-access));
+- the **credential reference** you prepared, such as `env:CONTROL_PLANE_API_KEY` or `file:C:\secure\runtime-key.txt`, never the key itself; and
+- any **policy wishes** in plain words, for example “keep client updates manual”. They map to the same switches a person would use.
+
+A cloud-only chat without access to your computer can explain these steps but cannot run them, and cannot prove a remote tool call succeeded. Expect the agent to stop and ask you at the OpenAI sign-in and secret boundaries; that is the correct behavior, not a failure.
+
+:::note
+TunnelTend is an independent open-source project, not affiliated with OpenAI. The agent installs OpenAI’s official tunnel client as a separate, verified download; it does not create tunnels, keys or ChatGPT connectors.
+:::
+
+## For the agent
+
+This page is the setup contract. Follow it rather than improvising from general knowledge about tunnels or MCP.
+
+### Prerequisites to check first
+
+- Windows 11 and PowerShell 7.4 or newer: `pwsh -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion'`. If `pwsh` is missing, tell the human; `winget install --id Microsoft.PowerShell --source winget` installs it.
+- An MCP server that already runs on this machine: a project folder with one plausible launch target, an explicit command, or an HTTP MCP endpoint. Do not install the service’s own runtime or dependencies unless the human asks for that separately.
+- An existing OpenAI tunnel ID and a runtime credential **reference** supplied by the human. If either is missing, ask; do not invent a tunnel, a key, or an organization scope.
+- Inspect any existing installation and official-client aliases before changing anything: `tunneltend version`, `tunneltend service list`, `tunneltend automation status --json`, and `tunnel-client` aliases the human may already run by hand. An existing alias is [imported deliberately](/docs/registration/#import-an-existing-official-alias), not duplicated.
+
+### Install
+
+Use the supported installer; never assemble program files or state by hand. From a PowerShell 7 session on this machine:
+
+```powershell
+& ([scriptblock]::Create((irm https://tunneltend.com/install.ps1))) -NonInteractive
+```
+
+That resolves the latest stable release, downloads the ZIP and its SHA-256 file, refuses a checksum mismatch, extracts to `%LOCALAPPDATA%\TunnelTend\downloads\tunneltend-<version>\`, and runs `scripts\Install-TunnelTend.ps1` with the given switches. `-NonInteractive` applies the recommended defaults (sign-in startup, watchdog every two minutes, daily verified client updates). Add policy switches when the human asked for them:
+
+| Human wish | Switch |
+| --- | --- |
+| Keep service startup manual | `-DisableAutostart` |
+| No automatic official-client updates | `-DisableAutoUpdate` |
+| No scheduled watchdog recovery | `-DisableWatchdog` |
+| Use a different default credential reference | `-RuntimeKeyRef 'env:NAME'` or `-RuntimeKeyRef 'file:C:\path\key.txt'` |
+| Default organization or workspace scope | `-OrganizationId 'org_...'` / `-WorkspaceId 'ws_...'` |
+| Use an official client already on disk | `-TunnelClientPath C:\tools\tunnel-client.exe` |
+| Portable PowerShell for unattended tasks | `-PowerShellPath C:\Tools\PowerShell\pwsh.exe` |
+| Custom program or state directories | `-InstallRoot` / `-StateRoot` (must differ) |
+| Leave the user `PATH` alone | `-SkipPath` |
+
+Equivalent offline route, from a verified extracted release or a clone of `https://github.com/Wolfsblvt/tunneltend`:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File .\scripts\Install-TunnelTend.ps1 -NonInteractive
+```
+
+The installer downloads OpenAI’s official `tunnel-client`, verifies its published digest, installs the program to `%LOCALAPPDATA%\Programs\TunnelTend`, adds that directory to the user `PATH`, creates the current-user Scheduled Tasks under `\TunnelTend\`, and creates `%LOCALAPPDATA%\TunnelTend\state`. The default user installation needs no elevation; elevate only when a chosen custom location genuinely requires it. Open a **new** shell afterwards so `PATH` is current, or call `%LOCALAPPDATA%\Programs\TunnelTend\tunneltend.cmd` directly.
+
+### Register the service the human identified
+
+Register only what the human named. Replace the path, the ID, the tunnel ID and the reference with their values:
+
+```powershell
+tunneltend service register 'C:\src\my-mcp' --id my-mcp `
+  --tunnel-id YOUR_EXISTING_TUNNEL_ID `
+  --runtime-key-ref env:CONTROL_PLANE_API_KEY
+```
+
+- Credentials are references only (`env:` or `file:`). Never pass a key value on the command line, in a descriptor, in a log, or in your report; TunnelTend rejects inline secret material.
+- If discovery refuses an ambiguous folder, it prints the explicit command needed. Run that, or ask the human which target they meant. Do not pick one.
+- For a command use `--command FILE [--arg VALUE...] [--working-directory PATH]`; for an HTTP server use `--url URL [--health-url URL]`. [Register a service](/docs/registration/) has the full shape.
+- Registration starts the service immediately. If the start fails, the registration is retained; read `tunneltend doctor my-mcp --json` and report the cause instead of retrying blindly.
+- `--no-source-watch` disables restart-on-file-change for a project registration; `--no-autostart` keeps it out of later sign-ins. Use them only when the human asked.
+
+### Completion checks
+
+Finish with the read-only observations. They print facts and persist nothing:
+
+```powershell
+tunneltend service show my-mcp --json
+tunneltend status my-mcp --json
+tunneltend health my-mcp --json
+tunneltend doctor my-mcp --json
+tunneltend automation status --json
+```
+
+Report, from those outputs: the registered target and working directory, the tunnel ID or scope, the credential reference, the sign-in and watchdog policy, the observed state (host process and official runtime), health and readiness results, any `doctor` diagnostics, and the three Scheduled Tasks’ presence. Include the exact remaining manual dependency, if any.
+
+### Boundaries
+
+- Ask the human at every OpenAI sign-in, account or secret boundary. Do not create tunnels, keys or connectors on their behalf, and do not read secret values back.
+- Use the installer and the public CLI. Never hand-edit or normalize `registry.json`, `runtime.json` or any other TunnelTend JSON.
+- Preserve download verification and process-ownership checks. `--force` never bypasses process identity, credential-reference validation, scope, digest verification or archive safety; do not reach for it to make a check pass.
+- A process launch, a saved registration or installed tasks are not success. Success is the observed state above plus, separately, a real harmless tool call from the human’s consumer (ChatGPT or another OpenAI product). You cannot perform that call; say so.
+- Distinguish local setup from the consumer side and from later Windows lifecycle behavior (a future sign-in, sleep/resume, a watchdog cycle). Name each check you could not perform as unobserved rather than assumed.
+- Elevate only when the chosen installation boundary genuinely needs it. Do not change machine-wide settings.
+
+## What “done” looks like
+
+TunnelTend is installed for the current user, the named service is registered with a credential reference, `status`, `health` and `doctor` report the expected facts, and the intended Scheduled Tasks exist. The human still owns the last step: configuring the consumer on OpenAI’s side and making one real tool call, as described in [Connect it in ChatGPT](/docs/getting-started/#connect-it-in-chatgpt). If that call fails while local checks pass, [Troubleshooting](/docs/troubleshooting/) separates the two.

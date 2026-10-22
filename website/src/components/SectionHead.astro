@@ -1,0 +1,16 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Section heading. The `#id` eyebrow is the anchor: it carries the id, scrolls into place
+// under the sticky header, and links to itself. The `#` after the title is the same link.
+interface Props { id: string; title: string; body?: string | undefined; as?: 'h1' | 'h2' | undefined }
+const { id, title, body, as: Tag = 'h2' } = Astro.props;
+---
+<div class="section-head anchor-group">
+  <p class="eyebrow"><a class="eyebrow-link" id={id} href={`#${id}`}>#{id}</a></p>
+  <div class="heading">
+    <Tag class="h2">{title}</Tag>
+    <a class="permalink" href={`#${id}`} tabindex="-1" aria-hidden="true">#</a>
+  </div>
+  {body && <p class="lede">{body}</p>}
+  <slot />
+</div>

@@ -1,0 +1,42 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+import Base from '../../layouts/Base.astro';
+import site from '../../../site.config.mjs';
+import { legalContacts, loadLegalOperator, resolveAdditionalDirectContact } from '../../lib/legal-operator.mjs';
+const operator = loadLegalOperator();
+const address = operator.postalAddress;
+const contacts = legalContacts(operator, site.legal.contact);
+const directContact = resolveAdditionalDirectContact(operator, site.legal.impressum.directContact);
+---
+<Base surface="Legal" current="legal">
+  <section class="legal wrap">
+    <h1>Impressum</h1>
+    <p class="lede">Information pursuant to § 5 DDG</p>
+    <h2>Provider</h2>
+    <address>
+      {operator.legalName}<br />
+      {address.streetAddress}<br />
+      {address.postalCode} {address.locality}<br />
+      {address.countryName}
+    </address>
+    <p>{operator.publisherName} is the maker and publisher identity used for this product.</p>
+    <h2>Contact</h2>
+    <p>Email: <a href={`mailto:${contacts.impressum}`}>{contacts.impressum}</a></p>
+    <p>Additional direct contact: <a href={directContact.href}>{directContact.label}</a></p>
+    {site.legal.consumerDispute && <section><h2>Consumer dispute resolution</h2><p>{site.legal.consumerDispute}</p></section>}
+    <h2>Independence</h2>
+    <p>TunnelTend is an independent open-source project. It is not affiliated with, endorsed by or supported by OpenAI. OpenAI, ChatGPT and the official tunnel client are OpenAI’s own products and marks.</p>
+  </section>
+</Base>
+<style is:global>
+  .legal { padding-block: 48px 72px; max-width: calc(var(--measure-prose) + 2 * var(--page-gutter)); }
+  .legal h1 { font-size: 34px; letter-spacing: var(--tracking-h2); margin-bottom: 8px; }
+  .legal h2 { font-size: 20px; margin: 32px 0 10px; }
+  .legal address { font-style: normal; line-height: 1.6; margin-bottom: 16px; }
+  .legal p, .legal dd { color: var(--fg-2); }
+  .legal a { color: var(--fg); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair-strong); }
+  .legal a:hover { text-decoration-color: currentColor; }
+  .legal dl { margin: 0; }
+  .legal dt { font-weight: 600; margin-top: 14px; }
+  .legal dd { margin: 4px 0 0; }
+</style>

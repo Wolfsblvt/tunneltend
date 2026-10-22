@@ -1,0 +1,33 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// #trust: where things live and what never leaves, as one list with hairline rows. Short,
+// because each claim has a longer home in the docs.
+import SectionHead from '../SectionHead.astro';
+import SectionLinks from '../SectionLinks.astro';
+import { docPaths } from '../../data/site';
+const facts = [
+  ['Everything stays on your PC', 'Service definitions, observations, recovery budgets, logs and client backups live under %LOCALAPPDATA%\\TunnelTend\\state. There is no TunnelTend account, cloud or telemetry.'],
+  ['Keys are references, never values', 'TunnelTend stores env:NAME or file:PATH, resolves it when the client starts, and refuses commands that look like they contain an inline secret.'],
+  ['Processes are owned before they are touched', 'A recorded PID is only stopped when its path and start time still match the service TunnelTend started. A mismatch is a blocked repair, not a kill.'],
+  ['Downloads are verified', 'The official client is fetched from openai/tunnel-client releases, checked against the published digest, extracted with guards, and replaced transactionally with a backup.'],
+  ['Uninstall keeps your state', 'Normal uninstall removes the tasks, the program and the PATH entry and leaves your registrations alone unless you explicitly purge them.'],
+  ['Open source, AGPL-3.0-only', 'Read it, change it, share it. The official OpenAI client is a separate work under its own licence and is never bundled.'],
+];
+---
+<section class="section" data-section="trust">
+  <div class="wrap">
+    <SectionHead id="trust" title="What stays where" body="A program that runs at sign-in and restarts things deserves plain answers about data, secrets and process control." />
+    <dl class="facts">
+      {facts.map(([term, text]) => <div class="fact"><dt>{term}</dt><dd>{text}</dd></div>)}
+    </dl>
+    <SectionLinks links={[['Privacy and data', docPaths.privacyAndData], ['Security model', docPaths.security], ['Logging', docPaths.logging]]} />
+  </div>
+</section>
+
+<style>
+  .facts { margin: 0; display: flex; flex-direction: column; border-top: 1px solid var(--hair-strong); max-width: 88ch; }
+  .fact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px 32px; padding: 16px 0; border-bottom: 1px solid var(--hair); }
+  .fact dt { font-weight: 600; font-size: 15px; }
+  .fact dd { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg-2); }
+  @media (max-width: 640px) { .fact { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+</style>

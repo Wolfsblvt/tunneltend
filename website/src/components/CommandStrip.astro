@@ -1,0 +1,12 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// One command on the machine ground with a real copy button. The prompt glyph is decoration
+// and never copied; the button copies exactly the command.
+import Icon from './Icon.astro';
+interface Props { command: string; label?: string | undefined; class?: string | undefined; prompt?: string | undefined }
+const { command, label = 'Copy the command', class: extra, prompt = 'PS>' } = Astro.props;
+---
+<span class:list={['command', extra]}>
+  <code><span class="p">{prompt} </span>{command}</code>
+  <button type="button" data-copy={command} data-copy-done="Copied ✓" aria-label={label}><Icon name="copy" size={13} /><span data-copy-label>Copy</span></button>
+</span>

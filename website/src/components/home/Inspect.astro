@@ -1,0 +1,35 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// #inspect: the read/plan/apply grammar in one table. Read-only commands never save state;
+// a mutation is always a separate, explicit command.
+import SectionHead from '../SectionHead.astro';
+import SectionLinks from '../SectionLinks.astro';
+import { docPaths } from '../../data/site';
+const rows = [
+  ['tunneltend status', 'Reads', 'Desired and observed facts for every service, the client version and the Scheduled Tasks.'],
+  ['tunneltend health', 'Reads', 'Live probes: process present, tunnel runtime present, configured health and readiness checks.'],
+  ['tunneltend doctor', 'Reads', 'Diagnosis with an actionable message per problem, or “No problems detected.”'],
+  ['tunneltend repair', 'Plans', 'What a repair would do. Nothing changes until you add --apply.'],
+  ['tunneltend reconcile --plan', 'Plans', 'What convergence to desired state would change, service by service.'],
+  ['tunneltend service stop ID', 'Changes', 'A durable stop. Add --session-only for “just until I sign in again”.'],
+  ['tunneltend client update', 'Changes', 'A verified, staged, backed-up update of OpenAI’s client; rolls back on failure.'],
+];
+---
+<section class="section" data-section="inspect">
+  <div class="wrap">
+    <SectionHead id="inspect" title="Inspect, then act" body="Looking never changes anything. Every command that reads prints facts and saves nothing; every command that changes state says so in its name. Add --json to any of them for a local agent." />
+    <div class="table-scroll">
+      <table class="hairline-table">
+        <thead><tr><th>Command</th><th>Does</th><th>What you get</th></tr></thead>
+        <tbody>{rows.map(([command, kind, text]) => <tr><td><code class="code-inline">{command}</code></td><td><span class="kind" data-kind={kind}>{kind}</span></td><td>{text}</td></tr>)}</tbody>
+      </table>
+    </div>
+    <SectionLinks links={[['CLI reference', docPaths.cli], ['Service state explained', docPaths.serviceState], ['Troubleshooting', docPaths.troubleshooting]]} />
+  </div>
+</section>
+
+<style>
+  .kind { font-family: var(--font-mono); font-size: 12px; padding: 2px 8px; border-radius: var(--r-chip); border: 1px solid var(--hair-strong); color: var(--fg-2); white-space: nowrap; }
+  .kind[data-kind="Changes"] { border-color: var(--accent); color: var(--accent-text); }
+  .kind[data-kind="Plans"] { border-style: dashed; }
+</style>

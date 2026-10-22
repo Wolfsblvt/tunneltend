@@ -1,0 +1,17 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// The Fold, the approved TunnelTend mark, inlined from the brand bundle so it follows the
+// current ink (`currentColor`) where it sits beside text. The geometry is the exact
+// tintable master; it is never redrawn here. Use `favicon` for the optically heavier
+// small variant below 24 px.
+import markSource from '../../../brand/bundle/tunneltend/assets/mark-primary/on-dark-tintable.svg?raw';
+import faviconSource from '../../../brand/bundle/tunneltend/assets/icon-favicon/on-dark.svg?raw';
+interface Props { size?: number | undefined; class?: string | undefined; label?: string | undefined; favicon?: boolean | undefined }
+const { size = 24, class: extra, label, favicon = false } = Astro.props;
+const source = favicon ? faviconSource : markSource;
+// Keep only the paths; the component owns the <svg> element and its ink.
+const paths = [...source.matchAll(/<path[^>]*\/>/gu)].map(match => match[0]).join('');
+const strokeWidth = favicon ? 2.35 : 2;
+---
+<svg class:list={['fold', extra]} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={strokeWidth} stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden={label ? undefined : 'true'} role={label ? 'img' : undefined} aria-label={label} set:html={paths} />

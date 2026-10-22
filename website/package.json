@@ -1,0 +1,37 @@
+{
+  "name": "tunneltend-website",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The TunnelTend product website and user manual at tunneltend.com.",
+  "license": "AGPL-3.0-only",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "npm run assets:generate && astro dev",
+    "check": "astro check",
+    "assets:generate": "node scripts/generate-site-assets.mjs",
+    "build": "npm run assets:generate && astro build",
+    "test": "npm run brand:check && npm run check && npm run build && node scripts/check-output.mjs",
+    "preview": "astro preview",
+    "check:publish": "node scripts/check-publish.mjs && npm run build && node scripts/check-output.mjs",
+    "brand:export": "node scripts/export-brand.mjs",
+    "brand:check": "node ../tools/brand-bundle/scripts/validate-brand-bundle.mjs ../brand/bundle/tunneltend && node ../tools/brand-bundle/scripts/validate-brand-bundle.mjs vendor/brand/works"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.4",
+    "@astrojs/starlight": "0.42.2",
+    "@iconify-json/lucide": "1.2.135",
+    "@iconify-json/simple-icons": "1.2.97",
+    "@wolfsblvt/icons": "0.3.0",
+    "astro": "7.3.3",
+    "sharp": "0.35.4",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "6.0.3",
+    "wrangler": "4.150.0"
+  }
+}

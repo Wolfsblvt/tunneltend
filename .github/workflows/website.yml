@@ -1,0 +1,86 @@
+# Product website: build on every relevant change, publish accepted main to Cloudflare.
+# Adapted from wolf-ops/templates/product-websites/product-website.yml. GitHub evaluates the
+# native `paths` list before this workflow starts, so unrelated application pushes start no
+# website run. Publication needs the repository variables WEBSITE_TARGET=workers and
+# CLOUDFLARE_ACCOUNT_ID plus the secret CLOUDFLARE_API_TOKEN and the private legal operator
+# projection WOLFSBLVT_LEGAL_OPERATOR_B64; until Wolf Ops supplies them, pull requests and
+# pushes still build and check, and the publish step is skipped with a visible notice.
+name: Website
+on:
+  push:
+    branches: [main]
+    paths: &website_paths
+      - 'website/src/**'
+      - 'website/public/**'
+      - 'website/vendor/**'
+      - 'website/scripts/**'
+      - 'website/astro.config.mjs'
+      - 'website/site.config.mjs'
+      - 'website/tsconfig.json'
+      - 'website/package.json'
+      - 'website/package-lock.json'
+      - 'website/.node-version'
+      - 'website/wrangler.jsonc'
+      - 'brand/bundle/tunneltend/**'
+      - 'scripts/Install-TunnelTend-Online.ps1'
+      - '.github/workflows/website.yml'
+  pull_request:
+    branches: [main]
+    paths: *website_paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SITE_ROOT: website
+  WEBSITE_TARGET: ${{ vars.WEBSITE_TARGET }}
+
+jobs:
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Do not cancel a needed deployment merely because a later app-only push arrives.
+    concurrency:
+      group: website-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'production' }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # A production job resolves current main after entering its concurrency slot, so an
+          # older queued event cannot restore an older accepted website.
+          ref: ${{ github.event_name == 'pull_request' && github.sha || 'main' }}
+          persist-credentials: false
+      - name: Record the source actually built
+        shell: bash
+        run: printf 'Website source commit: %s\n' "$(git rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ${{ env.SITE_ROOT }}/.node-version
+          package-manager-cache: false
+      - name: Install locked dependencies
+        working-directory: ${{ env.SITE_ROOT }}
+        run: npm ci --no-audit --no-fund
+      - name: Check and build
+        working-directory: ${{ env.SITE_ROOT }}
+        run: npm test
+      - name: Publish accepted main
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        working-directory: ${{ env.SITE_ROOT }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WOLFSBLVT_LEGAL_OPERATOR_B64: ${{ secrets.WOLFSBLVT_LEGAL_OPERATOR_B64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] || [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${WEBSITE_TARGET:-}" ]; then
+            echo '::notice::Website publication is not configured yet (WEBSITE_TARGET, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN). Built and checked only.'
+            exit 0
+          fi
+          npm run check:publish
+          test -x node_modules/.bin/wrangler
+          case "$WEBSITE_TARGET" in
+            workers) node_modules/.bin/wrangler deploy --config wrangler.jsonc ;;
+            *) echo 'WEBSITE_TARGET must be workers for tunneltend.com' >&2; exit 1 ;;
+          esac

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "fixture": true,
+  "operatorId": "example",
+  "publisherName": "Wolfsblvt Works",
+  "legalName": "Example Operator",
+  "postalAddress": {
+    "streetAddress": "Example Street 1",
+    "postalCode": "12345",
+    "locality": "Example City",
+    "countryCode": "DE",
+    "countryName": "Germany"
+  },
+  "contacts": {
+    "legal": "legal@example.invalid",
+    "impressum": "impressum@example.invalid",
+    "privacy": "privacy@example.invalid"
+  },
+  "additionalDirectContact": {
+    "label": "Example contact form",
+    "href": "https://example.invalid/contact/",
+    "standing": "provisioned"
+  },
+  "lastReviewedOn": "2000-01-01"
+}

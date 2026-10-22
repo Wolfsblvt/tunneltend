@@ -1,0 +1,9 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Starlight's own footer (pagination) followed by the shared site footer on the page grid.
+import Default from '@astrojs/starlight/components/Footer.astro';
+import SiteFooter from '../Footer.astro';
+const props = Astro.props;
+---
+<Default {...props}><slot /></Default>
+<div class="docs-foot"><SiteFooter /></div>

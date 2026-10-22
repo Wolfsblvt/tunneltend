@@ -2,11 +2,11 @@
 
 ## Meaning
 
-This document owns TunnelTend's approved identity: the name, promise, character, **The Fold** mark, the Moonpool After Dark palette, voice, and the rules for using them. It carries the meaning and use rules only. The artwork itself lives under [`brand/`](../brand/), and the responsive website, a wordmark, and a full social composition are deliberately not designed here.
+This document owns TunnelTend's approved identity: the name, promise, character, **The Fold** mark, the wordmark and lockup, the Moonpool After Dark palette, voice, and the rules for using them. It carries the meaning and use rules only. The artwork itself lives under [`brand/`](../brand/) and is exported as a Works-standard brand bundle; the website that applies it lives under [`website/`](https://github.com/Wolfsblvt/tunneltend/tree/main/website).
 
 TunnelTend is the unofficial, local-first Windows caretaker for registered MCP tunnels managed through OpenAI's official `tunnel-client`. Users register one or many MCP services once; TunnelTend tends their intended runtime, connection, observation, bounded recovery, source-change restart, and verified official-client updates. The project does not own the official client, the tunnel protocol, or the hosted control plane.
 
-**Decision status.** On 2026-10-17 Wolf selected the name, the Moonpool After Dark palette, the warm-but-restrained meaning, and the calm operational voice, then approved the displayed Fold identity ("Perfect. This looks good."). The approved source is `emergency-meeting@e185f340` under `workbench/nyxara/tunneltend-identity-2026-10-17/`. The SVG geometry in this repository is those exact bytes; see [Provenance](../brand/source/tunneltend/README.md).
+**Decision status.** On 2026-10-17 Wolf selected the name, the Moonpool After Dark palette, the warm-but-restrained meaning, and the calm operational voice, then approved the displayed Fold identity ("Perfect. This looks good."). The approved source is `emergency-meeting@e185f340` under `workbench/nyxara/tunneltend-identity-2026-10-17/`. The SVG geometry in this repository is those exact bytes; see [Provenance](../brand/source/tunneltend/README.md). On 2026-10-22 Wolf chose the wordmark from three in-site candidates ("02 Manrope TunnelTend"), which completed the lockup ([D-012](DECISIONS.md#d-012-the-wordmark-is-outlined-manrope-beside-the-fold)).
 
 ## Identity
 
@@ -28,15 +28,25 @@ The master is a 24×24 viewBox with two 2 px strokes, rounded joins and caps, an
 | --- | --- | --- |
 | `mark.primary` | 24 px and larger, on the matching background | `mark-primary/on-dark.svg`, `on-light.svg`, and 512 px PNGs of each |
 | `mark.primary` (tintable) | One inherited ink colour (`currentColor`) where the mark follows text | `mark-primary/on-dark-tintable.svg`, `on-light-tintable.svg` (the same file for each background class) with 512 px PNG fallbacks in that class's text ink |
-| `icon.favicon` | 16–20 px: an optically heavier variant (2.35 px stroke, shorter tails) | `icon-favicon/on-dark.svg`, `on-light.svg`, 32 px PNGs, and the adaptive `universal-adaptive.svg` |
-| `icon.application` | Square avatar and application-sized tile: the Fold at 62% on a graphite ground, opaque so it reads on any surface | `icon-application/universal.svg`, `universal-64x64.png`, `universal-128x128.png` |
-| `icon.favicon` (fixed ICO) | Browsers that need `.ico`: 16, 32, and 48 px on a graphite ground, so it stays legible in any browser theme | `icon-favicon/universal-48x48.ico` |
+| `icon.favicon` | 16–20 px: an optically heavier variant (2.35 px stroke, shorter tails) | `icon-favicon/on-dark.svg`, `on-light.svg` and 32 px PNGs |
+| `icon.favicon` (universal) | Browsers and tabs of either theme: the favicon on an opaque graphite ground, the ICO with 16/32/48 px frames, and the adaptive SVG that follows the colour scheme | `icon-favicon/universal.svg`, `universal-48x48.png`, `universal-48x48.ico`, `universal-adaptive.svg` |
+| `icon.application` | Square avatar and application-sized tile: the Fold at 62% on a graphite ground, opaque so it reads on any surface | `icon-application/universal.svg` and 64, 128, 192, 512 px PNGs |
+| `wordmark` | The name as artwork, 120 px wide and up | `wordmark/on-dark.svg`, `on-light.svg`, the tintable pair, 1600 px PNGs |
+| `lockup.default` | The Fold beside the wordmark; the approved title treatment | `lockup-default/on-dark.svg`, `on-light.svg`, the tintable pair, 1600 px PNGs |
 
 Use the `on-dark` artwork on dark surfaces and `on-light` on light ones; consumers select an appearance and never recolour approved strokes to repair contrast. The tintable files are a single-ink projection of the same geometry: no gradient, inset highlight, status badge, shield, lock, MCP wordmark, or logo overlay. The allowed treatment is one ink only: the text colour or the accent of the background class the file is named for (`#F0EDF3` or `#79CAD9` on dark; `#25222D` or `#167B91` on light), never an arbitrary colour. Each PNG fallback is the master rendered in that class's text ink. The contact sheet shows both inks and the fallback on both backgrounds.
 
 Below 24 px use the favicon variant. For standalone placements keep at least three canonical units of clear space around the 24-unit glyph; at small sizes prefer the whole viewBox and keep labels and badges away from it.
 
-There is no separate compact or wordmark role yet. The README therefore uses `mark.primary` beside the plain textual name.
+There is no compact lockup role yet; below the final narrow seam the website keeps the Fold alone.
+
+## Wordmark and lockup
+
+The wordmark is "TunnelTend" set in Manrope 700 at −0.025 em tracking and outlined to paths, so no surface depends on a font. Wolf chose it on 2026-10-22 over a lowercase Nunito and a Sora candidate because it reads the same as the product name in prose and serves the ChatGPT reader and the developer alike. The lockup places the Fold at the header ratio (a 26 px mark beside a 17 px wordmark, 9 px gap), vertically centred on the lettering; it is the approved title treatment for the README, the website header and footer, and social cards.
+
+Use `on-dark` on dark surfaces and `on-light` on light ones; the tintable pair follows one inherited ink where the lockup sits in running text or the header. Do not re-set the lettering, change the ratio, add a tagline or descriptor to the lockup, or stack the wordmark under the mark; a vertical arrangement is not designed. The wordmark alone is for places that already show the mark nearby. Keep at least the wordmark's cap height of clear space around either asset.
+
+Provenance, the exact masters and the export recipe are in [`brand/source/tunneltend/README.md`](../brand/source/tunneltend/README.md). Manrope's OFL licence travels with the bundle because the lettering derives from it; the outlined shapes are TunnelTend's own artwork.
 
 ## Palette: Moonpool After Dark
 
@@ -62,7 +72,7 @@ The palette should read quietly unusual: not neon, not a pastel rainbow, not pur
 
 ## Typography
 
-Prose and UI use the system sans first (Segoe UI Variable or Segoe UI on Windows, then platform fallbacks). Code uses Cascadia Code, Cascadia Mono, Consolas, `ui-monospace`, then monospace. No novelty programmer font, sci-fi lettering, or monospaced prose wall. The CLI never depends on a web font.
+Prose and UI use the system sans first (Segoe UI Variable or Segoe UI on Windows, then platform fallbacks). Code uses Cascadia Code, Cascadia Mono, Consolas, `ui-monospace`, then monospace. No novelty programmer font, sci-fi lettering, or monospaced prose wall. Neither the CLI nor the website loads a web font; the wordmark is outlined artwork, not a typeface the surfaces use.
 
 ## Voice and product language
 
@@ -78,13 +88,15 @@ Calm caretaker, precise operator. Operational messages state observed facts, att
 
 Warm copper, pastel rainbows, and purple gradients; a shield, lock, lighthouse, or other VPN or proxy metaphor; any MCP or OpenAI logo, path data, or lookalike; a fictional dashboard, tray app, hosted plan, telemetry promise, or SLA; and a recoloured, mirrored, or closed variant of the Fold. Status colours are not identity colours.
 
-## Not yet designed
+## The website and social cards
 
-A wordmark, the responsive website, and the full social-preview composition are Design Studio work with Wolf and are not part of this identity adoption. They build on the approved Fold and palette without redrawing the mark. The intended social direction is a quiet graphite field with a large Fold, the title and one sentence, and no fictional interface. Trademark, domain, and commercial identifier checks remain independent of this document.
+The website under `website/` applies this identity: the lockup in the header and footer, the Moonpool tokens as its design tokens, a graphite machine ground for terminals and code in both themes, and the system sans. Its generated social cards implement the intended direction for every indexed page: a quiet graphite field, a large Fold, the title and one sentence, no fictional interface. A full authored social composition and a compact lockup are not designed; the cards are generated from the bundle. Trademark, domain, and commercial identifier checks remain independent of this document.
 
 ## Maintaining the assets
 
-[`brand/source/tunneltend/`](../brand/source/tunneltend/) holds the authored masters. `brand/bundle/tunneltend/` is generated from them and committed; do not edit it by hand. Regenerate it with `python brand/source/tunneltend/export.py` from an isolated environment that has CairoSVG and Pillow. The recipe copies SVGs byte for byte and renders only the PNG, ICO, and contact-sheet projections. Fix a wrong asset in its master or the recipe, then export again.
+[`brand/source/tunneltend/`](../brand/source/tunneltend/) holds the authored masters. `brand/bundle/tunneltend/` is generated from them as a Brand Bundle Contract bundle (`manifest.json`, `tokens/`, `css/`, `assets/`, `licences/`) and committed; do not edit it by hand. Regenerate it from `website/` with `npm run brand:export` and validate with `npm run brand:check`; the exporter is `website/scripts/export-brand.mjs` and the validator is vendored under `tools/brand-bundle/`. The recipe copies SVGs byte for byte and renders only the PNG and ICO projections. Fix a wrong asset in its master or the exporter, then export again. The website mirrors the bundle verbatim at `/brand/tunneltend/`, so consumers may pin a commit or link the mirror.
+
+The contact sheet above was rendered by the earlier Python recipe from the Fold assets before the wordmark existed; it remains accurate for the mark and icons.
 
 Changing a master changes the identity, so it needs the product authority that approved it. A future rename must update the whole identity surface, not just README text: module and command names, package and repository slugs, state directories, Scheduled Task paths, mutex and event identifiers, schemas, documentation, release artifacts, and migration behavior. `scripts/Rename-Product.ps1` is the bounded mechanical helper; it does not make the product decision.
 

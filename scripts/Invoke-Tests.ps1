@@ -5,7 +5,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $errors=@()
 $files=@(Get-ChildItem -LiteralPath $root -Force | Where-Object {
-    $_.Name -notin @('.git','artifacts','.validation')
+    $_.Name -notin @('.git','artifacts','.validation','website')
 } | ForEach-Object {
     if ($_.PSIsContainer) { Get-ChildItem -LiteralPath $_.FullName -Recurse -File }
     else { $_ }

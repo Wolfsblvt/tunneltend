@@ -1,0 +1,28 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// Rows of a header destination panel: 16px icon, 13px label, 12px supporting line, and an
+// 11px arrow for an external destination. A row whose destination has no real URL yet is a
+// disabled link, never a dead `#` and never a "coming soon" note.
+import Icon from './Icon.astro';
+import type { IconName } from '../data/icons';
+interface Row { readonly id: string; readonly icon: IconName; readonly label: string; readonly note?: string | undefined; readonly href: string | null; readonly current?: boolean | undefined }
+interface Props { rows: readonly Row[]; kind: string }
+const { rows, kind } = Astro.props;
+const external = (href: string) => /^https?:/u.test(href);
+---
+<ul class="dest-rows">
+  {rows.map(row => (
+    <li>
+      {row.href
+        ? <a class="dest-row" href={row.href} rel={external(row.href) ? 'noopener' : undefined} aria-current={row.current ? 'page' : undefined} data-dest={`${kind}:${row.id}`}>
+            <Icon name={row.icon} size={16} />
+            <span class="dest-text"><span class="dest-label">{row.label}</span>{row.note && <span class="dest-note">{row.note}</span>}</span>
+            {external(row.href) && <Icon name="external" size={11} class="dest-arrow" />}
+          </a>
+        : <a class="dest-row is-unavailable" role="link" aria-disabled="true" data-dest={`${kind}:${row.id}`}>
+            <Icon name={row.icon} size={16} />
+            <span class="dest-text"><span class="dest-label">{row.label}</span>{row.note && <span class="dest-note">{row.note} · not up yet</span>}</span>
+          </a>}
+    </li>
+  ))}
+</ul>

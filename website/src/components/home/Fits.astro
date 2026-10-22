@@ -1,0 +1,121 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+// #how: the chain from a tool on the reader's PC to ChatGPT, drawn as five boxes, and then
+// one of two readings of it. Plain words by default: three short explainers for someone who
+// has never met MCP. "Excuse me, I'm a dev?!" flips the whole site into the developer view:
+// stdio vs HTTP, what the official client owns, what TunnelTend persists, the JSON envelope.
+import Icon from '../Icon.astro';
+import SectionHead from '../SectionHead.astro';
+import SectionLinks from '../SectionLinks.astro';
+import { docPaths, openai } from '../../data/site';
+const chain = [
+  { label: 'Your app or tool', note: 'Notes, files, a database, a home server, a script', dev: 'anything with a process or a port', where: 'your PC' },
+  { label: 'MCP server', note: 'A small program that offers that tool to AI assistants', dev: 'stdio command or HTTP endpoint', where: 'your PC' },
+  { label: 'OpenAI tunnel client', note: 'OpenAI’s official program that opens the secure tunnel', dev: 'tunnel-client.exe, detached runtime per alias', where: 'your PC' },
+  { label: 'Secure MCP Tunnels', note: 'OpenAI’s hosted side: no public port on your router', dev: 'outbound only; org/workspace scoped', where: 'OpenAI' },
+  { label: 'ChatGPT', note: 'Uses the tool through a connector you set up once', dev: 'also Codex, Responses API, AgentKit', where: 'OpenAI' },
+];
+// A real excerpt of `tunneltend status --json` (schema 1), trimmed to the fields a reader needs.
+const envelope = `{
+  "schema_version": 1,
+  "product": "tunneltend",
+  "command": "status",
+  "status": "ok",
+  "data": {
+    "client": { "installed": true, "version": "0.0.17" },
+    "session": { "activeServices": ["internal-tools"], "suppressedServices": ["photo-tagger"] },
+    "services": [
+      { "id": "internal-tools", "desiredState": "running", "observedState": "running",
+        "healthy": true, "ready": true, "autostart": true, "watchdog": true }
+    ]
+  },
+  "diagnostics": [], "actions": []
+}`;
+---
+<section class="section" data-section="how">
+  <div class="wrap">
+    <div class="how-head">
+      <SectionHead id="how" title="How a tool on your PC reaches ChatGPT" body="Five pieces, two of them on your computer. TunnelTend looks after those two so you don’t have to remember to start, reconnect or update anything." />
+      <button class="reader-toggle" type="button" data-reader-toggle data-label-plain="Excuse me, I’m a dev?!" data-label-dev="I’m not a dev, actually" aria-pressed="false" title="Switch the whole site between plain words and developer details">
+        <Icon name="terminal" size={14} /><span data-reader-label>Excuse me, I’m a dev?!</span>
+      </button>
+    </div>
+    <ol class="chain" aria-label="The connection chain">
+      {chain.map((step, index) => (
+        <li class="chain-step" data-where={step.where} data-tended={index === 1 || index === 2 ? '' : undefined}>
+          <span class="chain-where">{step.where}</span>
+          <span class="chain-label">{step.label}</span>
+          <span class="chain-note for-plain">{step.note}</span>
+          <span class="chain-note mono for-dev">{step.dev}</span>
+        </li>
+      ))}
+      <li class="chain-brace" aria-hidden="true"><span>tended by TunnelTend</span></li>
+    </ol>
+
+    <div class="grid-3 words for-plain">
+      <div class="word">
+        <h3 class="card-title">MCP, in one sentence</h3>
+        <p class="card-body">The Model Context Protocol is the standard way an AI assistant asks a program for information or actions. An <em>MCP server</em> is that program: it wraps your tool and answers the assistant. Many tools already ship one; others need a few lines of code.</p>
+      </div>
+      <div class="word">
+        <h3 class="card-title">A tunnel, in one sentence</h3>
+        <p class="card-body">Your PC usually can’t be reached from the internet, and that is a good thing. OpenAI’s tunnel client opens one outbound, authenticated connection to OpenAI, and ChatGPT talks to your MCP server through it. Nothing is exposed on your router.</p>
+      </div>
+      <div class="word">
+        <h3 class="card-title">What TunnelTend adds</h3>
+        <p class="card-body">The official client connects; it does not remember, restart, watch or update itself. TunnelTend keeps the registered services and tunnels running when you intend them to, respects deliberate stops, recovers within limits, and reports plainly.</p>
+      </div>
+    </div>
+
+    <div class="dev for-dev">
+      <div class="dev-text">
+        <h3 class="card-title">For the record</h3>
+        <dl class="dev-rows">
+          <dt>stdio vs HTTP</dt><dd>A stdio server is launched by the official client as a child process; TunnelTend registers its command (or discovers it conservatively from a project folder) and owns the host process. An HTTP server keeps listening where it already does; TunnelTend connects the official client to that URL and probes an optional health URL. It never changes your server’s listening address or auth.</dd>
+          <dt>What the official client owns</dt><dd>The protocol, the hosted control plane, detached runtimes with aliases, and the runtime credential. TunnelTend drives it through one narrow adapter and never bundles it; stable releases are acquired from openai/tunnel-client, digest-verified, staged and swapped with a backup.</dd>
+          <dt>What TunnelTend persists</dt><dd><code class="code-inline">registry.json</code> is desired state; <code class="code-inline">runtime.json</code> holds observations, process ownership evidence (PID, path, start time), recovery accounting, source fingerprints and current-sign-in intent. Both under <code class="code-inline">%LOCALAPPDATA%\TunnelTend\state</code>, versioned by schema.</dd>
+          <dt>Automation</dt><dd>Three current-user Scheduled Tasks under <code class="code-inline">\TunnelTend\</code>: Startup (logon, 20 s delay), Watchdog (every 2 min), Maintenance (daily, 05:15 ± 20 min). A native no-console launcher starts them; nothing runs as a system service.</dd>
+        </dl>
+      </div>
+      <figure class="machine machine-inner">
+        <figcaption class="machine-head"><span>tunneltend status --json · excerpt</span><span>schema_version 1</span></figcaption>
+        <pre class="code-body"><code>{envelope}</code></pre>
+        <p class="machine-foot">Every command has the same envelope. Read-only commands never persist; <code class="code-inline">status</code> is <code class="code-inline">degraded</code> when a service is desired running but not healthy.</p>
+      </figure>
+    </div>
+
+    <SectionLinks links={[['Read how it works, step by step', docPaths.howItWorks], ['OpenAI’s Secure MCP Tunnels guide', openai.tunnelsGuide], ['What is MCP?', openai.mcp]]} class="for-plain" />
+    <SectionLinks links={[['Service state and the envelope', docPaths.serviceState], ['CLI reference', docPaths.cli], ['tunnel-client on GitHub', openai.clientRepo]]} class="for-dev" />
+  </div>
+</section>
+
+<style>
+  .how-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+  .chain { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; position: relative; }
+  .chain-step { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 16px; border: 1px solid var(--hair); border-radius: var(--r-block); background: var(--bg-raised); min-width: 0; }
+  .chain-step[data-tended] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--bg-raised)); }
+  .chain-step + .chain-step::before { content: "→"; position: absolute; left: -13px; top: 50%; transform: translateY(-50%); color: var(--fg-3); font-family: var(--font-mono); font-size: 14px; z-index: 1; background: var(--bg); padding: 0 1px; }
+  .chain-where { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--fg-3); }
+  .chain-label { font-weight: 600; font-size: 15px; }
+  .chain-note { font-size: 13px; color: var(--fg-2); line-height: 1.45; }
+  .chain-note.mono { font-size: 12px; }
+  .chain-brace { grid-column: 2 / span 2; display: flex; justify-content: center; align-items: flex-start; height: 26px; border-inline: 1px solid var(--accent); border-bottom: 1px solid var(--accent); border-radius: 0 0 8px 8px; margin: -4px 6px 0; position: relative; }
+  .chain-brace span { position: absolute; top: 14px; background: var(--bg); padding: 0 8px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .04em; color: var(--accent-text); white-space: nowrap; }
+  .words { margin-top: 20px; }
+  .word { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 0; border-top: 2px solid var(--hair-strong); padding-top: 14px; }
+  .word em { font-style: normal; font-weight: 600; color: var(--fg); }
+  .dev { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; margin-top: 20px; align-items: start; }
+  .dev-text { display: flex; flex-direction: column; gap: 12px; }
+  .dev-rows { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 16px; font-size: 13.5px; color: var(--fg-2); line-height: 1.55; }
+  .dev-rows dt { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); padding-top: 2px; white-space: nowrap; }
+  .dev-rows dd { margin: 0; }
+  .dev .code-body { font-size: 12px; }
+  @media (max-width: 900px) {
+    .chain { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .chain-step + .chain-step::before { content: "↓"; left: 18px; top: -15px; transform: none; }
+    .chain-brace { display: none; }
+    .chain-step[data-tended]::after { content: "tended by TunnelTend"; font-family: var(--font-mono); font-size: 11px; color: var(--accent-text); letter-spacing: .04em; }
+    .dev { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 640px) { .dev-rows { grid-template-columns: minmax(0, 1fr); gap: 4px 0; } .dev-rows dd { margin-bottom: 8px; } }
+</style>

@@ -102,3 +102,32 @@ Describe 'CLI convergence reporting' {
         Should -Invoke Write-TtCliResult -ModuleName TunnelTend -Exactly 1 -ParameterFilter { $Envelope.status -eq 'planned' }
     }
 }
+
+Describe 'CLI human-readable rendering' {
+    BeforeAll {
+        # Write-TtCliResult prints through [Console]::Out; capture it with a replacement writer.
+        function Invoke-CapturedRender([hashtable]$Envelope) {
+            $previous = [Console]::Out
+            $writer = [IO.StringWriter]::new()
+            try {
+                [Console]::SetOut($writer)
+                & (Get-Module TunnelTend) { param($envelope) Write-TtCliResult $envelope } $Envelope
+            }
+            finally { [Console]::SetOut($previous) }
+            return $writer.ToString()
+        }
+    }
+
+    It 'renders every status field of a service on one line' {
+        $envelope = & (Get-Module TunnelTend) { New-TtEnvelope -Command status -Status degraded -Data ([ordered]@{ services=@([ordered]@{ id='demo'; desiredState='running'; observedState='stopped'; healthy=$false; autostart=$true; watchdog=$false }) }) }
+        $text = Invoke-CapturedRender $envelope
+        $text | Should -Match '^\[--\] demo\s+desired=running observed=stopped\s+autostart=True watchdog=False'
+    }
+
+    It 'renders health and doctor lines with all their arguments' {
+        $health = & (Get-Module TunnelTend) { New-TtEnvelope -Command health -Data ([ordered]@{ healthy=$true; services=@([ordered]@{ serviceId='demo'; healthy=$true; ready=$false; state='running' }) }) }
+        (Invoke-CapturedRender $health) | Should -Match 'demo\s+healthy=True ready=False state=running'
+        $doctor = & (Get-Module TunnelTend) { New-TtEnvelope -Command doctor -Status degraded -Data $null -Diagnostics @([ordered]@{ severity='warning'; code='service.unhealthy'; message='Synthetic diagnosis' }) }
+        (Invoke-CapturedRender $doctor) | Should -Match '^\[WARNING\] service\.unhealthy: Synthetic diagnosis'
+    }
+}
