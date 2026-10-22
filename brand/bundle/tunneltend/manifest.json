@@ -1,0 +1,705 @@
+{
+  "schemaVersion": 1,
+  "bundleSha256": "ad56123a2c8cb294112bbb74d98366bf7f1cb0d17d147fd4ff2e2283c8b3b806",
+  "brand": {
+    "id": "tunneltend",
+    "displayName": "TunnelTend",
+    "description": "The Fold and the Moonpool After Dark palette: the approved TunnelTend identity."
+  },
+  "source": {
+    "repository": "Wolfsblvt/tunneltend",
+    "commit": "f12f8c8bd4b435ac7a84c7aab769a73fe2b74a23",
+    "exporter": "website/scripts/export-brand.mjs"
+  },
+  "tokens": {
+    "reference": {
+      "path": "tokens/reference.json",
+      "byteCount": 2560,
+      "sha256": "f36b806d89b84b4266c5294e4a161431ceeb6f791788886a6a3b808d87be1eef"
+    },
+    "semantic": {
+      "path": "tokens/semantic.json",
+      "byteCount": 1136,
+      "sha256": "4e885ca6e6a202367a2f9f888f5b19f532b9bc13549b4146bfc224c1f963c12b"
+    },
+    "css": {
+      "path": "css/tokens.css",
+      "byteCount": 1403,
+      "sha256": "9a9773a45c02bc3c344124527e1a461caec976ba3cd63a0c7502615e49eddf51"
+    }
+  },
+  "assets": [
+    {
+      "role": "mark.primary",
+      "label": "The Fold",
+      "variants": [
+        {
+          "appearance": "on-dark",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#the-fold"
+          },
+          "minimumWidthPx": 24,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/mark-primary/on-dark.svg",
+                "byteCount": 320,
+                "sha256": "1184c5b945eea088a2d21ed9754812160cd73ea2035d6f911995923cab72771e"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 512,
+              "height": 512,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/mark-primary/on-dark-512x512.png",
+                "byteCount": 10457,
+                "sha256": "36858cce2a0da83ab947e6b8ce3e687c3a6a95cc748bf48d56392c104ea6b84b"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-light",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "light"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#the-fold"
+          },
+          "minimumWidthPx": 24,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/mark-primary/on-light.svg",
+                "byteCount": 320,
+                "sha256": "76bb5a404918211f94df50131e59ea9d82c6ab6c96e4f6195ec8fd55f3e0ff37"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 512,
+              "height": 512,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/mark-primary/on-light-512x512.png",
+                "byteCount": 10351,
+                "sha256": "a7938088c150389e341f4a0ef3a48c5fd7d539d1d248f8a6a8d1134cb331b7bc"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-dark",
+          "colorMode": "tintable",
+          "allowedTintTokens": [
+            "--brand-text-primary",
+            "--brand-action-primary"
+          ],
+          "qualifiedBackgrounds": [
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#the-fold"
+          },
+          "minimumWidthPx": 24,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/mark-primary/on-dark-tintable.svg",
+                "byteCount": 325,
+                "sha256": "f0b34ebf99cc899c559e8e4992985caca8e01f3f455d45c1e45759ef8262b77c"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 512,
+              "height": 512,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/mark-primary/on-dark-tintable-512x512.png",
+                "byteCount": 10263,
+                "sha256": "9e533b6b8e12ecb586aed599d29cc994b23ef7b265f4e88c0b1370254d9185d2"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-light",
+          "colorMode": "tintable",
+          "allowedTintTokens": [
+            "--brand-text-primary",
+            "--brand-action-primary"
+          ],
+          "qualifiedBackgrounds": [
+            "light"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#the-fold"
+          },
+          "minimumWidthPx": 24,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/mark-primary/on-light-tintable.svg",
+                "byteCount": 325,
+                "sha256": "f0b34ebf99cc899c559e8e4992985caca8e01f3f455d45c1e45759ef8262b77c"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 512,
+              "height": 512,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/mark-primary/on-light-tintable-512x512.png",
+                "byteCount": 10251,
+                "sha256": "53cfa0f7dc5df3ac2df4c32dabaecdf05f9764ee18d335a7be4cb50ae7788b12"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "icon.favicon",
+      "label": "Favicon",
+      "variants": [
+        {
+          "appearance": "on-dark",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#the-fold"
+          },
+          "minimumWidthPx": 16,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/icon-favicon/on-dark.svg",
+                "byteCount": 323,
+                "sha256": "cf002a605b944e0e29c20cb48a527b39866664e2b10759e9e464fea24f9f73bc"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 32,
+              "height": 32,
+              "pixelDensity": 2,
+              "file": {
+                "path": "assets/icon-favicon/on-dark-32x32.png",
+                "byteCount": 706,
+                "sha256": "2ebe9f0f001e2e92ce12901d9e5beed35e8ccf3013cf2beca76ddedc3da26f56"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-light",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "light"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#the-fold"
+          },
+          "minimumWidthPx": 16,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/icon-favicon/on-light.svg",
+                "byteCount": 323,
+                "sha256": "05ec92f2bae401237af35f3e4d137a94cde19a9cbc98b565054287c9a4578a5a"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 32,
+              "height": 32,
+              "pixelDensity": 2,
+              "file": {
+                "path": "assets/icon-favicon/on-light-32x32.png",
+                "byteCount": 703,
+                "sha256": "89a159fc33b6beef5ea310b25dfed965526932a97d3fc95f338b0dafa46360e7"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "universal",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "light",
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#the-fold"
+          },
+          "minimumWidthPx": 16,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/icon-favicon/universal.svg",
+                "byteCount": 388,
+                "sha256": "f73a714f33072f29e523b9856194a68a4b4057d19d1eeec23b9ecf72d609eecd"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 48,
+              "height": 48,
+              "pixelDensity": 1,
+              "file": {
+                "path": "assets/icon-favicon/universal-48x48.png",
+                "byteCount": 925,
+                "sha256": "1f6aeafc4199dccf75cf2eaacd45ea16c50ba56caeb57666cf598c1381eff06d"
+              }
+            },
+            {
+              "format": "ico",
+              "motion": "static",
+              "width": 48,
+              "height": 48,
+              "pixelDensity": 1,
+              "file": {
+                "path": "assets/icon-favicon/universal-48x48.ico",
+                "byteCount": 2225,
+                "sha256": "8a23ce0404e8ef2e943f4523ea173654d35b585a2582d7a0622a10ea11f7b6b6"
+              }
+            },
+            {
+              "format": "svg",
+              "motion": "static",
+              "adaptive": true,
+              "file": {
+                "path": "assets/icon-favicon/universal-adaptive.svg",
+                "byteCount": 413,
+                "sha256": "86a75a31cb78d2208bcd7c2352d862bf9959cd702f416cd13fe29519b5bf0f35"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "icon.application",
+      "label": "Application icon",
+      "variants": [
+        {
+          "appearance": "universal",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "light",
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#the-fold"
+          },
+          "minimumWidthPx": 48,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/icon-application/universal.svg",
+                "byteCount": 430,
+                "sha256": "39575c1d504f25336127b42e75b0573a3c5a2afe11fa86fc32b07cc48567d423"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 64,
+              "height": 64,
+              "pixelDensity": 1,
+              "file": {
+                "path": "assets/icon-application/universal-64x64.png",
+                "byteCount": 949,
+                "sha256": "a7712bfcced0da9a86125e07e5811d055a99309031811ee989a3c9159e9459a0"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 128,
+              "height": 128,
+              "pixelDensity": 2,
+              "file": {
+                "path": "assets/icon-application/universal-128x128.png",
+                "byteCount": 1865,
+                "sha256": "baca4dc20c9a08a213810852a82fd5e5524eaa77f472d0a83ea49a4bc7dfb3d5"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 192,
+              "height": 192,
+              "pixelDensity": 1,
+              "file": {
+                "path": "assets/icon-application/universal-192x192.png",
+                "byteCount": 2991,
+                "sha256": "9a7174e40a9bbd969c87dd5e2a89593f4ed7f87e4d92ced57abef65e218ecdfd"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 512,
+              "height": 512,
+              "pixelDensity": 1,
+              "file": {
+                "path": "assets/icon-application/universal-512x512.png",
+                "byteCount": 12316,
+                "sha256": "5c77ca48dd602136fffabbd35d2d3098aa2743938ec20361d22952b3c506697e"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "wordmark",
+      "label": "TunnelTend wordmark",
+      "variants": [
+        {
+          "appearance": "on-dark",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#wordmark-and-lockup"
+          },
+          "minimumWidthPx": 120,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/wordmark/on-dark.svg",
+                "byteCount": 3674,
+                "sha256": "0c7de3b2001d7d8e4d2149f35feaf5870efea7a81ce4f74b5e8eb478b967c17c"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 1600,
+              "height": 235,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/wordmark/on-dark-1600x235.png",
+                "byteCount": 26037,
+                "sha256": "0f808d527c244a0943c613722049e7a428230e9c3795d8877a5433979367c6da"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-light",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "light"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#wordmark-and-lockup"
+          },
+          "minimumWidthPx": 120,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/wordmark/on-light.svg",
+                "byteCount": 3674,
+                "sha256": "d44a25e5a58efefc416e401a00679e5736e1b720354e6780bfd0c19fb685af71"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 1600,
+              "height": 235,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/wordmark/on-light-1600x235.png",
+                "byteCount": 26147,
+                "sha256": "f235567326e6ea9941b255d532d84287984450826711078ac0960eabaa2ca160"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-dark",
+          "colorMode": "tintable",
+          "allowedTintTokens": [
+            "--brand-text-primary",
+            "--brand-action-primary"
+          ],
+          "qualifiedBackgrounds": [
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#wordmark-and-lockup"
+          },
+          "minimumWidthPx": 120,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/wordmark/on-dark-tintable.svg",
+                "byteCount": 3679,
+                "sha256": "1abf36284024587893a0ac90db63581d6142e09a1e3ea4332ab5c5efaf7bfc97"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 1600,
+              "height": 235,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/wordmark/on-dark-tintable-1600x235.png",
+                "byteCount": 26037,
+                "sha256": "0f808d527c244a0943c613722049e7a428230e9c3795d8877a5433979367c6da"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-light",
+          "colorMode": "tintable",
+          "allowedTintTokens": [
+            "--brand-text-primary",
+            "--brand-action-primary"
+          ],
+          "qualifiedBackgrounds": [
+            "light"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#wordmark-and-lockup"
+          },
+          "minimumWidthPx": 120,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/wordmark/on-light-tintable.svg",
+                "byteCount": 3679,
+                "sha256": "1abf36284024587893a0ac90db63581d6142e09a1e3ea4332ab5c5efaf7bfc97"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 1600,
+              "height": 235,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/wordmark/on-light-tintable-1600x235.png",
+                "byteCount": 26147,
+                "sha256": "f235567326e6ea9941b255d532d84287984450826711078ac0960eabaa2ca160"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "lockup.default",
+      "label": "TunnelTend lockup",
+      "titleCompatible": true,
+      "variants": [
+        {
+          "appearance": "on-dark",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#wordmark-and-lockup"
+          },
+          "minimumWidthPx": 160,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/lockup-default/on-dark.svg",
+                "byteCount": 4003,
+                "sha256": "b303e2dc418b6abc4bb4bf22b2503a397920b75d817019262f2a53b8c2568b90"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 1600,
+              "height": 276,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/lockup-default/on-dark-1600x276.png",
+                "byteCount": 25190,
+                "sha256": "a4f782db841762e4bd5bfae613a04668d969ce9642cc1273fd5ea6d0223316e6"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-light",
+          "colorMode": "full-color",
+          "qualifiedBackgrounds": [
+            "light"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#wordmark-and-lockup"
+          },
+          "minimumWidthPx": 160,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/lockup-default/on-light.svg",
+                "byteCount": 4003,
+                "sha256": "c9785338dace8605b8e9ce0ed12774f9be5740d705219b1dbe098bc11ea8b1f9"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 1600,
+              "height": 276,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/lockup-default/on-light-1600x276.png",
+                "byteCount": 25338,
+                "sha256": "d49e62cd28a85545eb4fb90947aaaaaa1653fd35a943bd62549b60bc2eb0bcd0"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-dark",
+          "colorMode": "tintable",
+          "allowedTintTokens": [
+            "--brand-text-primary",
+            "--brand-action-primary"
+          ],
+          "qualifiedBackgrounds": [
+            "dark"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#wordmark-and-lockup"
+          },
+          "minimumWidthPx": 160,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/lockup-default/on-dark-tintable.svg",
+                "byteCount": 4013,
+                "sha256": "84bd4756bd918b905be89267a47282161fd75a951d435bf14e7aa03ef2c52df7"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 1600,
+              "height": 276,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/lockup-default/on-dark-tintable-1600x276.png",
+                "byteCount": 24340,
+                "sha256": "bdcbbc055bd6a3f2165140c88a31c51c0219cb4a66d9c40244479c356046985d"
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "on-light",
+          "colorMode": "tintable",
+          "allowedTintTokens": [
+            "--brand-text-primary",
+            "--brand-action-primary"
+          ],
+          "qualifiedBackgrounds": [
+            "light"
+          ],
+          "qualificationEvidence": {
+            "sourcePath": "docs/branding.md#wordmark-and-lockup"
+          },
+          "minimumWidthPx": 160,
+          "representations": [
+            {
+              "format": "svg",
+              "motion": "static",
+              "file": {
+                "path": "assets/lockup-default/on-light-tintable.svg",
+                "byteCount": 4013,
+                "sha256": "84bd4756bd918b905be89267a47282161fd75a951d435bf14e7aa03ef2c52df7"
+              }
+            },
+            {
+              "format": "png",
+              "motion": "static",
+              "width": 1600,
+              "height": 276,
+              "pixelDensity": 4,
+              "file": {
+                "path": "assets/lockup-default/on-light-tintable-1600x276.png",
+                "byteCount": 24547,
+                "sha256": "6c99a571ac391f4d5f2eb1d4992900817acf6a28ec469644112e1eb72c2d3345"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "licences": [
+    {
+      "id": "manrope-ofl",
+      "subject": "Manrope 4.504, the typeface the wordmark lettering was outlined from (no font file is distributed)",
+      "name": "SIL Open Font License 1.1",
+      "source": "@fontsource/manrope@5.2.6",
+      "file": {
+        "path": "licences/manrope-ofl.txt",
+        "byteCount": 4314,
+        "sha256": "18aabf190848725e2576eefb5c29ba06aac1029d02132252a7f312eac2e50cf3"
+      }
+    }
+  ]
+}
