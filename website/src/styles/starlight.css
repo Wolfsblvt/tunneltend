@@ -83,8 +83,8 @@ starlight-toc a[aria-current="true"] { color: var(--fg); font-weight: 600; }
 .header .site-title { display: none; }
 @media (min-width: 50rem) {
   .page > .header { background: linear-gradient(to right, var(--bg-raised) 0, var(--bg-raised) calc(var(--docs-rail) - 1px), var(--hair) calc(var(--docs-rail) - 1px), var(--hair) var(--docs-rail), var(--bg) var(--docs-rail)); }
-  .sidebar-pane { width: var(--docs-rail); background: var(--bg-raised); border-inline-end: 1px solid var(--hair); scrollbar-width: thin; }
-  .sidebar-content { width: calc(var(--docs-nav-w) + var(--page-gutter)); margin-inline-start: auto; padding: 18px 14px 0 calc(var(--page-gutter) + 5px); }
+  .sidebar-pane { width: var(--docs-rail); background: var(--bg-raised); border-inline-end: 1px solid var(--hair); scrollbar-width: thin; overflow-x: hidden; }
+  .sidebar-content { width: auto; margin-inline-start: var(--docs-edge); padding: 18px 14px 0 calc(var(--page-gutter) + 5px); }
   .main-frame { padding-inline-start: var(--docs-rail); padding-inline-end: var(--docs-edge); }
 }
 @media (max-width: 49.99rem) { .sl-menu-button { top: calc(var(--sl-nav-height) + (var(--sl-mobile-toc-height) - var(--sl-menu-button-size)) / 2); inset-inline-end: var(--page-gutter); } }
@@ -93,6 +93,14 @@ starlight-toc a[aria-current="true"] { color: var(--fg); font-weight: 600; }
 .pagination-links .link-title { font-size: 14px; }
 .sl-menu-button { background: var(--bg-raised); color: var(--fg); border: 1px solid var(--hair-strong); border-radius: var(--r-control); box-shadow: none; }
 .sl-menu-button svg { color: var(--fg); }
-/* the shared site footer sits below Starlight's own pagination footer, on the page grid */
-.page > footer, .main-pane > footer { padding: 0; }
-.docs-foot { margin-top: 32px; }
+/* The sidebar is sticky, not fixed: it stays put while the page scrolls and releases at the
+   end of the Starlight frame, so the shared site footer (rendered after the frame by the
+   PageFrame override) runs under it at full page width. Below the rail breakpoint Starlight's
+   popover menu is untouched. */
+@media (min-width: 50rem) {
+  .page { display: block; }
+  .page > .sidebar { float: inline-start; width: var(--docs-rail); }
+  .page::after { content: ""; display: block; clear: both; }
+  .sidebar-pane { position: sticky; inset-block: auto; top: var(--sl-nav-height); height: calc(100vh - var(--sl-nav-height)); }
+}
+.site-footer { clear: both; }

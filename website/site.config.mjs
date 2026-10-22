@@ -82,6 +82,7 @@ export default {
         { label: 'How it works', href: '/docs/how-it-works/' },
         { label: 'Get started', href: '/docs/getting-started/' },
         { label: 'Everyday operation', href: '/docs/operations/' },
+        { label: 'Use it through an agent', href: '/docs/agents/' },
         { label: 'CLI reference', href: '/docs/cli/' },
         { label: 'FAQ', href: '/faq/' },
       ],

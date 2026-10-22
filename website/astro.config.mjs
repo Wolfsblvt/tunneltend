@@ -55,6 +55,7 @@ export default defineConfig({
         ThemeProvider: './src/components/docs/ThemeProvider.astro',
         ThemeSelect: './src/components/docs/ThemeSelect.astro',
         Footer: './src/components/docs/Footer.astro',
+        PageFrame: './src/components/docs/PageFrame.astro',
       },
       expressiveCode: {
         themes: [moonpoolSyntax],
@@ -68,6 +69,7 @@ export default defineConfig({
           { label: 'How it works', link: '/docs/how-it-works/' },
           { label: 'Get started', link: '/docs/getting-started/' },
           { label: 'Install with an agent', link: '/docs/install-with-an-agent/' },
+          { label: 'Use it through an agent', link: '/docs/agents/' },
         ] },
         { label: 'Use', items: [
           { label: 'Register a service', link: '/docs/registration/' },

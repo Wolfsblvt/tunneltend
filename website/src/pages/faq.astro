@@ -52,8 +52,9 @@ const groups: Group[] = [
       `Service definitions, policy, observations, logs and client backups stay on your PC. There is no TunnelTend telemetry. Your MCP requests and responses travel through the official client and OpenAI’s infrastructure, as they would without TunnelTend.`,
       `Credentials are stored as references, such as \`env:CONTROL_PLANE_API_KEY\` or \`file:C:\\secure\\runtime-key.txt\`, never as raw keys. The secret stays in your environment or file and is resolved when needed. [Read privacy and data](${docPaths.privacyAndData}).`,
     ] },
-    { id: 'agent-setup', q: 'Can my local coding agent set it up?', a: [
+    { id: 'agent-setup', q: 'Can my local coding agent set it up and run it for me?', a: [
       `Yes, if it can run commands on your Windows computer. Hand it the [agent guide](${docPaths.agent}) and name the service you want registered. It uses the same installer and CLI as you would, works with credential references, and reports what it actually observed. A cloud-only chat without access to your computer cannot do the local part.`,
+      `It does not stop at installation. TunnelTend's commands read or change exactly what their names say and answer in one JSON envelope, so you can keep saying things like “stop my photo-tagger until I sign in again” and let the agent run them. [See what you can say](${docPaths.agents}).`,
     ] },
   ] },
   { title: 'Automation and control', items: [
@@ -102,40 +103,32 @@ const inline = (text: string): string => text
       <h1 class="h2">Before you install</h1>
       <p class="lede">TunnelTend tends the local work around your MCP tunnels. These answers explain where it helps, what it owns, and what to expect from the Windows release. Looking for your first connection? <a href={docPaths.getStarted}>Start with Get started</a>. Looking for a command? <a href={docPaths.cli}>Use the CLI reference</a>.</p>
     </div>
-    <nav class="faq-toc" aria-label="Questions">
-      {groups.map(group => <div class="faq-toc-group"><h2 class="label">{group.title}</h2><ul>{group.items.map(item => <li><a href={`#${item.id}`}>{item.q}</a></li>)}</ul></div>)}
-    </nav>
-    <div class="faq-body">
-      {groups.map(group => (
-        <section class="faq-group">
-          <h2 class="faq-group-title">{group.title}</h2>
-          {group.items.map(item => (
-            <article class="faq-item" data-pagefind-body>
-              <h3 class="faq-q" id={item.id}><a class="faq-anchor" href={`#${item.id}`}>{item.q}</a></h3>
-              {item.a.map(paragraph => <p class="faq-a plain" set:html={inline(paragraph)} />)}
-            </article>
-          ))}
-        </section>
-      ))}
-    </div>
+    {groups.map(group => (
+      <section class="faq-group" aria-labelledby={`group-${group.title.toLowerCase().replaceAll(/[^a-z]+/gu, '-')}`}>
+        <h2 class="faq-group-title label" id={`group-${group.title.toLowerCase().replaceAll(/[^a-z]+/gu, '-')}`}>{group.title}</h2>
+        {group.items.map(item => (
+          <article class="faq-item" data-pagefind-body>
+            <h3 class="faq-q" id={item.id}><a class="faq-anchor" href={`#${item.id}`}>{item.q}</a></h3>
+            <div class="faq-answer">{item.a.map(paragraph => <p class="faq-a plain" set:html={inline(paragraph)} />)}</div>
+          </article>
+        ))}
+      </section>
+    ))}
   </section>
 </Base>
 
 <style>
-  .faq { padding-block: 56px 80px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); gap: 48px; align-items: start; }
-  .faq-head { grid-column: 1 / -1; max-width: 68ch; display: flex; flex-direction: column; gap: 10px; }
+  .faq { padding-block: 56px 88px; display: flex; flex-direction: column; gap: 40px; max-width: calc(96ch + 2 * var(--page-gutter)); margin-inline: 0; }
+  .faq-head { max-width: 68ch; display: flex; flex-direction: column; gap: 10px; }
   .faq-head .lede a { color: var(--fg); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair-strong); }
-  .faq-toc { position: sticky; top: calc(var(--header-h) + 24px); display: flex; flex-direction: column; gap: 18px; font-size: 13.5px; }
-  .faq-toc ul { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
-  .faq-toc a { color: var(--fg-2); }
-  .faq-toc a:hover { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
-  .faq-body { display: flex; flex-direction: column; gap: 40px; max-width: var(--measure-prose); }
-  .faq-group { display: flex; flex-direction: column; gap: 22px; }
-  .faq-group-title { font-size: 22px; letter-spacing: -.01em; padding-bottom: 10px; border-bottom: 1px solid var(--hair); }
-  .faq-item { display: flex; flex-direction: column; gap: 8px; }
-  .faq-q { font-size: 17px; font-weight: 600; }
+  .faq-group { display: flex; flex-direction: column; }
+  /* the group label hangs where the questions hang; the hairline runs the full width */
+  .faq-group-title { padding-bottom: 10px; border-bottom: 1px solid var(--hair-strong); color: var(--accent-text); }
+  .faq-item { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 6px 36px; padding: 20px 0; border-bottom: 1px solid var(--hair); align-items: start; }
+  .faq-q { font-size: 17px; line-height: 1.35; font-weight: 600; }
   .faq-anchor { color: var(--fg); }
   .faq-anchor:hover::after { content: " #"; color: var(--accent-text); font-family: var(--font-mono); font-weight: 400; }
-  .faq-a { margin: 0; color: var(--fg-2); line-height: 1.6; }
-  @media (max-width: 900px) { .faq { grid-template-columns: minmax(0, 1fr); gap: 28px; } .faq-toc { position: static; } }
+  .faq-answer { display: flex; flex-direction: column; gap: 8px; }
+  .faq-a { margin: 0; color: var(--fg-2); line-height: 1.6; font-size: 15px; }
+  @media (max-width: 760px) { .faq-item { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
 </style>

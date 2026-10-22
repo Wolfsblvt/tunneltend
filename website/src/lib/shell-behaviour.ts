@@ -131,9 +131,20 @@ export function wireReaderToggle(): void {
   for (const control of controls) {
     control.addEventListener('click', () => {
       const dev = root.getAttribute('data-reader') !== 'dev';
-      root.setAttribute('data-reader', dev ? 'dev' : 'plain');
-      try { localStorage.setItem(READER_KEY, dev ? 'dev' : 'plain'); } catch { /* the choice lasts for this page */ }
-      render();
+      const apply = (): void => {
+        root.setAttribute('data-reader', dev ? 'dev' : 'plain');
+        try { localStorage.setItem(READER_KEY, dev ? 'dev' : 'plain'); } catch { /* the choice lasts for this page */ }
+        render();
+      };
+      // The switch itself is instant; a soft whole-page blur makes the parts that jump read as one change.
+      const reduced = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } })();
+      const withTransition = (document as Document & { startViewTransition?: (update: () => void) => unknown }).startViewTransition;
+      if (reduced) apply();
+      else if (typeof withTransition === 'function') withTransition.call(document, apply);
+      else {
+        document.body.classList.add('is-switching');
+        window.setTimeout(() => { apply(); window.setTimeout(() => document.body.classList.remove('is-switching'), 30); }, 170);
+      }
       announce(dev ? 'Developer view. The page now shows the technical details.' : 'Plain view. The page now explains things in plain words.');
     });
   }

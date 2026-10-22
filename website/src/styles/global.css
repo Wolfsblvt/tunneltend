@@ -34,6 +34,14 @@ html[data-reader="plain"] .for-dev, html[data-reader="dev"] .for-plain { display
 .reader-toggle:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .reader-toggle[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 .reader-toggle .icon { flex: none; }
+/* the switch is instant; the page says so with one soft blur instead of jumping */
+::view-transition-old(root) { animation: reader-out 180ms var(--ease) both; }
+::view-transition-new(root) { animation: reader-in 260ms var(--ease) both; }
+@keyframes reader-out { to { opacity: 0; filter: blur(8px); } }
+@keyframes reader-in { from { opacity: 0; filter: blur(8px); } }
+body main { transition: filter 160ms var(--ease), opacity 160ms var(--ease); }
+body.is-switching main { filter: blur(6px); opacity: .55; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none; } body.is-switching main { filter: none; opacity: 1; } body main { transition: none; } }
 .reader-quiet { background: none; border: 0; padding: 0; font: inherit; font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair-strong); cursor: pointer; }
 .reader-quiet:hover { color: var(--fg); text-decoration-color: currentColor; }
 
@@ -136,8 +144,7 @@ pre.astro-code, .code-body.astro-code { background: transparent !important; whit
 
 /* ── copy-able command strip ── */
 .command { display: inline-flex; align-items: stretch; max-width: 100%; border: 1px solid var(--machine-hair); border-radius: var(--r-control); background: var(--machine-bg); color: var(--machine-fg); color-scheme: dark; font-family: var(--font-mono); font-size: 13.5px; overflow: hidden; }
-.command code { padding: 10px 14px; white-space: nowrap; overflow: auto; }
-@media (max-width: 640px) { .command code { white-space: pre-wrap; overflow-wrap: anywhere; } }
+.command code { padding: 10px 14px; white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
 .command code .p { color: var(--machine-fg-3); user-select: none; }
 .command button { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; border-left: 1px solid var(--machine-hair); background: #1b1922; color: var(--machine-fg-2); font: inherit; font-size: 12.5px; font-family: var(--font-ui); font-weight: 600; white-space: nowrap; }
 .command button:hover { color: var(--machine-fg); background: #231f2d; }

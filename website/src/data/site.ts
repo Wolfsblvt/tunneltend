@@ -37,6 +37,7 @@ export const docPaths = {
   connectChatGPT: '/docs/getting-started/#connect-it-in-chatgpt',
   verify: '/docs/getting-started/#verify-the-whole-connection',
   agent: '/docs/install-with-an-agent/',
+  agents: '/docs/agents/',
   registration: '/docs/registration/',
   serviceState: '/docs/service-state/',
   operations: '/docs/operations/',

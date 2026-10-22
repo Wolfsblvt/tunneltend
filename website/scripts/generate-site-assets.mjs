@@ -88,31 +88,38 @@ function generateHeaders() {
   writeFileSync(resolve(publicRoot, '_headers'), `${lines.join('\n')}\n`, 'utf8');
 }
 
-/** A quiet graphite field, a large Fold, the title and one sentence. No fictional interface. */
+/** The social card: a quiet graphite field, the lockup, the page's words and a large faint
+ * Fold. No fictional interface. The lockup and the Fold come from the bundle unchanged. */
 async function generateCard(page) {
   const colors = site.identity.social.colors;
-  const foldSource = readFileSync(resolve(bundleRoot, 'assets/mark-primary/on-dark.svg'), 'utf8');
-  const foldPaths = [...foldSource.matchAll(/<path[^>]*\/>/gu)].map((match) => match[0]).join('');
+  const inner = (file) => readFileSync(resolve(bundleRoot, file), 'utf8').replace(/^[\s\S]*?<svg[^>]*>/u, '').replace(/<\/svg>\s*$/u, '');
+  const lockupSource = readFileSync(resolve(bundleRoot, 'assets/lockup-default/on-dark.svg'), 'utf8');
+  const lockupBox = /viewBox="([^"]+)"/u.exec(lockupSource)[1];
+  const foldPaths = [...readFileSync(resolve(bundleRoot, 'assets/mark-primary/on-dark.svg'), 'utf8').matchAll(/<path[^>]*\/>/gu)].map((match) => match[0]).join('');
   const isHome = page.path === '/';
-  const title = isHome ? 'Register once.\nLeave the routine to TunnelTend.' : page.pageTitle;
-  const lines = isHome ? title.split('\n') : wrapCardTitle(title, { maxLines: 3, targetCharacters: 24 });
-  const titleSize = isHome ? 54 : lines.length === 1 ? 72 : lines.length === 2 ? 60 : 52;
-  const titleStart = isHome ? 262 : lines.length === 1 ? 300 : lines.length === 2 ? 268 : 236;
-  const titleMarkup = lines.map((line, index) => `<tspan x="88" y="${titleStart + index * (titleSize + 12)}">${escapeXml(line)}</tspan>`).join('');
+  const isDocs = page.surfaceName === site.docs.surfaceName;
+  const lines = isHome ? ['Register once.', 'Leave the routine', 'to TunnelTend.'] : wrapCardTitle(page.pageTitle, { maxLines: 3, targetCharacters: 22 });
+  const titleSize = isHome ? 64 : lines.length === 1 ? 76 : lines.length === 2 ? 64 : 54;
+  const titleStart = isHome ? 268 : 262;
+  const titleMarkup = lines.map((line, index) => `<tspan x="88" y="${titleStart + index * (titleSize + 10)}">${escapeXml(line)}</tspan>`).join('');
   const subtitle = isHome
     ? 'Keep the tools on your Windows PC connected to ChatGPT.'
-    : page.surfaceName;
-  const eyebrow = isHome ? 'TunnelTend' : (page.socialEyebrow ? `${page.surfaceName} · ${page.socialEyebrow}` : page.surfaceName);
+    : isDocs ? 'TunnelTend Docs' : (page.socialEyebrow ?? page.surfaceName);
+  const subtitleY = titleStart + (lines.length - 1) * (titleSize + 10) + 52;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="g" cx="0.84" cy="0.46" r="0.62"><stop offset="0" stop-color="${colors.accent}" stop-opacity="0.12"/><stop offset="1" stop-color="${colors.accent}" stop-opacity="0"/></radialGradient>
+  </defs>
   <rect width="1200" height="630" fill="${colors.background}"/>
-  <rect x="0" y="0" width="1200" height="630" fill="url(#g)"/>
-  <defs><radialGradient id="g" cx="0.86" cy="0.5" r="0.6"><stop offset="0" stop-color="${colors.accent}" stop-opacity="0.10"/><stop offset="1" stop-color="${colors.accent}" stop-opacity="0"/></radialGradient></defs>
-  <g transform="translate(804 150) scale(14)" fill="none" stroke="${colors.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${foldPaths}</g>
-  <text x="88" y="140" fill="${colors.muted}" font-size="28" font-weight="600" letter-spacing="1" font-family="Segoe UI, system-ui, sans-serif">${escapeXml(eyebrow)}</text>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <g transform="translate(790 118) scale(16.5)" fill="none" stroke="${colors.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92">${foldPaths}</g>
+  <g transform="translate(88 84) scale(${(392 / Number(lockupBox.split(' ')[2])).toFixed(4)})">${inner('assets/lockup-default/on-dark.svg')}</g>
   <text fill="${colors.foreground}" font-size="${titleSize}" font-weight="700" letter-spacing="-1.5" font-family="Segoe UI, system-ui, sans-serif">${titleMarkup}</text>
-  <text x="88" y="${isHome ? 430 : titleStart + lines.length * (titleSize + 12) + 24}" fill="${colors.muted}" font-size="28" font-family="Segoe UI, system-ui, sans-serif">${escapeXml(subtitle)}</text>
-  <text x="88" y="556" fill="${colors.muted}" font-size="26" font-weight="600" font-family="Segoe UI, system-ui, sans-serif">${escapeXml(site.identity.social.markText)}</text>
-</svg>\n`;
+  <text x="88" y="${subtitleY}" fill="${colors.muted}" font-size="28" font-family="Segoe UI, system-ui, sans-serif">${escapeXml(subtitle)}</text>
+  <text x="88" y="562" fill="${colors.muted}" font-size="24" font-weight="600" letter-spacing="0.5" font-family="Cascadia Code, Consolas, monospace">${escapeXml(site.identity.social.markText)}</text>
+  <rect x="88" y="528" width="56" height="3" rx="1.5" fill="${colors.accent}"/>
+</svg>
+`;
   await writeRaster(socialCardPath(page.path), sharp(Buffer.from(svg)).png());
 }
 
