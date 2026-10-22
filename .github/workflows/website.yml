@@ -68,7 +68,8 @@ jobs:
           persist-credentials: false
       - name: Record the source actually built
         shell: bash
-        run: printf 'Website source commit: %s\n' "$(git rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          printf 'Website source commit: %s\n' "$(git rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: ${{ env.SITE_ROOT }}/.node-version
