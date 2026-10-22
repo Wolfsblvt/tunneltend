@@ -70,9 +70,9 @@ To pass installer switches, or to download and verify without installing:
 Get `tunneltend-<version>.zip` and `tunneltend-<version>.zip.sha256` from the [latest release](https://github.com/Wolfsblvt/tunneltend/releases/latest). Compare the hashes, extract, and run the installer:
 
 ```powershell
-Get-FileHash .\tunneltend-1.0.0.zip -Algorithm SHA256
-Get-Content .\tunneltend-1.0.0.zip.sha256
-Expand-Archive .\tunneltend-1.0.0.zip -DestinationPath .\tunneltend
+Get-FileHash .\tunneltend-1.0.1.zip -Algorithm SHA256
+Get-Content .\tunneltend-1.0.1.zip.sha256
+Expand-Archive .\tunneltend-1.0.1.zip -DestinationPath .\tunneltend
 .\tunneltend\Install-TunnelTend.cmd
 ```
 

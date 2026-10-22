@@ -8,13 +8,13 @@
 
 TunnelTend is a local-first Windows manager for MCP services connected through OpenAI's official `tunnel-client`. Register one or many services, and it takes care of logon startup, tunnel connection, health observation, bounded recovery, source-change restarts, and verified updates of the official client. It respects deliberate stops and reports clearly when it cannot recover something.
 
-**[tunneltend.com](https://tunneltend.com)** · **[Get started](https://tunneltend.com/docs/getting-started/)** · **[Docs](https://tunneltend.com/docs/)** · **[FAQ](https://tunneltend.com/faq/)** · **[Install with a local agent](https://tunneltend.com/docs/install-with-an-agent/)**
+The co-designed website and manual are prepared under [`website/`](https://github.com/Wolfsblvt/tunneltend/tree/main/website) for publication at **[tunneltend.com](https://tunneltend.com)**. Until hosting is admitted, use the repository's [getting-started guide](docs/getting-started.md) and [FAQ](docs/faq.md).
 
 > [!IMPORTANT]
 > TunnelTend is an independent open-source project. It is not affiliated with or endorsed by OpenAI. It manages the official client; it does not replace that client or host a tunnel service.
 
 > [!NOTE]
-> The [1.0.0 release](https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.0) carries downloadable availability and qualification notes. Natural sign-in, sleep/resume recovery and a real remote MCP call were observed on Windows 11; see the [release account](docs/releases/1.0.0.md) for the tested client versions and limits. Source installation is also supported below.
+> [GitHub Releases](https://github.com/Wolfsblvt/tunneltend/releases/latest) carries downloadable availability; the [1.0.1 account](docs/releases/1.0.1.md) describes the diagnostic and installer fixes. Natural sign-in, sleep/resume recovery and a real remote MCP call were observed on Windows 11 during the [original qualification](docs/releases/1.0.0.md), which names the tested client versions and limits. Source installation is also supported below.
 
 ## Install and get running
 

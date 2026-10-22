@@ -20,7 +20,7 @@ TunnelTend is the unofficial, local-first Windows caretaker for registered MCP t
 
 ![The Fold on graphite and chalk at 160 px, with actual-size 16, 20, 24, 32, and 64 px renderings, the exported 512 px PNG scaled down, and the fallback ICO frames](assets/brand-contact-sheet.png)
 
-*Contact sheet rendered from the exported assets by `brand/source/tunneltend/export.py`. The application icon is a graphite tile, so on the dark panel it blends into the ground by design.*
+*Historical contact sheet of the approved Fold projections, rendered with the former Python recipe. The maintained exporter is now `website/scripts/export-brand.mjs`. The application icon is a graphite tile, so on the dark panel it blends into the ground by design.*
 
 The master is a 24×24 viewBox with two 2 px strokes, rounded joins and caps, and no fill. The inner stroke is deliberately asymmetrical. Never mirror it, close either path, add a third nested line, rotate it to echo MCP's symbol, or read it as health status.
 

@@ -11,7 +11,7 @@ export const COMPANY = 'Wolfsblvt Works';
 export const COMPANY_SITE = 'https://wolfsblvt.works';
 
 /** The current stable release this site describes. Change it with the release, not with the design. */
-export const RELEASE_VERSION = '1.0.0';
+export const RELEASE_VERSION = '1.0.1';
 export const RELEASE_TAG = `v${RELEASE_VERSION}`;
 export const RELEASE_URL = `${GITHUB}/releases/tag/${RELEASE_TAG}`;
 export const RELEASE_ZIP = `${GITHUB}/releases/download/${RELEASE_TAG}/tunneltend-${RELEASE_VERSION}.zip`;

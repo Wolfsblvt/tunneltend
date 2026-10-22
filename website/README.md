@@ -2,7 +2,7 @@
 
 ## Meaning
 
-This is the product website and user manual published at `https://tunneltend.com`: the front door, a Starlight manual at `/docs/`, the FAQ, the legal pages, the online installer at `/install.ps1` and the brand bundle mirror at `/brand/tunneltend/`. It is an Astro static site that owns its reader-facing content; the repository's `docs/` tree stays maintainer documentation. A local build or preview establishes none of hosting, DNS, indexing or Windows qualification.
+This is the product website and user manual prepared for `https://tunneltend.com`: the front door, a Starlight manual at `/docs/`, the FAQ, the legal pages, the online installer at `/install.ps1` and the brand bundle mirror at `/brand/tunneltend/`. It is an Astro static site that owns its reader-facing content; the repository's `docs/` tree stays maintainer documentation. A local build or preview establishes none of hosting, DNS, indexing or Windows qualification.
 
 ## Build and use locally
 
@@ -45,4 +45,4 @@ Write for someone who uses ChatGPT and has not met MCP, stdio or a tunnel; expla
 
 ## Publish
 
-`.github/workflows/website.yml` builds on relevant changes and publishes accepted `main` to Cloudflare Workers Static Assets once the repository variables `WEBSITE_TARGET=workers` and `CLOUDFLARE_ACCOUNT_ID` and the secrets `CLOUDFLARE_API_TOKEN` and `WOLFSBLVT_LEGAL_OPERATOR_B64` exist. Until then it builds and checks only. Hosting admission, DNS, the `www` redirect and Search Console follow the Wolf Ops public Home admission checklist.
+`.github/workflows/website.yml` builds on relevant changes and publishes accepted `main` to Cloudflare Workers Static Assets once the repository variables `WEBSITE_TARGET=workers` and `CLOUDFLARE_ACCOUNT_ID` and the secrets `CLOUDFLARE_API_TOKEN` and `WOLFSBLVT_LEGAL_OPERATOR_B64` exist. Until then it builds and checks only. `wrangler.jsonc` declares the intended apex custom domain and disables provider/version aliases; those source choices are not provider readback. Hosting admission, DNS, the `www` redirect and Search Console follow the Wolf Ops public Home admission checklist. Ops activates the production inputs only after reconciling existing resources and the exact accepted source.

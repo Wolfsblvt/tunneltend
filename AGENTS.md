@@ -240,7 +240,7 @@ Build a candidate after those gates:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
-  -Version 1.0.0 `
+  -Version 1.0.1 `
   -SkipTests
 ```
 
@@ -268,7 +268,7 @@ main:
   required pre-integration evidence: CI / Test and package for the exact candidate when provider-visible
   required approval/review: none
   resolved conversations: no
-  automatic CI: CI; Upstream compatibility watch
+  automatic CI: CI; Upstream compatibility watch; Website for its consumed inputs
   automatic retained branch effects: none
   other pre-update evidence: isolated current-user Windows lifecycle validation before the first public release
 ```
@@ -287,7 +287,7 @@ The first official public release selects PR-preferred maintainer delivery. `mai
 
 ## Branding
 
-The current product name is **TunnelTend** and the command/repository slug is **`tunneltend`**. Treat that as the incumbent durable identity. The approved identity is The Fold with the Moonpool After Dark palette. Follow `docs/branding.md`; the artwork lives under `brand/`, where `brand/bundle/` is generated from `brand/source/` and never edited by hand. Do not redraw the mark, imitate OpenAI or MCP marks, or imply endorsement. A wordmark, website, and social composition are not yet designed.
+The current product name is **TunnelTend** and the command/repository slug is **`tunneltend`**. Treat that as the incumbent durable identity. The approved identity is The Fold with the Moonpool After Dark palette and the outlined Manrope wordmark/lockup. Follow `docs/branding.md`; the artwork lives under `brand/`, where `brand/bundle/` is generated from `brand/source/` and never edited by hand. The co-designed Astro/Starlight website lives under `website/`; `website/README.md` owns its build and `docs/documentation-site.md` its integration boundary. Do not redraw the mark, imitate OpenAI or MCP marks, or imply endorsement. Source and local preview do not establish public hosting.
 
 ## License
 

@@ -23,6 +23,7 @@ on:
       - 'website/.node-version'
       - 'website/wrangler.jsonc'
       - 'brand/bundle/tunneltend/**'
+      - 'tools/brand-bundle/**'
       - 'scripts/Install-TunnelTend-Online.ps1'
       - '.github/workflows/website.yml'
   pull_request:
@@ -40,6 +41,7 @@ on:
       - 'website/.node-version'
       - 'website/wrangler.jsonc'
       - 'brand/bundle/tunneltend/**'
+      - 'tools/brand-bundle/**'
       - 'scripts/Install-TunnelTend-Online.ps1'
       - '.github/workflows/website.yml'
   workflow_dispatch:

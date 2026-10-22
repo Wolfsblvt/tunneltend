@@ -4,7 +4,7 @@
 
 This changelog records user-visible TunnelTend changes by release line. The first stable release account is [TunnelTend 1.0.0](docs/releases/1.0.0.md); downloadable availability is established by the matching GitHub Release.
 
-## [Unreleased]
+## [1.0.1]
 
 ### Added
 
@@ -15,6 +15,7 @@ This changelog records user-visible TunnelTend changes by release line. The firs
 ### Fixed
 
 - Plain `status`, `health` and `doctor` output no longer fails with a string-formatting error once a service or diagnostic exists; `--json` was unaffected.
+- The online installer forwards named installer switches and values correctly instead of treating them as positional paths.
 
 ## [1.0.0]
 
@@ -43,3 +44,4 @@ This changelog records user-visible TunnelTend changes by release line. The firs
 [Unreleased]: https://github.com/Wolfsblvt/tunneltend/commits/main
 
 [1.0.0]: https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.0
+[1.0.1]: https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.1

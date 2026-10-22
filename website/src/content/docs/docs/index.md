@@ -32,4 +32,4 @@ The [FAQ](/faq/) answers the questions people ask before installing: fit, cost, 
 
 ## Current release
 
-The current stable release is **1.0.0** for Windows 11 with PowerShell 7.4 or newer. Sign-in startup, sleep/resume recovery and a real remote tool call from ChatGPT were observed during its qualification; the [release notes](https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.0) name the tested client versions and the limits. TunnelTend is an independent open-source project and is not affiliated with OpenAI.
+The current release line is **1.0.1** for Windows 11 with PowerShell 7.4 or newer; [GitHub Releases](https://github.com/Wolfsblvt/tunneltend/releases/latest) carries downloadable availability. The patch fixes plain-text diagnostics and installation argument forwarding. Sign-in startup, sleep/resume recovery and a real remote tool call from ChatGPT were observed during the original 1.0 qualification; the [1.0.0 release notes](https://github.com/Wolfsblvt/tunneltend/releases/tag/v1.0.0) name the tested client versions and limits. TunnelTend is an independent open-source project and is not affiliated with OpenAI.
