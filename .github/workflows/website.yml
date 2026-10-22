@@ -1,15 +1,16 @@
 # Product website: build on every relevant change, publish accepted main to Cloudflare.
 # Adapted from wolf-ops/templates/product-websites/product-website.yml. GitHub evaluates the
 # native `paths` list before this workflow starts, so unrelated application pushes start no
-# website run. Publication needs the repository variables WEBSITE_TARGET=workers and
-# CLOUDFLARE_ACCOUNT_ID plus the secret CLOUDFLARE_API_TOKEN and the private legal operator
-# projection WOLFSBLVT_LEGAL_OPERATOR_B64; until Wolf Ops supplies them, pull requests and
-# pushes still build and check, and the publish step is skipped with a visible notice.
+# website run. The list is written twice because the workflow parser rejects YAML anchors.
+# Publication needs the repository variables WEBSITE_TARGET=workers and CLOUDFLARE_ACCOUNT_ID
+# plus the secret CLOUDFLARE_API_TOKEN and the private legal operator projection
+# WOLFSBLVT_LEGAL_OPERATOR_B64; until Wolf Ops supplies them, pull requests and pushes still
+# build and check, and the publish step is skipped with a visible notice.
 name: Website
 on:
   push:
     branches: [main]
-    paths: &website_paths
+    paths:
       - 'website/src/**'
       - 'website/public/**'
       - 'website/vendor/**'
@@ -26,7 +27,21 @@ on:
       - '.github/workflows/website.yml'
   pull_request:
     branches: [main]
-    paths: *website_paths
+    paths:
+      - 'website/src/**'
+      - 'website/public/**'
+      - 'website/vendor/**'
+      - 'website/scripts/**'
+      - 'website/astro.config.mjs'
+      - 'website/site.config.mjs'
+      - 'website/tsconfig.json'
+      - 'website/package.json'
+      - 'website/package-lock.json'
+      - 'website/.node-version'
+      - 'website/wrangler.jsonc'
+      - 'brand/bundle/tunneltend/**'
+      - 'scripts/Install-TunnelTend-Online.ps1'
+      - '.github/workflows/website.yml'
   workflow_dispatch:
 
 permissions:
