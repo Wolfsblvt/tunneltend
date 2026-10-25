@@ -42,7 +42,7 @@ That page carries the contract an agent needs without a second briefing: prerequ
 
 ## Build, check and publish
 
-From `website/`: `npm ci`, then `npm test` (Astro diagnostics, routing tests, static build into `website/artifacts/site/`, output check), `npm run dev` for an authoring preview, `npm run brand:export` and `npm run brand:check` for the bundle. The site uses no analytics or cookies; its existing theme/reader preferences and Starlight navigation state remain browser-local.
+From `website/`: `npm ci`, then `npm test` (Astro diagnostics, routing and preference tests, static build into `website/artifacts/site/`, output check), `npm run dev` for an authoring preview, `npm run brand:export` and `npm run brand:check` for the bundle. The site uses no analytics. Appearance, traversal direction and reader mode share a functional first-party preference cookie across the product and Docs hosts, with local-storage fallback; see `website/README.md` for migration and unavailable-storage behavior. Starlight navigation state remains browser-local. The privacy page discloses cookie request delivery and retention.
 
 One Astro build emits product pages and the Starlight manual. The manual keeps `/docs/` as an internal artifact coordinate so Starlight can calculate active navigation and pagination. `scripts/finalize-public-routes.mjs` projects emitted anchors to the canonical public hosts and writes separate host sitemaps. `src/lib/public-routes.mjs` supplies the same destinations to page identity, the agent task, search results and the Worker. Pagefind indexes the single content set; its original artifact URLs are mapped before a result becomes a clickable link.
 

@@ -8,6 +8,7 @@ This changelog records user-visible TunnelTend changes by release line. The firs
 
 ### Fixed
 
+- Appearance and reader preferences remain consistent when moving between the product website and Docs. A functional first-party preference cookie carries the choice between hosts, with local-storage fallback.
 - Updating TunnelTend by rerunning the installer preserves saved automation choices, scope defaults, credential references and the official-client location unless explicitly changed. Failed installs restore their own settings changes without overwriting unrelated or conflicting current intent.
 
 ## [1.0.1]

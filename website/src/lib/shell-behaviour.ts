@@ -5,7 +5,7 @@
  * label and hash-driven disclosure opening. Plain DOM, no framework.
  */
 import { announce } from './clipboard';
-import { READER_KEY, THEME_KEY, THEME_NEXT_KEY } from './theme-script.mjs';
+import { initializeTheme, persistPreferences } from './theme-script.mjs';
 
 /* ── theme ──────────────────────────────────────────────────────────────────────── */
 type Side = 'dark' | 'light';
@@ -49,8 +49,7 @@ function applyTheme(state: ThemeState, persist: boolean): void {
   root.setAttribute('data-theme-pref', state.pref);
   root.setAttribute('data-theme-next', state.next);
   if (persist) {
-    try { localStorage.setItem(THEME_KEY, state.pref); localStorage.setItem(THEME_NEXT_KEY, state.next); }
-    catch { /* storage unavailable: the choice lasts for this page */ }
+    persistPreferences();
   }
   const text = describe(state);
   for (const control of document.querySelectorAll<HTMLButtonElement>('[data-theme-control]')) {
@@ -74,6 +73,13 @@ export function wireThemeControl(): void {
   // Auto follows the system; an explicit choice ignores it. The bounce side never changes here.
   try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (state.pref === 'auto') applyTheme(state, false); }); } catch { /* no media query support */ }
   applyTheme(state, false);
+  // Back/forward cache can restore an old document after a choice on the other host.
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    initializeTheme();
+    state = readTheme();
+    applyTheme(state, false);
+  });
 }
 
 /* ── header destination panels: nonmodal disclosures of ordinary links ───────────── */
@@ -133,7 +139,7 @@ export function wireReaderToggle(): void {
       const dev = root.getAttribute('data-reader') !== 'dev';
       const apply = (): void => {
         root.setAttribute('data-reader', dev ? 'dev' : 'plain');
-        try { localStorage.setItem(READER_KEY, dev ? 'dev' : 'plain'); } catch { /* the choice lasts for this page */ }
+        persistPreferences();
         render();
       };
       // The switch itself is instant; a soft whole-page blur makes the parts that jump read as one change.
@@ -149,6 +155,7 @@ export function wireReaderToggle(): void {
     });
   }
   render();
+  window.addEventListener('pageshow', event => { if (event.persisted) render(); });
 }
 
 /** Deep links such as #install-agent reveal the disclosure they name. */
