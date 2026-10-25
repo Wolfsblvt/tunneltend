@@ -19,6 +19,8 @@ npm run brand:check  # validate the TunnelTend bundle and the vendored Works bun
 
 Output is `artifacts/site/`. `npm run check:publish` additionally refuses demonstration identity and fixture legal data; production supplies the private `WOLFSBLVT_LEGAL_OPERATOR_B64` projection.
 
+Miniflare's Undici dependency is overridden to the compatible 7.30.1 patch while Wrangler 4.151.2 selects 7.29.1. This repairs the upstream [EventSource memory exhaustion](https://github.com/nodejs/undici/security/advisories/GHSA-4qv8-2p9j-2685), [integrity-token bypass](https://github.com/nodejs/undici/security/advisories/GHSA-f72v-6w45-q472) and [content-encoding crash](https://github.com/nodejs/undici/security/advisories/GHSA-xjj6-f33q-929c) advisories without changing the Worker or publication controller. The affected dependency runs in local development/deployment tooling, not in the static reader bundle or the deployed Worker's native `Request`/`Response` implementation. Remove the override when the selected Miniflare dependency carries the patch itself; qualify the locked build and local Worker when changing it.
+
 `astro dev` and `astro preview` show internal build routes; they do not exercise the host bridge. For local Worker routing use `node node_modules/wrangler/bin/wrangler.js dev --local --local-upstream docs.tunneltend.com` and open `/` or `/getting-started/`. Use `--local-upstream tunneltend.com` for product-host behavior. Public links intentionally name their canonical hosts. A controlled browser request route can map both canonical origins to separate local upstream instances without contacting production. [Website integration](../docs/documentation-site.md) owns that serving contract and the Ops admission/rollback join.
 
 ## Source map

@@ -53,6 +53,17 @@ for (const page of pages.values()) {
   if (page.canonical && !html.includes(`href="${page.canonical}"`)) {
     throw new Error(`Built canonical URL disagrees with ${page.path}.`);
   }
+  // Joining manual revisions must preserve their actual destinations and section links,
+  // including new first-use links that did not exist when the host move was authored.
+  for (const [, href] of html.matchAll(/\bhref="(https:\/\/docs\.tunneltend\.com\/[^"\s]*)"/gu)) {
+    const target = new URL(href.replaceAll('&amp;', '&'));
+    if (!target.pathname.endsWith('/')) continue;
+    const targetPath = resolve(outputRoot, 'docs', target.pathname.slice(1), 'index.html');
+    if (!existsSync(targetPath)) throw new Error(`Broken Docs destination on ${page.path}: ${href}`);
+    if (target.hash && !readFileSync(targetPath, 'utf8').includes(`id="${decodeURIComponent(target.hash.slice(1))}"`)) {
+      throw new Error(`Broken Docs section on ${page.path}: ${href}`);
+    }
+  }
   if (page.indexing === 'noindex' && !html.includes('name="robots"')) {
     throw new Error(`Built page lacks noindex metadata: ${page.path}.`);
   }
