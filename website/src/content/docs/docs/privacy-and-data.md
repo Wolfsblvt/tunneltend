@@ -5,7 +5,7 @@ description: "What the TunnelTend program stores on your computer, what it never
 
 This page is about the TunnelTend program on your Windows PC: what it writes to disk, what it keeps out, and what travels where. The website you are reading, tunneltend.com, has its own [privacy page](/privacy/).
 
-The short version: TunnelTend is local-first. It has no account, no cloud, no telemetry, and no central database. The only data that leaves your computer travels through OpenAI's official tunnel client to OpenAI, exactly as it would without TunnelTend, plus the release downloads TunnelTend itself fetches from GitHub.
+TunnelTend keeps its settings and operational records on your PC. It has no account, cloud, telemetry or central database. MCP traffic passes through OpenAI's official client and infrastructure. TunnelTend also fetches releases and checks the health/readiness addresses you configured; your MCP service may have its own network traffic. [What leaves your computer](#what-leaves-your-computer) separates those paths.
 
 ## What is stored locally, and where
 
@@ -51,7 +51,9 @@ env:CONTROL_PLANE_API_KEY
 file:C:\secure\runtime-key.txt
 ```
 
-The secret itself stays in your environment variable or in your file. TunnelTend resolves the reference only when it starts the official client, and it does not intentionally persist the resolved value in the registry, the runtime store, or the logs. Commands, arguments, descriptors, and environment values that look like an inline key, a bearer token, or a credential inside a URL are refused. Logs redact common secret shapes. This is defense in depth, not a general secret scanner; the permissions on your environment and your secret file remain yours to set.
+The secret source stays in your environment variable or file. TunnelTend checks whether a reference is available during diagnosis and startup, and passes the runtime-key reference to the official client. It does not intentionally persist the resolved value in the registry, the runtime store, or the logs. Use [credential setup](/docs/getting-started/#prepare-your-openai-access) to make the reference available to your Windows account and later Scheduled Tasks without pasting the value into a command or chat.
+
+Commands, arguments, descriptors, and environment values that look like an inline key, a bearer token, or a credential inside a URL are refused. Logs redact common secret shapes. This is defense in depth, not a general secret scanner; the permissions on your environment and your secret file remain yours to set.
 
 ## What leaves your computer
 

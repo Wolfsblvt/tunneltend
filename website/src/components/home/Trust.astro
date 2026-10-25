@@ -1,13 +1,13 @@
 ---
 // SPDX-License-Identifier: AGPL-3.0-only
-// #trust: where things live and what never leaves, as one list with hairline rows. Short,
+// #trust: where settings live and where traffic goes, as one list with hairline rows. Short,
 // because each claim has a longer home in the docs.
 import SectionHead from '../SectionHead.astro';
 import SectionLinks from '../SectionLinks.astro';
 import { docPaths } from '../../data/site';
 const facts = [
-  ['Everything stays on your PC', 'Service definitions, observations, recovery budgets, logs and client backups live under %LOCALAPPDATA%\\TunnelTend\\state. There is no TunnelTend account, cloud or telemetry.'],
-  ['Keys are references, never values', 'TunnelTend stores env:NAME or file:PATH, resolves it when the client starts, and refuses commands that look like they contain an inline secret.'],
+  ['TunnelTend’s settings stay on your PC', 'Service definitions, observations, recovery budgets, logs and client backups stay local. There is no TunnelTend account, cloud or telemetry. MCP requests and responses still travel through OpenAI’s infrastructure.'],
+  ['Registrations store key references', 'TunnelTend saves env:NAME or file:PATH in the registration. You keep the key in that environment variable or protected file, available to the Windows account running the service.'],
   ['Processes are owned before they are touched', 'A recorded PID is only stopped when its path and start time still match the service TunnelTend started. A mismatch is a blocked repair, not a kill.'],
   ['Downloads are verified', 'The official client is fetched from openai/tunnel-client releases, checked against the published digest, extracted with guards, and replaced transactionally with a backup.'],
   ['Uninstall keeps your state', 'Normal uninstall removes the tasks, the program and the PATH entry and leaves your registrations alone unless you explicitly purge them.'],
