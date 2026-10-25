@@ -43,7 +43,9 @@ Miniflare's Undici dependency is overridden to the compatible 7.30.1 patch while
 
 ## Reader mode
 
-The site has two readings. Plain words are the default. "Excuse me, I'm a dev?!" (in the hero and in the how-it-works section) flips `<html data-reader>` to `dev`, persisted in local storage like the theme; elements carry `for-plain` or `for-dev` and the stylesheet hides the inactive one. Both modes share every fact; the dev view shows more of them.
+The site has two readings. Plain words are the default. "Excuse me, I'm a dev?!" (in the hero and in the how-it-works section) flips `<html data-reader>` to `dev`; elements carry `for-plain` or `for-dev` and the stylesheet hides the inactive one. Both modes share every fact; the dev view shows more of them.
+
+On the two HTTPS public hosts, `tunneltend.preferences` shares appearance, theme traversal direction and reader mode through a Secure, SameSite=Lax, domain-scoped functional cookie. Its one-year lifetime is renewed by a choice, not by ordinary visits. It contains only fixed preference values, with no identifier; browsers send it on requests to the product domain and its subdomains. Each origin's local storage is a fallback. A pre-existing local choice migrates on a visit to that origin only when no valid shared choice exists; an unvisited origin's old local storage cannot be read. The shared choice wins over older local copies. Back/forward cache restoration rereads preferences. Cookie refusal leaves per-origin persistence; complete storage refusal leaves a usable page-local control. Local previews do not set the shared public-domain cookie. Clearing the cookie and both origins' local storage resets preferences. The privacy page discloses this data flow.
 
 ## Content rules
 
