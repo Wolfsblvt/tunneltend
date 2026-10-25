@@ -26,6 +26,7 @@ function New-TtInstallerSettingsPlan {
         Assert-TtNoInlineSecrets $registry.settings 'settings'
         $raw = Read-TtJsonFile (Get-TtPaths $StateRoot).Registry @{}
         $values = [ordered]@{}
+        $explicit = @{}
         $bindings = [ordered]@{
             'automation.autostart'='DisableAutostart'
             'automation.autoUpdate'='DisableAutoUpdate'
@@ -39,6 +40,7 @@ function New-TtInstallerSettingsPlan {
             $parameter = $bindings[$path]
             $values[$path] = Copy-TtObject $registry.settings[$group][$key]
             if ($Parameters.ContainsKey($parameter)) {
+                $explicit[$path] = $true
                 if ($group -eq 'automation') { $values[$path] = -not $Parameters[$parameter] }
                 elseif ($key -in @('organizationIds','workspaceIds')) { $values[$path] = @($Parameters[$parameter]) }
                 else { $values[$path] = $Parameters[$parameter] }
@@ -49,6 +51,8 @@ function New-TtInstallerSettingsPlan {
         $values['officialClient.executablePath'] = if ($savedExecutable.present) { $savedExecutable.value } else { Join-Path $InstallRoot 'official-client/tunnel-client.exe' }
         $values['officialClient.installDirectory'] = if ($savedDirectory.present) { $savedDirectory.value } else { Join-Path $InstallRoot 'official-client' }
         if ($Parameters.ContainsKey('TunnelClientPath')) {
+            $explicit['officialClient.executablePath'] = $true
+            $explicit['officialClient.installDirectory'] = $true
             Assert-TtNoInlineSecrets $Parameters['TunnelClientPath'] 'TunnelClientPath'
             if ([string]::IsNullOrWhiteSpace($Parameters['TunnelClientPath'])) { throw 'TunnelClientPath must name an existing executable.' }
             $client = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($Parameters['TunnelClientPath']))
@@ -61,7 +65,7 @@ function New-TtInstallerSettingsPlan {
         if (-not (Test-TtSecretReference $values['defaults.runtimeKeyRef'])) { throw 'RuntimeKeyRef must use env:NAME or file:/path.' }
         $before = [ordered]@{}
         foreach ($path in $values.Keys) { $before[$path] = Get-TtInstallerSetting $raw $path }
-        return @{ before=$before; values=$values }
+        return @{ before=$before; values=$values; explicit=$explicit }
     }
 }
 
@@ -73,10 +77,12 @@ function Set-TtInstallerSettings {
         $changes = [ordered]@{}
         foreach ($path in $Plan.values.Keys) {
             $after = @{ present=$true; value=$Plan.values[$path] }
-            if (Test-TtInstallerSettingEqual $Plan.before[$path] $after) { continue }
-            if (-not (Test-TtInstallerSettingEqual (Get-TtInstallerSetting $raw $path) $Plan.before[$path])) {
+            $changed = -not (Test-TtInstallerSettingEqual $Plan.before[$path] $after)
+            if (($changed -or $Plan.explicit.ContainsKey($path)) -and
+                -not (Test-TtInstallerSettingEqual (Get-TtInstallerSetting $raw $path) $Plan.before[$path])) {
                 throw "Installer setting '$path' changed during preparation; retry with current choices."
             }
+            if (-not $changed) { continue }
             $changes[$path] = @{ before=$Plan.before[$path]; after=$after }
             $group, $key = $path.Split('.')
             $registry.settings[$group][$key] = Copy-TtObject $after.value

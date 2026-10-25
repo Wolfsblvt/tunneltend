@@ -146,7 +146,7 @@ Unattended tasks use a native launcher to prevent console creation and a stable 
 
 ### Custom paths and reinstallation
 
-Program and state roots must be different directories. A dedicated nested state path such as `C:\Tools\TunnelTend\data\state` is supported; do not put state in a program payload directory such as `src` or `official-client`.
+Program and state roots must be different directories. A dedicated nested state path such as `C:\Tools\TunnelTend\data\state` is supported; do not put state in a program payload directory such as `src` or generated `bin`.
 
 When `-StateRoot` is omitted, reinstall and uninstall read the selected installation's `install.json` receipt before falling back to the default state root. An invalid receipt requires an explicit `-StateRoot` override. Reinstallation preserves the selected state and its dedicated nested container.
 
@@ -156,7 +156,7 @@ The following upgrade-continuity repair is in current source for the next releas
 
 With the repaired installer, reinstallation keeps saved autostart, automatic-update and watchdog choices, scope defaults, credential reference and official-client location when their options are omitted. This also applies to retained state after uninstall. Interactive questions start from the saved choices; explicitly supplied options take precedence. New state still receives the autonomous defaults. When calling the script directly in a PowerShell session, `-DisableAutostart:$false` explicitly enables autostart, and `-OrganizationId @()` explicitly clears the default organization list.
 
-If installation fails after changing settings, it restores only its own settings changes alongside the previous program payload. It preserves registrations, current session intent and unrelated settings. A conflicting later change is left intact and reported as incomplete recovery, with an `installer-recovery-<id>.json` record in the selected state directory. Keep that record and inspect the named fields with `tunneltend config show`. Use explicit installer options on the next attempt to select any values you want changed; do not replace the registry with the recovery record. Optional service registration, alias import and official-client updates have their own effects; this is not a whole-fleet rollback.
+If installation fails after changing settings, it restores only its own settings changes alongside the previous program payload. It preserves registrations, current session intent and unrelated settings. A conflicting later change is left intact and reported as incomplete recovery, with an `installer-recovery-<id>.json` record in the selected state directory. Keep that record and inspect the named fields with `tunneltend config show`. Use explicit installer options on the next attempt to select any values you want changed; do not replace the registry with the recovery record. Optional service registration, alias import and official-client updates have their own effects; this is not a whole-fleet rollback. Before commitment, failure also removes this attempt's PATH additions while preserving existing and unrelated entries. After commitment, cleanup warnings cannot undo the installation, including with `-WarningAction Stop`. An explicit or interactively confirmed choice that conflicts with a newer write is refused even if it initially matched saved state.
 
 ## Install with a local agent
 
