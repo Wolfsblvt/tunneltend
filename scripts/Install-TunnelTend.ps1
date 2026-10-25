@@ -32,7 +32,7 @@ $StateRoot = Resolve-TtInstallationStateRoot $InstallRoot $StateRoot
 Assert-TtInstallationRoots $InstallRoot $StateRoot
 if (Test-TtInstallationPathWithin $StateRoot $InstallRoot) {
     $containerName = ([IO.Path]::GetRelativePath($InstallRoot, $StateRoot) -split '[\\/]')[0]
-    if ($containerName -in @('src','scripts','schemas','tests','docs','brand','carriers','examples')) {
+    if ($containerName -in @('src','scripts','schemas','tests','docs','brand','carriers','examples','bin')) {
         throw 'A nested StateRoot must use its own directory, separate from TunnelTend program payload paths (for example InstallRoot/data/state).'
     }
 }
@@ -69,6 +69,7 @@ if (-not $NonInteractive) {
     )) {
         if (-not $PSBoundParameters.ContainsKey($choice.parameter)) {
             $settingsPlan.values[$choice.path] = Read-Choice $choice.prompt $settingsPlan.values[$choice.path]
+            $settingsPlan.explicit[$choice.path] = $true
         }
     }
 }
@@ -84,13 +85,14 @@ $stateDirectory = if ($nestedState) { ([IO.Path]::GetRelativePath($InstallRoot, 
 $stateContainer = if ($nestedState) { Join-Path $InstallRoot $stateDirectory } else { $null }
 $preservedState = "$InstallRoot.state-$([Guid]::NewGuid().ToString('N'))"
 $settingsRecoveryPath = Join-Path $StateRoot ('installer-recovery-' + [Guid]::NewGuid().ToString('N') + '.json')
+$pathChanges = @{}
 try {
     New-Item -ItemType Directory -Path $temp -Force | Out-Null
     $exclude = @('.git','artifacts','.validation','website')
     foreach ($item in Get-ChildItem -LiteralPath $sourceRoot -Force) {
         if ($item.Name -in $exclude) { continue }
         if ($nestedState -and (Test-TtInstallationPathWithin $StateRoot $item.FullName)) {
-            if ($item.Name -in @('src','scripts','schemas','tests','docs','brand','carriers','examples')) {
+            if ($item.Name -in @('src','scripts','schemas','tests','docs','brand','carriers','examples','bin')) {
                 throw 'A nested StateRoot must use its own directory, separate from TunnelTend program payload paths (for example InstallRoot/data/state).'
             }
             continue
@@ -143,28 +145,17 @@ try {
     # Publish the command only after acquisition, task registration, and the
     # installation receipt succeed. A failed install must not leave a dead PATH.
     if (-not $SkipPath) {
-        $userPath = [Environment]::GetEnvironmentVariable('Path','User')
-        $parts = @($userPath -split ';' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        if ($parts -notcontains $InstallRoot) {
-            [Environment]::SetEnvironmentVariable('Path', (($parts + $InstallRoot) -join ';'), 'User')
-        }
-        if (($env:Path -split ';') -notcontains $InstallRoot) { $env:Path = "$InstallRoot;$env:Path" }
+        & $installerModule { param($root,$changes) Add-TtInstallationPath $root $changes } $InstallRoot $pathChanges
     }
-    [Console]::WriteLine("TunnelTend installed at $InstallRoot")
-    [Console]::WriteLine("State is stored at $StateRoot")
-    [Console]::WriteLine("Doctor status: $($doctor.status)")
-    [Console]::WriteLine('Open a new terminal, then run: tunneltend status')
+    # Last rollback-capable step. A locked recovery record still means failure;
+    # retain it and reverse this attempt's PATH, settings and payload effects.
     if ([IO.File]::Exists($settingsRecoveryPath)) { Remove-Item -LiteralPath $settingsRecoveryPath -Force }
-    # Once the recovery record is retired, cleanup must not turn a successful
-    # installation into a rollback after its previous payload was partly removed.
-    if ($backup -and (Test-Path -LiteralPath $backup)) {
-        try { Remove-Item -LiteralPath $backup -Recurse -Force }
-        catch { Write-Warning "Installation completed; previous payload cleanup failed at '$backup': $($_.Exception.Message)" }
-    }
 }
 catch {
     $installError = $_
     $recoveryErrors = @()
+    try { if ($pathChanges.Count -gt 0) { & $installerModule { param($root,$changes) Undo-TtInstallationPath $root $changes } $InstallRoot $pathChanges } }
+    catch { $recoveryErrors += "PATH recovery failed for '$InstallRoot': $($_.Exception.Message)" }
     try {
         & $installerModule { param($state,$recovery) Undo-TtInstallerSettings $state $recovery } $StateRoot $settingsRecoveryPath
     }
@@ -190,5 +181,16 @@ catch {
     throw $installError
 }
 finally {
-    if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }
+    if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue }
 }
+
+# The installation is committed. Neither cleanup nor caller warning preferences
+# may re-enter rollback after the settings recovery coordinate has been retired.
+if ($backup -and (Test-Path -LiteralPath $backup)) {
+    try { Remove-Item -LiteralPath $backup -Recurse -Force }
+    catch { Write-Warning "Installation completed; previous payload cleanup failed at '$backup': $($_.Exception.Message)" -WarningAction Continue }
+}
+[Console]::WriteLine("TunnelTend installed at $InstallRoot")
+[Console]::WriteLine("State is stored at $StateRoot")
+[Console]::WriteLine("Doctor status: $($doctor.status)")
+[Console]::WriteLine('Open a new terminal, then run: tunneltend status')

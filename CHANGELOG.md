@@ -9,6 +9,7 @@ This changelog records user-visible TunnelTend changes by release line. The firs
 ### Fixed
 
 - Updating TunnelTend by rerunning the installer preserves saved automation choices, scope defaults, credential references and the official-client location unless explicitly changed. Failed installs restore their own settings changes without overwriting unrelated or conflicting current intent.
+- Committed installs survive cleanup warnings even with `-WarningAction Stop`; earlier failures reverse their PATH additions. Conflicting explicit choices are refused even when they initially matched saved state, and source installs reject state inside generated `bin` before moving it.
 
 ## [1.0.1]
 

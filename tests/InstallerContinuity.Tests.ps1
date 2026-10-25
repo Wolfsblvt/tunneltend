@@ -5,10 +5,35 @@ BeforeAll {
     Get-ChildItem (Join-Path $PSScriptRoot '..') -Force | Where-Object Name -NotIn @('.git','artifacts','.validation','website') | Copy-Item -Destination $seed -Recurse -Force
     & (Join-Path $seed 'scripts/Build-WindowsLauncher.ps1') -OutputPath (Join-Path $seed 'bin/TunnelTend.TaskHost.exe') | Out-Null
     $script:Installer=Join-Path $seed 'scripts/Install-TunnelTend.ps1'
+
+    function Enable-ContainedInstallerPath {
+        $fixture=@{user='C:\fixture\one;;C:\fixture\two';userWrites=0;processWrites=0;failAfterUserWrite=$false}
+        $read={
+            param($Target)
+            if ($Target -eq 'User') { return $fixture.user }
+            return [Environment]::GetEnvironmentVariable('Path','Process')
+        }.GetNewClosure()
+        $write={
+            param($Target,$Value)
+            if ($Target -eq 'User') {
+                $fixture.user=$Value
+                $fixture.userWrites++
+                if ($fixture.failAfterUserWrite -and $fixture.userWrites -eq 1) { throw 'fixture notification failed after user PATH write' }
+                return
+            }
+            $fixture.processWrites++
+            [Environment]::SetEnvironmentVariable('Path',$Value,'Process')
+        }.GetNewClosure()
+        Mock Get-TtInstallationPathValue -ModuleName TunnelTend -MockWith $read
+        Mock Set-TtInstallationPathValue -ModuleName TunnelTend -MockWith $write
+        return $fixture
+    }
 }
 
 Describe 'Installer upgrade continuity' {
     BeforeEach {
+        $script:ProcessPathBefore=$env:Path
+        $script:RealUserPathBefore=[Environment]::GetEnvironmentVariable('Path','User')
         $case=Join-Path $TestDrive ([Guid]::NewGuid().ToString('N'))
         $script:Install=Join-Path $case 'program'
         $script:State=Join-Path $case 'state'
@@ -32,10 +57,16 @@ Describe 'Installer upgrade continuity' {
         $script:Runtime=Get-Content -Raw (Join-Path $script:State 'runtime.json')
         Mock Import-Module { Get-Module TunnelTend | Select-Object -First 1 }
         Mock Install-TtAutomation {}
+        Mock Uninstall-TtAutomation {}
         Mock Get-TtAutomationStatus { @{tasks=@()} }
         Mock Invoke-TtDoctor { @{status='ok'} }
         Mock Get-TtStatus { @{} }
         Mock Update-TtClient {}
+    }
+
+    AfterEach {
+        [Environment]::SetEnvironmentVariable('Path',$script:ProcessPathBefore,'Process')
+        [string]::Equals([Environment]::GetEnvironmentVariable('Path','User'),$script:RealUserPathBefore,[StringComparison]::Ordinal) | Should -BeTrue -Because 'fixture PATH qualification must not change the real user PATH'
     }
 
     It 'preserves omitted preferences, external client, registrations and runtime intent' {
@@ -171,7 +202,8 @@ Describe 'Installer upgrade continuity' {
         @(Get-ChildItem $script:State -Filter 'installer-recovery-*.json').Count | Should -Be 0
     }
 
-    It 'keeps a successful installation usable when previous-payload cleanup fails' {
+    It 'review regression: keeps a committed installation usable with a locked backup and WarningAction Stop' {
+        $path=Enable-ContainedInstallerPath
         $held=@{stream=$null}
         $holdBackup={
             param($StateRoot)
@@ -180,12 +212,72 @@ Describe 'Installer upgrade continuity' {
         }.GetNewClosure()
         Mock Install-TtAutomation -MockWith $holdBackup
         try {
-            & $script:Installer -InstallRoot $script:Install -StateRoot $script:State -DisableAutostart:$false -NonInteractive -SkipClientInstall -SkipPath -WarningAction SilentlyContinue
+            & $script:Installer -InstallRoot $script:Install -StateRoot $script:State -DisableAutostart:$false -NonInteractive -SkipClientInstall -WarningAction Stop
         }
         finally { if ($held.stream) { $held.stream.Dispose() } }
         (Get-TtConfiguration -StateRoot $script:State).automation.autostart | Should -BeTrue
         Test-Path (Join-Path $script:Install 'tunneltend.ps1') | Should -BeTrue
+        ($path.user -split ';') | Should -Contain $script:Install
+        ($env:Path -split ';')[0] | Should -Be $script:Install
+        $path.userWrites | Should -Be 1
+        Should -Invoke Uninstall-TtAutomation -Exactly 0
         @(Get-ChildItem (Split-Path $script:Install) -Filter 'program.previous-*').Count | Should -Be 1
+    }
+
+    It 'review PATH: rolls back a locked recovery record with preexisting entries <ExistingPath>' -ForEach @(@{ExistingPath=$false},@{ExistingPath=$true}) {
+        $path=Enable-ContainedInstallerPath
+        if ($ExistingPath) { $path.user += ";$script:Install"; $env:Path="$script:Install;$env:Path" }
+        $userBefore=$path.user
+        $processBefore=$env:Path
+        $held=@{stream=$null}
+        $lockRecord={
+            param($StateRoot)
+            $record=Get-ChildItem $StateRoot -Filter 'installer-recovery-*.json' | Select-Object -First 1
+            $held.stream=[IO.File]::Open($record.FullName,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite)
+        }.GetNewClosure()
+        Mock Install-TtAutomation -MockWith $lockRecord
+        $capture=[IO.StringWriter]::new()
+        $originalOut=[Console]::Out
+        try {
+            [Console]::SetOut($capture)
+            { & $script:Installer -InstallRoot $script:Install -StateRoot $script:State -DisableAutostart:$false -NonInteractive -SkipClientInstall } | Should -Throw '*Recovery incomplete*Recovery record*'
+        }
+        finally { [Console]::SetOut($originalOut); if ($held.stream) { $held.stream.Dispose() } }
+        $capture.ToString() | Should -Not -Match 'TunnelTend installed at'
+        $capture.Dispose()
+        $path.user | Should -Be $userBefore
+        [string]::Equals($env:Path,$processBefore,[StringComparison]::Ordinal) | Should -BeTrue
+        $path.userWrites | Should -Be $(if ($ExistingPath) { 0 } else { 2 })
+        $path.processWrites | Should -Be $(if ($ExistingPath) { 0 } else { 2 })
+        (Get-TtConfiguration -StateRoot $script:State).automation.autostart | Should -BeFalse
+        Get-Content (Join-Path $script:Install 'old.txt') | Should -Be 'previous payload'
+        @(Get-ChildItem $script:State -Filter 'installer-recovery-*.json').Count | Should -Be 1
+        (Get-Content -Raw (Join-Path $script:State 'runtime.json')) | Should -Be $script:Runtime
+    }
+
+    It 'review PATH: reverses its user entry if publication takes effect before throwing' {
+        $path=Enable-ContainedInstallerPath
+        $userBefore=$path.user
+        $path.failAfterUserWrite=$true
+        { & $script:Installer -InstallRoot $script:Install -StateRoot $script:State -DisableAutostart:$false -NonInteractive -SkipClientInstall } | Should -Throw '*fixture notification failed*'
+        $path.user | Should -Be $userBefore
+        $path.userWrites | Should -Be 2
+        $path.processWrites | Should -Be 0
+        [string]::Equals($env:Path,$script:ProcessPathBefore,[StringComparison]::Ordinal) | Should -BeTrue
+        (Get-TtConfiguration -StateRoot $script:State).automation.autostart | Should -BeFalse
+        Get-Content (Join-Path $script:Install 'old.txt') | Should -Be 'previous payload'
+    }
+
+    It 'review PATH: preserves unrelated current entries during rollback' {
+        $path=Enable-ContainedInstallerPath
+        $userBefore=$path.user
+        $changes=@{}
+        & (Get-Module TunnelTend) { param($root,$changes) Add-TtInstallationPath $root $changes } $script:Install $changes
+        $path.user += ';C:\concurrent\user'
+        $env:Path += ';C:\concurrent\process'
+        & (Get-Module TunnelTend) { param($root,$changes) Undo-TtInstallationPath $root $changes } $script:Install $changes
+        $path.user | Should -Be "$userBefore;C:\concurrent\user"
+        [string]::Equals($env:Path,($script:ProcessPathBefore+';C:\concurrent\process'),[StringComparison]::Ordinal) | Should -BeTrue
     }
 
     It 'preserves conflicting intent and reports a retained scoped recovery record' {
@@ -224,6 +316,105 @@ Describe 'Installer upgrade continuity' {
         $settings.officialClient.executablePath | Should -Be (Join-Path $script:Install 'official-client/tunnel-client.exe')
         $settings.officialClient.installDirectory | Should -Be (Join-Path $script:Install 'official-client')
         $settings.automation.autostart | Should -BeTrue
+    }
+
+    It 'review regression: refuses an explicit no-op choice changed before publication: <Kind>' -ForEach @(
+        @{Kind='autostart-disabled';Setting='automation.autostart';Parameter='DisableAutostart';Before=$false;Explicit=$true;Concurrent=$true},
+        @{Kind='autostart-enabled';Setting='automation.autostart';Parameter='DisableAutostart';Before=$true;Explicit=$false;Concurrent=$false},
+        @{Kind='update-disabled';Setting='automation.autoUpdate';Parameter='DisableAutoUpdate';Before=$false;Explicit=$true;Concurrent=$true},
+        @{Kind='update-enabled';Setting='automation.autoUpdate';Parameter='DisableAutoUpdate';Before=$true;Explicit=$false;Concurrent=$false},
+        @{Kind='watchdog-disabled';Setting='automation.watchdog';Parameter='DisableWatchdog';Before=$false;Explicit=$true;Concurrent=$true},
+        @{Kind='watchdog-enabled';Setting='automation.watchdog';Parameter='DisableWatchdog';Before=$true;Explicit=$false;Concurrent=$false},
+        @{Kind='empty-organizations';Setting='defaults.organizationIds';Parameter='OrganizationId';Before=@();Explicit=@();Concurrent=@('org_concurrent')},
+        @{Kind='empty-workspaces';Setting='defaults.workspaceIds';Parameter='WorkspaceId';Before=@();Explicit=@();Concurrent=@('ws_concurrent')},
+        @{Kind='reference';Setting='defaults.runtimeKeyRef';Parameter='RuntimeKeyRef';Before='env:SAVED_KEY';Explicit='env:SAVED_KEY';Concurrent='env:OTHER_KEY'},
+        @{Kind='client-executable';Setting='officialClient.executablePath';Parameter='TunnelClientPath'},
+        @{Kind='client-directory';Setting='officialClient.installDirectory';Parameter='TunnelClientPath'}
+    ) {
+        $parameters=@{}
+        if ($Kind -like 'client-*') {
+            $parameters.TunnelClientPath=$script:Client
+            $concurrentValue=Join-Path (Split-Path $script:Client) 'other'
+            if ($Kind -eq 'client-executable') { $concurrentValue += '.exe'; Set-Content $concurrentValue 'other fixture' }
+        }
+        else {
+            & (Get-Module TunnelTend) {
+                param($state,$setting,$before)
+                $registry=Get-TtRegistry $state
+                if ($setting -like 'defaults.*Ids') { $registry.settings.defaults.organizationIds=@(); $registry.settings.defaults.workspaceIds=@() }
+                $group,$key=$setting.Split('.')
+                $registry.settings[$group][$key]=$before
+                Save-TtRegistry $registry $state
+            } $script:State $Setting $Before
+            $parameters[$Parameter]=$Explicit
+            $concurrentValue=$Concurrent
+        }
+        $plan=& (Get-Module TunnelTend) { param($state,$install,$parameters) New-TtInstallerSettingsPlan $state $install $parameters } $script:State $script:Install $parameters
+        Set-TtConfiguration -Path "settings.$Setting" -Value $concurrentValue -StateRoot $script:State | Out-Null
+        $beforePublish=Get-Content -Raw (Join-Path $script:State 'registry.json')
+        { & (Get-Module TunnelTend) { param($plan,$state) Set-TtInstallerSettings $plan $state (Join-Path $state 'review-recovery.json') } $plan $script:State } | Should -Throw "*$Setting*changed during preparation*"
+        Get-Content -Raw (Join-Path $script:State 'registry.json') | Should -Be $beforePublish
+    }
+
+    It 'review regression: refuses a changed interactively confirmed no-op choice' {
+        $state=$script:State
+        $answer={
+            param($Prompt)
+            if (($Prompt -join ' ') -like '*autostart*') { Set-TtConfiguration -Path settings.automation.autostart -Value $true -StateRoot $state | Out-Null }
+            return ''
+        }.GetNewClosure()
+        Mock Read-Host -MockWith $answer
+        { & $script:Installer -InstallRoot $script:Install -StateRoot $script:State -SkipClientInstall -SkipPath } | Should -Throw '*automation.autostart*changed during preparation*'
+        (Get-TtConfiguration -StateRoot $script:State).automation.autostart | Should -BeTrue
+        Get-Content (Join-Path $script:Install 'old.txt') | Should -Be 'previous payload'
+        Should -Invoke Install-TtAutomation -Exactly 0
+    }
+
+    It 'review omission: retains newer omitted intent between planning and publication' {
+        $plan=& (Get-Module TunnelTend) { param($state,$install) New-TtInstallerSettingsPlan $state $install @{} } $script:State $script:Install
+        Set-TtConfiguration -Path settings.automation.autostart -Value $true -StateRoot $script:State | Out-Null
+        $beforePublish=Get-Content -Raw (Join-Path $script:State 'registry.json')
+        $settings=& (Get-Module TunnelTend) { param($plan,$state) Set-TtInstallerSettings $plan $state (Join-Path $state 'review-recovery.json') } $plan $script:State
+        $settings.automation.autostart | Should -BeTrue
+        Get-Content -Raw (Join-Path $script:State 'registry.json') | Should -Be $beforePublish
+    }
+
+    It 'review regression: refuses state in the generated bin container before moving it' {
+        # Source installs build bin after staging, so exercise that supported
+        # route without the immutable seed's already-compiled package launcher.
+        $sourceOnly=Join-Path (Split-Path $script:Install) 'source-without-launcher'
+        New-Item -ItemType Directory -Path $sourceOnly | Out-Null
+        Get-ChildItem (Split-Path (Split-Path $script:Installer)) -Force | Where-Object Name -NE 'bin' | Copy-Item -Destination $sourceOnly -Recurse -Force
+        $sourceInstaller=Join-Path $sourceOnly 'scripts/Install-TunnelTend.ps1'
+        $nested=Join-Path $script:Install 'bin/state'
+        New-Item -ItemType Directory -Path (Split-Path $nested) -Force | Out-Null
+        Move-Item $script:State $nested
+        $registryBefore=Get-Content -Raw (Join-Path $nested 'registry.json')
+        { & $sourceInstaller -InstallRoot $script:Install -StateRoot $nested -NonInteractive -SkipClientInstall -SkipPath } | Should -Throw '*own directory*'
+        Get-Content -Raw (Join-Path $nested 'registry.json') | Should -Be $registryBefore
+        Get-Content (Join-Path $script:Install 'old.txt') | Should -Be 'previous payload'
+        @(Get-ChildItem (Split-Path $script:Install) -Filter 'program.state-*').Count | Should -Be 0
+    }
+
+    It 'review managed client: preserves nested state during install and binary-only replacement' {
+        $directory=Join-Path $script:Install 'official-client'
+        $nested=Join-Path $directory 'state'
+        New-Item -ItemType Directory -Path $directory -Force | Out-Null
+        Move-Item $script:State $nested
+        $client=Join-Path $directory 'tunnel-client.exe'
+        Set-Content $client 'old managed fixture'
+        Set-TtConfiguration -Path settings.officialClient.executablePath -Value $client -StateRoot $nested | Out-Null
+        Set-TtConfiguration -Path settings.officialClient.installDirectory -Value $directory -StateRoot $nested | Out-Null
+        $beforeRegistry=Get-Content -Raw (Join-Path $nested 'registry.json')
+        & $script:Installer -InstallRoot $script:Install -StateRoot $nested -NonInteractive -SkipClientInstall -SkipPath
+        $payload=Join-Path (Split-Path $script:Install) 'replacement.exe'
+        Set-Content $payload 'new managed fixture'
+        Mock Test-TtOfficialClientCapabilities -ModuleName TunnelTend { @{compatible=$true} }
+        Mock Get-TtServiceObservation -ModuleName TunnelTend { @{tunnel=@{running=$false};host=@{configured=$false;running=$false}} }
+        & (Get-Module TunnelTend) { param($state,$payload) Invoke-TtClientFileTransaction (Get-TtRegistry $state) (Get-TtRuntimeStore $state) $state $payload } $nested $payload | Out-Null
+        Get-Content $client | Should -Be 'new managed fixture'
+        Get-Content -Raw (Join-Path $nested 'registry.json') | Should -Be $beforeRegistry
+        Get-Content -Raw (Join-Path $nested 'runtime.json') | Should -Be $script:Runtime
     }
 
     It 'leaves the real installed CLI usable after reinstall and after a later failed settings change' {
