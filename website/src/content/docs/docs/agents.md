@@ -12,16 +12,18 @@ You do not have to learn TunnelTend's commands to use it. A local coding agent, 
 
 TunnelTend was built from the ground up to be operated by software as well as by people:
 
-- **Every command reads or changes exactly what its name says.** `status`, `health`, `doctor`, `repair` and `reconcile --plan` only look; they persist nothing. Changing anything needs an explicitly mutating command such as `service start`, `repair --apply` or `client update`. An agent cannot drift from reading into writing by accident. See [Service state](/docs/service-state/).
+- **Reading, planning and changing have separate commands.** `status`, `health`, `doctor`, `repair` and `reconcile --plan` only look; they persist nothing. Changing anything needs a command such as `service start`, `repair --apply` or `client update`. The agent must choose the command that matches what you asked for. See [Service state](/docs/service-state/).
 - **Every command answers in one stable JSON envelope** with `--json`: `schema_version`, `command`, `status` (`ok`, `degraded`, `error`, `planned`, `changed`, `noop`), `data`, `diagnostics` and `actions`. An agent reads the same facts a person reads as text. See the [CLI reference](/docs/cli/#json-output).
-- **It refuses to guess.** Ambiguous project discovery returns the candidates and the exact command to continue. A missing tunnel ID or credential reference is an error with a message, not an invented value.
-- **Secrets are references.** `env:CONTROL_PLANE_API_KEY` or `file:C:\secure\runtime-key.txt` is all the agent ever handles; it never needs, sees or stores the key itself.
+- **It refuses to guess.** Ambiguous project discovery reports candidate types and reasons, then asks for a descriptor or explicit command. It does not generate the correct command; the agent needs the server's launch instructions. Missing required scope or an unavailable credential reference is reported rather than invented.
+- **Secrets use references.** Give the agent `env:CONTROL_PLANE_API_KEY` or `file:C:\secure\runtime-key.txt`, never the key. The supported workflow lets it install and operate TunnelTend without reading the raw value.
 - **Ownership is proven before anything is stopped.** A recorded PID is only touched when its executable path and start time still match. An agent asked to "fix it" cannot make TunnelTend kill an unrelated process. See [Security](/docs/security/).
 - **Exit codes mean something.** `0` success, `2` degraded or failed operations, `4` a command that failed validation or execution, so a script or an agent can tell them apart without parsing prose.
 
 ## Things you can say
 
 Give the agent the task in your own words. These sentences map to real commands; the agent will fill in the details it can observe and ask you for the ones it cannot (your tunnel ID, your credential reference, which service you mean).
+
+If you know the app but not its MCP details yet, start with [Find your MCP service](/docs/getting-started/#find-your-mcp-service) and hand the agent the app's setup instructions. The service names and paths below are examples, not bundled integrations or a claim that any particular add-on has been tested with TunnelTend.
 
 | Say | The agent runs |
 | --- | --- |
@@ -38,7 +40,7 @@ The [home page](/#agents) has copy buttons for the most common sentences.
 
 ## Where the agent must stop
 
-A good agent stops and asks you at these points, and TunnelTend is built so that it has to:
+These are boundaries for the agent's workflow. TunnelTend's command checks help enforce its own rules; they do not control everything an agent can do on your computer:
 
 - **Your OpenAI access.** Creating a tunnel, getting a runtime key, adding a connector in ChatGPT: those happen in your OpenAI organization and in ChatGPT, under your account. You sign in yourself; an agent carries one of these steps only when you explicitly authorize that exact step. See [Prepare your OpenAI access](/docs/getting-started/#prepare-your-openai-access).
 - **Any secret.** The agent asks you to put the key in an environment variable or a protected file and uses only the reference. If it ever asks you to paste a key into the chat, refuse.

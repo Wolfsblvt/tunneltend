@@ -71,7 +71,7 @@ The plain-text output is a readable summary; `--json` keeps every dimension sepa
 | --- | --- | --- |
 | `tunneltend status` | Desired and observed facts per service, the official client version, the Scheduled Tasks, the current session. | No |
 | `tunneltend health` | Live probes right now: process, runtime, health and readiness endpoints. | No |
-| `tunneltend doctor` | A diagnosis: what is wrong, why, and the next useful command. Prints `No problems detected.` when there is nothing to report. | No |
+| `tunneltend doctor` | Diagnostic codes and messages, or `No problems detected.` when there is nothing to report. Add `--json` for structured repair suggestions. | No |
 
 These commands may contact your endpoints and inspect processes, but they do not write observations, budgets or repairs. A `--json` flag changes only the format.
 
