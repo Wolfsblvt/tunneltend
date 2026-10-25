@@ -4,7 +4,7 @@ BeforeAll {
     # and replacement without recompiling identical C# for every scenario.
     $seed = Join-Path $TestDrive 'installer-source'
     New-Item -ItemType Directory -Path $seed | Out-Null
-    Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..') -Force | Where-Object { $_.Name -notin @('.git','artifacts','.validation') } | Copy-Item -Destination $seed -Recurse -Force
+    Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..') -Force | Where-Object { $_.Name -notin @('.git','artifacts','.validation','website') } | Copy-Item -Destination $seed -Recurse -Force
     & (Join-Path $seed 'scripts/Build-WindowsLauncher.ps1') -OutputPath (Join-Path $seed 'bin/TunnelTend.TaskHost.exe') | Out-Null
     $script:Installer = Join-Path $seed 'scripts/Install-TunnelTend.ps1'
     $script:Uninstaller = Join-Path $seed 'scripts/Uninstall-TunnelTend.ps1'

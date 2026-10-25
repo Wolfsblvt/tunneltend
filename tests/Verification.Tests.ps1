@@ -55,7 +55,7 @@ Describe 'Repository verification failure propagation' {
         $root = Join-Path $TestDrive 'artifacts/source-with-artifacts'
         New-Item -ItemType Directory -Path $root | Out-Null
         Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..') -Force | Where-Object {
-            $_.Name -notin @('.git', 'artifacts', '.validation')
+            $_.Name -notin @('.git', 'artifacts', '.validation', 'website')
         } | Copy-Item -Destination $root -Recurse -Force
         $artifacts = Join-Path $root 'artifacts'
         New-Item -ItemType Directory -Path $artifacts | Out-Null
