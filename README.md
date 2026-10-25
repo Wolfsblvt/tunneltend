@@ -8,7 +8,7 @@
 
 TunnelTend is a local-first Windows manager for MCP services connected through OpenAI's official `tunnel-client`. Register one or many services, and it takes care of logon startup, tunnel connection, health observation, bounded recovery, source-change restarts, and verified updates of the official client. It respects deliberate stops and reports clearly when it cannot recover something.
 
-The co-designed website and manual are prepared under [`website/`](https://github.com/Wolfsblvt/tunneltend/tree/main/website) for publication at **[tunneltend.com](https://tunneltend.com)**. Until hosting is admitted, use the repository's [getting-started guide](docs/getting-started.md) and [FAQ](docs/faq.md).
+The co-designed website is live at **[tunneltend.com](https://tunneltend.com)**, with the current reader-facing manual at **[tunneltend.com/docs/](https://tunneltend.com/docs/)**. Their source lives under [`website/`](https://github.com/Wolfsblvt/tunneltend/tree/main/website); the repository's [getting-started guide](docs/getting-started.md) and [FAQ](docs/faq.md) remain useful source and maintainer companions.
 
 > [!IMPORTANT]
 > TunnelTend is an independent open-source project. It is not affiliated with or endorsed by OpenAI. It manages the official client; it does not replace that client or host a tunnel service.
