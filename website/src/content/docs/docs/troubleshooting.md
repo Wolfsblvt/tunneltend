@@ -5,16 +5,30 @@ description: "Diagnose a service that will not start, recovery that has stopped,
 
 Start with observations, then choose a specific action. A failed command may have changed something before it failed, so look at the current state before you repeat it. Every section below follows the same shape: what you see, what it means, what to run, and what to read in the result.
 
+## Find the symptom
+
+| What you see or need | Start here |
+| --- | --- |
+| You do not know which program to open, or `pwsh` is not found | [Open and check PowerShell 7](/docs/getting-started/#open-powershell-7). Windows PowerShell is the older app. |
+| You know the app you want, but not its MCP command or URL | [Find your MCP service](/docs/getting-started/#find-your-mcp-service). A folder or app name alone is not a server. |
+| `tunneltend` is not recognized | [The command is not found](#the-command-is-not-found) |
+| Registration says there are no candidates, or several | [Registration was refused or ambiguous](#registration-was-refused-or-ambiguous) |
+| The service is registered but stopped, or the runtime key is unavailable | [Registration was saved, but the service will not start](#registration-was-saved-but-the-service-will-not-start) |
+| It works by hand but fails after sign-in | [It works in my terminal, but not in automation](#it-works-in-my-terminal-but-not-in-automation) |
+| Local checks look good, but ChatGPT cannot use the tool | [Local checks pass but the consumer cannot connect](#local-checks-pass-but-the-consumer-cannot-connect) |
+
 ## Start with the read-only checks
 
 These four commands change nothing. They read saved state, inspect processes, and may contact the health URLs you configured. Replace `my-mcp` with an ID from `tunneltend service list`, or leave the ID out to inspect every registered service.
 
 ```powershell
-tunneltend status my-mcp --json
-tunneltend health my-mcp --json
-tunneltend doctor my-mcp --json
-tunneltend automation status --json
+tunneltend status my-mcp
+tunneltend health my-mcp
+tunneltend doctor my-mcp
+tunneltend automation status
 ```
+
+Plain output is a useful first look. `doctor` prints `No problems detected.` when it finds nothing to report; otherwise read the diagnostic code and message. Add `--json` for the complete structured fields and repair suggestions, as used in some of the detailed steps below.
 
 Keep four things apart while you read: a **saved registration** (TunnelTend knows the service), **desired state** (you want it running), an **observed runtime** (a process and a tunnel are actually there), and a **successful call from ChatGPT** (the only proof that the whole chain works). [Service state](/docs/service-state/) explains each word.
 
@@ -24,7 +38,17 @@ Keep four things apart while you read: a **saved registration** (TunnelTend know
 
 **What it means:** The terminal was opened before installation added TunnelTend to your user PATH, or you chose `-SkipPath` during installation, or you are signed in as a different Windows account than the one you installed with.
 
-**What to do:** Open a new terminal. If you selected `-SkipPath`, run `tunneltend.cmd` from the installation directory (by default `%LOCALAPPDATA%\Programs\TunnelTend`) or by its full path. PowerShell 7.4 or newer is required; for a portable PowerShell, rerun the installer with the intended `-PowerShellPath`, because the shell you used during setup is not automatically the one later tasks use. See [installation policy](/docs/getting-started/#choose-installation-policy).
+**What to do:** Close the terminal app completely, then open **PowerShell 7** from Windows Start. A new tab inside an already-running terminal can still inherit the old environment. Check that you are using the Windows account that installed TunnelTend.
+
+For the default installation, you can check it directly without relying on PATH:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\TunnelTend\tunneltend.cmd" version
+```
+
+If this works, the installation exists and the problem is command discovery. If you selected `-SkipPath`, keep using the full path or rerun the installer with PATH setup enabled. If you chose a custom install directory, use that path instead. If the program is absent, return to [installation](/docs/getting-started/#install-tunneltend) and read the installer's result rather than assuming it completed.
+
+PowerShell 7.4 or newer is required. For a portable PowerShell, rerun the installer with the intended `-PowerShellPath`, because the shell you used during setup is not automatically the one later tasks use. See [installation policy](/docs/getting-started/#choose-installation-policy).
 
 ## Registration was saved, but the service will not start
 
@@ -39,15 +63,14 @@ tunneltend service show my-mcp --json
 tunneltend doctor my-mcp --json
 ```
 
-**What to read:** The `doctor` diagnostics name the cause. Match it against this table.
+**What to read:** Match the diagnostic code and message against this table. A general `service.unhealthy` message describes the symptom and may not identify its cause. Read the original start error, `tunneltend health my-mcp --json` for runtime/probe details, and the [logs](#where-to-look-in-the-logs) when more context is needed.
 
 | What the evidence points to | Next action |
 | --- | --- |
 | Missing official client | Inspect `tunneltend client status`. Use the installer for first acquisition, or `tunneltend client update` for an existing installation. Do not drop in an unverified download. |
 | Missing launch executable or working directory | The service's own runtime or dependencies are not set up. Run its normal local setup, then correct the explicit registration. |
-| Ambiguous project discovery | TunnelTend found several plausible launch targets and refused to guess. Pick the intended command or descriptor from the reported candidates. |
 | Missing tunnel ID or scope | Use your existing tunnel ID or the organization/workspace you are authorized for. Confirm the tunnel and its permissions on [OpenAI's side](/docs/getting-started/#prepare-your-openai-access). |
-| Unavailable runtime key reference | The `env:` variable or `file:` path is not visible to the account running TunnelTend. Make it available there. Never paste the raw key into the registration. |
+| Unavailable runtime key reference | Confirm the reference's name/path and use [credential setup](/docs/getting-started/#prepare-your-openai-access) to make it available to your Windows account and later processes. Never paste the raw key into the registration or print the variable to diagnose it. |
 | Existing official alias | The official client already has a runtime for this alias. Use [deliberate alias import](/docs/registration/#import-an-existing-official-alias); ordinary registration does not adopt it silently. |
 | Host is running but probes fail | Check the actual MCP, health, and readiness URLs and whether your service provides them. Not every MCP server has a health URL, and TunnelTend does not assume one. |
 
@@ -55,11 +78,11 @@ After resolving the cause, run `tunneltend service start my-mcp` and read the ob
 
 ## Registration was refused or ambiguous
 
-**What you see:** `service register` lists several candidates, or refuses a value.
+**What you see:** `service register` finds no launch candidate, lists several candidates, or refuses a value.
 
-**What it means:** Discovery is deliberately conservative. When a project folder contains more than one plausible way to launch an MCP server, TunnelTend returns the candidates and the explicit command it needs instead of picking one. A refused value usually looks like an inline secret: a key, a bearer token, or a credential inside a URL. Those are never accepted on the command line, in arguments, or in a descriptor.
+**What it means:** Discovery is deliberately conservative. No candidate can mean the folder is not an MCP project or its launch method is not recognized. Several candidates mean the error lists their types and reasons instead of picking one; it does not generate the correct command for you. Read a refused value's error message too: values that look like inline secrets—a key, bearer token or credential inside a URL—are rejected before saving.
 
-**What to do:** Register the exact launch target with `--command` or a descriptor, and supply credentials only as `env:NAME` or `file:PATH` references. [Register a service](/docs/registration/) covers each method.
+**What to do:** Find the launch instructions supplied with your MCP server. Use that exact target with `--command`, or a descriptor, and supply credentials only as `env:NAME` or `file:PATH` references. [Register a service](/docs/registration/) covers each method. A local coding agent can help translate those instructions; if the tool does not offer MCP, installing TunnelTend cannot add it.
 
 ## It works in my terminal, but not in automation
 

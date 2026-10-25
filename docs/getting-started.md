@@ -2,6 +2,8 @@
 
 Connect an MCP service you already run, then verify what TunnelTend will maintain for you. This guide covers the Windows installation and first-connection journey. The matching [GitHub Release](https://github.com/Wolfsblvt/tunneltend/releases/latest) carries downloadable availability and its release-specific qualification notes.
 
+For the reader walkthrough, including opening PowerShell, identifying your MCP service and using the released one-line installer, follow [Get started in the public manual](https://tunneltend.com/docs/getting-started/). This repository companion keeps the source-installation and maintainer details below.
+
 You can [follow the steps yourself](#before-installation) or [give this guide to a local coding agent](#install-with-a-local-agent). Both routes use the same installer, commands, and checks.
 
 ## Before installation
@@ -81,7 +83,7 @@ tunneltend service register 'C:\src\my-mcp' --id my-mcp `
 
 If you chose a file reference, replace the final value with your reference, quoting the whole value when its path contains spaces. Do not substitute the key itself.
 
-Registration saves the service and normally starts it immediately. If discovery finds several plausible targets, choose the explicit command it asks for; it will not guess. If startup fails, your registration is retained. Inspect `tunneltend doctor my-mcp` before retrying.
+Registration saves the service and normally starts it immediately. If discovery finds several plausible targets, it lists their types and reasons and asks for a descriptor or explicit command; it does not generate that command. Choose the target from your MCP server's launch instructions. If startup fails, your registration is retained. Inspect `tunneltend doctor my-mcp` before retrying.
 
 Project-path registration enables source watching by default. Add `--no-source-watch` if this service should restart only when you request it. Add `--no-start` to save a registration for inspection without starting it. `--no-autostart` affects later sign-ins; it does not disable this immediate first start.
 

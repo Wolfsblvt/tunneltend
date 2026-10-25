@@ -14,9 +14,10 @@ import { INSTALL_COMMAND, RELEASE_VERSION, docPaths, paths } from '../../data/si
       <h1 class="display for-plain">Keep the tools on your PC connected to ChatGPT.</h1>
       <h1 class="display for-dev">Your MCP servers, tunneled and tended.</h1>
       <p class="strap">Register once. Leave the routine to TunnelTend.</p>
-      <p class="why for-plain">OpenAI’s official tunnel client lets ChatGPT reach a tool running on your own computer. TunnelTend remembers what you registered, starts it when you sign in, checks the process and the readiness signals it can observe, recovers what it safely can, and keeps the official client updated. When it can’t fix something, it says so, and a real tool call in ChatGPT remains the proof the whole chain works.</p>
+      <p class="why for-plain">Have a tool with an MCP server—the program that lets ChatGPT use it? OpenAI’s official tunnel client makes the connection. TunnelTend handles the routine on your PC: starting registered services when you sign in, checking them, recovering within limits and keeping the official client updated. When something needs your attention, it says so.</p>
       <p class="why for-dev">OpenAI’s <code class="code-inline">tunnel-client</code> connects a local MCP server to Secure MCP Tunnels. TunnelTend wraps it in desired state: current-user Scheduled Tasks at sign-in, a watchdog with ownership checks and a visible retry budget, source watching, verified client updates with rollback, and read-only <code class="code-inline">status</code>, <code class="code-inline">health</code> and <code class="code-inline">doctor</code> with a stable JSON envelope.</p>
       <div class="hero-install">
+        <p class="hero-fine">First time? <a class="link-quiet" href={`${docPaths.getStarted}#before-installation`}>Check your tool, PowerShell and OpenAI access</a> before installing.</p>
         <CommandStrip command={INSTALL_COMMAND} label="Copy the one-line install command" />
         <p class="hero-fine">Windows 11 · PowerShell 7.4+ · v{RELEASE_VERSION} · free and open source · <button class="reader-quiet" type="button" data-reader-toggle data-label-plain="Excuse me, I’m a dev?!" data-label-dev="I’m not a dev, actually" aria-pressed="false"><span data-reader-label>Excuse me, I’m a dev?!</span></button></p>
       </div>
@@ -29,8 +30,8 @@ import { INSTALL_COMMAND, RELEASE_VERSION, docPaths, paths } from '../../data/si
     <figure class="win hero-win">
       <div class="win-bar"><span class="win-tab"><Icon name="terminal" size={13} />PowerShell</span><span class="spacer"></span><span class="win-glyphs" aria-hidden="true">—▢✕</span></div>
       <pre class="terminal" aria-label="A terminal showing tunneltend status and tunneltend doctor output"><span class="p">PS C:\Users\you&gt; </span><span class="c">tunneltend status</span>
-<span class="ok">[OK]</span> internal-tools           desired=<span class="k">running</span> observed=<span class="ok">running</span>   autostart=True watchdog=True
-<span class="ok">[OK]</span> notes-search             desired=<span class="k">running</span> observed=<span class="ok">running</span>   autostart=True watchdog=True
+<span class="ok">[OK]</span> internal-tools           desired=<span class="k">running</span> observed=<span class="ok">ready</span>     autostart=True watchdog=True
+<span class="ok">[OK]</span> notes-search             desired=<span class="k">running</span> observed=<span class="ok">ready</span>     autostart=True watchdog=True
 <span class="neu">[--]</span> photo-tagger             desired=<span class="k">stopped</span> observed=<span class="neu">stopped</span>   autostart=True watchdog=True
 
 <span class="p">PS C:\Users\you&gt; </span><span class="c">tunneltend doctor</span>
@@ -39,7 +40,7 @@ No problems detected.
 <span class="p">PS C:\Users\you&gt; </span><span class="c">tunneltend service stop photo-tagger --session-only</span>
 <span class="dim">{'{"serviceId": "photo-tagger", "stopped": true}'}</span>
 <span class="p">PS C:\Users\you&gt; </span><span class="cursor" aria-hidden="true">_</span></pre>
-      <figcaption class="machine-foot">Three registered services, one stopped on purpose. Green means observed healthy. A stop you asked for is respected until your next sign-in, not “repaired”.</figcaption>
+      <figcaption class="machine-foot">Example: three registered services, one stopped on purpose. Green means observed healthy locally. A session-only stop is respected by the watchdog until your next sign-in.</figcaption>
     </figure>
   </div>
 </section>

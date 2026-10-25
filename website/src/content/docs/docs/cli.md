@@ -5,6 +5,8 @@ description: "Every tunneltend command with what it reads, plans or changes, the
 
 Every command is `tunneltend` followed by a verb. Commands that only read never save anything; commands that change state say so in their name or need an explicit flag. `tunneltend --help` prints the same grammar in the terminal.
 
+For your first connection, follow [Get started](/docs/getting-started/). This page is a reference: `ID`, `PATH`, `FILE` and `URL` stand for your values; square brackets mark optional parts, and `...` means a value may be repeated. Do not type the brackets or the dots.
+
 **Reads** means read-only: it may probe processes and endpoints but does not persist observations, budgets or repairs. **Plans** means it computes and shows what would change, and changes nothing. **Changes** means it mutates desired state, running processes, files or Windows tasks.
 
 ## Fleet facts, planning and convergence
@@ -13,7 +15,7 @@ Every command is `tunneltend` followed by a verb. Commands that only read never 
 | --- | --- | --- |
 | `tunneltend status [SERVICE...]` | Reads | Desired and observed facts per service, the official client version, the Windows tasks and the current session. |
 | `tunneltend health [SERVICE...]` | Reads | Live probes: process, official runtime, configured health and readiness endpoints. |
-| `tunneltend doctor [SERVICE...]` | Reads | Diagnosis with a message and the next useful action per problem, or `No problems detected.` |
+| `tunneltend doctor [SERVICE...]` | Reads | Diagnostic codes and messages, or `No problems detected.` Add `--json` for structured repair suggestions. |
 | `tunneltend repair [SERVICE...]` | Plans | The repair it would make. |
 | `tunneltend repair [SERVICE...] --apply [--force]` | Changes | Applies a freshly computed repair plan. `--force` can bypass the recovery backoff for this manual action. |
 | `tunneltend reconcile [SERVICE...] --plan` | Plans | What converging every selected service to its desired state would change. |
