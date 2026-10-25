@@ -78,7 +78,7 @@ The current release is **1.0.1**. Its [release account](docs/releases/1.0.1.md) 
 
 Read [AGENTS.md](AGENTS.md) for repository rules and [development](docs/DEVELOPMENT.md) for the pinned tooling, root verification command, package build, and safe no-credential smoke path. [Contributing](CONTRIBUTING.md) explains the contribution route; [architecture](docs/ARCHITECTURE.md) explains the implementation.
 
-Source installation remains supported in the [maintainer getting-started guide](docs/getting-started.md). The public manual lives under [`website/`](website/README.md); the repository's `docs/` tree serves maintainers and contributors.
+Source installation remains supported in the [maintainer getting-started guide](docs/getting-started.md). The public manual lives under [`website/`](https://github.com/Wolfsblvt/tunneltend/blob/main/website/README.md); the repository's `docs/` tree serves maintainers and contributors.
 
 ## License
 
