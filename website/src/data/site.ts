@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 /** Selected facts the pages share: origins, repository, release and official OpenAI destinations. */
 import site from '../../site.config.mjs';
+import { publicDestination } from '../lib/public-routes.mjs';
 
 export const ORIGIN: string = site.url.replace(/\/$/u, '');
 export const REPO = 'Wolfsblvt/tunneltend';
@@ -63,7 +64,7 @@ export const openai = {
 } as const;
 
 /** The copied task hands a local coding agent the canonical guide; the guide carries the contract. */
-export const AGENT_PROMPT = `Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: ${ORIGIN}${docPaths.agent}`;
+export const AGENT_PROMPT = `Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: ${publicDestination(docPaths.agent)}`;
 
 export function absolute(path: string): string {
   return new URL(path, ORIGIN).href;

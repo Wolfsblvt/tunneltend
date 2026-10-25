@@ -4,15 +4,17 @@
  * postal address) never lives here; it reaches the production build only through the private
  * WOLFSBLVT_LEGAL_OPERATOR_B64 projection.
  */
+import { PRODUCT_ORIGIN, DOCS_ORIGIN } from './src/lib/public-routes.mjs';
 const github = 'https://github.com/Wolfsblvt/tunneltend';
 
 export default {
   title: 'TunnelTend',
   description:
     'Connect an app or tool running on your Windows PC to ChatGPT through OpenAI’s official tunnel client, and let TunnelTend keep it connected: startup at sign-in, health checks, bounded recovery and verified client updates. Free and open source.',
-  url: 'https://tunneltend.com',
+  url: PRODUCT_ORIGIN,
   docs: {
     mode: 'manual',
+    url: DOCS_ORIGIN,
     surfaceName: 'TunnelTend Docs',
   },
   identity: {

@@ -19,7 +19,7 @@ Every command is `tunneltend` followed by a verb. Commands that only read never 
 | `tunneltend reconcile [SERVICE...] --plan` | Plans | What converging every selected service to its desired state would change. |
 | `tunneltend reconcile [SERVICE...] [--context CONTEXT]` | Changes | Converges to desired state. Context is `manual` (default), `startup`, `watchdog` or `maintenance`. |
 
-Without `SERVICE` arguments a command covers every registered service. An applied manual repair or reconciliation can resume an enabled, desired-running service that is inactive or suppressed for this session; see [Stop a service on purpose](/docs/operations/#stop-a-service-on-purpose).
+Without `SERVICE` arguments a command covers every registered service. An applied manual repair or reconciliation can resume an enabled, desired-running service that is inactive or suppressed for this session; see [Stop a service on purpose](https://docs.tunneltend.com/operations/#stop-a-service-on-purpose).
 
 ## Services
 
@@ -35,7 +35,7 @@ Without `SERVICE` arguments a command covers every registered service. An applie
 | `tunneltend service remove ID [--keep-running]` | Changes | Stops and unregisters the service; `--keep-running` leaves its processes up. |
 | `tunneltend service import [ALIAS...] [--force]` | Changes | Imports existing official client aliases; with no alias, all available ones. `--force` deliberately adopts an alias that already exists upstream. |
 
-Registration options: `--id`, `--alias`, `--tunnel-id`, `--organization-id` (repeatable), `--workspace-id` (repeatable), `--runtime-key-ref`, `--admin-profile`, `--working-directory` for command targets, `--health-url`, `--ready-url`, `--no-start`, `--no-autostart`, `--no-watchdog`, `--no-source-watch`, `--disabled`, and `--force` for deliberate replacement. [Register a service](/docs/registration/) explains argument quoting and the difference between the immediate first start and later sign-in policy.
+Registration options: `--id`, `--alias`, `--tunnel-id`, `--organization-id` (repeatable), `--workspace-id` (repeatable), `--runtime-key-ref`, `--admin-profile`, `--working-directory` for command targets, `--health-url`, `--ready-url`, `--no-start`, `--no-autostart`, `--no-watchdog`, `--no-source-watch`, `--disabled`, and `--force` for deliberate replacement. [Register a service](https://docs.tunneltend.com/registration/) explains argument quoting and the difference between the immediate first start and later sign-in policy.
 
 ### Intent and lifecycle
 
@@ -70,7 +70,7 @@ Registration options: `--id`, `--alias`, `--tunnel-id`, `--organization-id` (rep
 | `tunneltend automation watchdog` | Changes | Runs one Watchdog pass now. |
 | `tunneltend automation maintenance [--skip-client-update] [--skip-service-updates]` | Changes | Runs one Maintenance pass now. |
 
-[The three Windows tasks](/docs/operations/#the-three-windows-tasks) explains what each pass may do.
+[The three Windows tasks](https://docs.tunneltend.com/operations/#the-three-windows-tasks) explains what each pass may do.
 
 ## Setup, configuration and version
 
@@ -81,7 +81,7 @@ Registration options: `--id`, `--alias`, `--tunnel-id`, `--organization-id` (rep
 | `tunneltend config set PATH VALUE` | Changes | One configuration value, for example `settings.automation.watchdog false`. |
 | `tunneltend version` | Reads | The installed TunnelTend version. |
 
-First-time program and official client acquisition belong to the installer, not to `setup`; see [Choose installation policy](/docs/getting-started/#choose-installation-policy). Prefer installer switches and service commands over `config set`.
+First-time program and official client acquisition belong to the installer, not to `setup`; see [Choose installation policy](https://docs.tunneltend.com/getting-started/#choose-installation-policy). Prefer installer switches and service commands over `config set`.
 
 ## Global options
 

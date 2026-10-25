@@ -26,7 +26,7 @@ export const onRequest = defineRouteMiddleware((context) => {
       { tag: 'meta', attrs: { property: 'og:type', content: 'website' } },
       { tag: 'meta', attrs: { property: 'og:title', content: page.pageTitle } },
       { tag: 'meta', attrs: { property: 'og:description', content: page.description } },
-      { tag: 'meta', attrs: { property: 'og:site_name', content: site.identity.hostSiteName } },
+      { tag: 'meta', attrs: { property: 'og:site_name', content: site.docs.surfaceName } },
       { tag: 'meta', attrs: { property: 'og:locale', content: page.locale } },
       { tag: 'meta', attrs: { name: 'twitter:card', content: page.imageUrl ? 'summary_large_image' : 'summary' } },
       { tag: 'meta', attrs: { name: 'twitter:title', content: page.pageTitle } },

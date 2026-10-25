@@ -4,6 +4,7 @@
  * the manual and the FAQ. One modal on every route; the index and its runtime load on first
  * open, never on page load. In `astro dev` the index does not exist and the modal says so.
  */
+import { publicDestination } from './public-routes.mjs';
 interface SubResult { readonly title: string; readonly url: string; readonly excerpt: string }
 interface ResultData { readonly url: string; readonly excerpt: string; readonly meta: { readonly title?: string }; readonly sub_results?: readonly SubResult[] }
 interface Pagefind {
@@ -22,14 +23,17 @@ function load(): Promise<Pagefind | undefined> {
 }
 
 type Kind = 'docs' | 'faq' | 'site';
-const kindOf = (url: string): Kind => (url.startsWith('/docs/') ? 'docs' : url.startsWith('/faq/') ? 'faq' : 'site');
+const kindOf = (url: string): Kind => {
+  const target = new URL(publicDestination(url));
+  return target.hostname === 'docs.tunneltend.com' ? 'docs' : target.pathname.startsWith('/faq/') ? 'faq' : 'site';
+};
 const kindLabel: Record<Kind, string> = { docs: 'Docs', faq: 'FAQ', site: 'Site' };
 
 function hit(data: ResultData): HTMLLIElement {
   const kind = kindOf(data.url);
   const item = document.createElement('li');
   const link = document.createElement('a');
-  link.className = 'search-hit'; link.href = data.url; link.dataset.kind = kind;
+  link.className = 'search-hit'; link.href = publicDestination(data.url); link.dataset.kind = kind;
   const head = document.createElement('span'); head.className = 'search-hit-head';
   const chip = document.createElement('span'); chip.className = 'chip-meta search-kind'; chip.textContent = kindLabel[kind];
   const title = document.createElement('span'); title.className = 'search-hit-title'; title.textContent = data.meta.title ?? data.url;
@@ -43,7 +47,7 @@ function hit(data: ResultData): HTMLLIElement {
     const list = document.createElement('ul'); list.className = 'search-subs';
     for (const sub of subs) {
       const li = document.createElement('li'); const a = document.createElement('a');
-      a.className = 'search-sub'; a.href = sub.url; a.textContent = sub.title;
+      a.className = 'search-sub'; a.href = publicDestination(sub.url); a.textContent = sub.title;
       li.append(a); list.append(li);
     }
     item.append(list);

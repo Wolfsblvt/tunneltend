@@ -21,7 +21,7 @@ Program files live separately, by default under `%LOCALAPPDATA%\Programs\TunnelT
 | --- | --- |
 | `registry.json` | Your registered services and their policy: the desired state and what the automation may do. |
 | `runtime.json` | Observations, the current sign-in session's intent, source fingerprints, and recovery accounting. |
-| `logs\` | Daily JSON Lines event logs. See [Logging](/docs/logging/). |
+| `logs\` | Daily JSON Lines event logs. See [Logging](https://docs.tunneltend.com/logging/). |
 | `backups\` | Snapshots of the official client taken before an update, so it can be rolled back. |
 | `work\` | Temporary state for an operation in progress. |
 
@@ -80,7 +80,7 @@ If you want a smaller footprint, delete old files under `logs\` and `backups\` d
 | `-PurgeState` | The selected registry, runtime store, logs, and backups are deleted. This is destructive and uses PowerShell's confirmation semantics. |
 | `-RemoveOfficialClient` | The managed official-client directory is deleted only when it is inside the installation and outside the state root. |
 
-Deleting TunnelTend state never deletes your project files, your remote OpenAI tunnel objects, OpenAI's own control-plane history, or any data owned by your MCP service. Those live elsewhere and belong to their owners. The exact switches are in [Everyday operation](/docs/operations/#uninstall).
+Deleting TunnelTend state never deletes your project files, your remote OpenAI tunnel objects, OpenAI's own control-plane history, or any data owned by your MCP service. Those live elsewhere and belong to their owners. The exact switches are in [Everyday operation](https://docs.tunneltend.com/operations/#uninstall).
 
 ## Before you share diagnostics
 
@@ -90,4 +90,4 @@ The output of `status`, `health`, and `doctor`, the registry and runtime files, 
 - local paths and hostnames that identify you or your machine;
 - anything that looks like a key or token, even if redaction should have caught it.
 
-Inspect the actual text rather than trusting the redaction. For a security problem, use the private reporting route in [Security](/docs/security/#report-a-vulnerability) and never include live credentials or private state.
+Inspect the actual text rather than trusting the redaction. For a security problem, use the private reporting route in [Security](https://docs.tunneltend.com/security/#report-a-vulnerability) and never include live credentials or private state.

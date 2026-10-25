@@ -42,7 +42,7 @@ Registration is retained if startup fails. Use `doctor` to resolve missing scope
 
 **Prefer a local coding agent?** Codex or another agent that can run commands on this Windows PC can follow the canonical guide:
 
-> Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: https://tunneltend.com/docs/install-with-an-agent/
+> Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: https://docs.tunneltend.com/install-with-an-agent/
 
 The [getting-started guide](docs/getting-started.md) covers deterministic installation, policy switches, credential references, and uninstall. The [registration guide](docs/registration.md) covers explicit commands, HTTP services, descriptors, and existing aliases.
 

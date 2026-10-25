@@ -6,9 +6,9 @@ identity:
     eyebrow: Documentation
 ---
 
-This is the complete first journey: from a tool that already runs on your Windows PC to a connection you have verified from ChatGPT. It takes one terminal and about twenty minutes, most of it on OpenAI’s side. If a word is new, [How it works](/docs/how-it-works/) explains it in five minutes.
+This is the complete first journey: from a tool that already runs on your Windows PC to a connection you have verified from ChatGPT. It takes one terminal and about twenty minutes, most of it on OpenAI’s side. If a word is new, [How it works](https://docs.tunneltend.com/how-it-works/) explains it in five minutes.
 
-You can follow the steps yourself, or [hand this guide to a local coding agent](/docs/install-with-an-agent/). Both routes use the same installer, the same commands and the same checks.
+You can follow the steps yourself, or [hand this guide to a local coding agent](https://docs.tunneltend.com/install-with-an-agent/). Both routes use the same installer, the same commands and the same checks.
 
 ## Before installation
 
@@ -42,7 +42,7 @@ file:C:\secure\runtime-key.txt
 
 The default reference is `env:CONTROL_PLANE_API_KEY`. A variable set only in your current PowerShell window is not visible to the later Scheduled Tasks; set it as a user environment variable (Windows Settings → “Edit environment variables for your account”) or use a file reference. A file reference is a pointer to a file you protect with your account’s permissions; it is not an encrypted store.
 
-Keep the tunnel ID and your chosen reference ready. The tunnel ID is OpenAI’s; the service ID you choose in a moment is TunnelTend’s local name for the service. Organization and workspace selectors are available for workflows that need them; they do not bypass OpenAI’s access rules. [Register a service](/docs/registration/) explains the relationship between IDs, aliases and tunnel IDs.
+Keep the tunnel ID and your chosen reference ready. The tunnel ID is OpenAI’s; the service ID you choose in a moment is TunnelTend’s local name for the service. Organization and workspace selectors are available for workflows that need them; they do not bypass OpenAI’s access rules. [Register a service](https://docs.tunneltend.com/registration/) explains the relationship between IDs, aliases and tunnel IDs.
 
 ## Install TunnelTend
 
@@ -141,7 +141,7 @@ Useful switches for this first command:
 | `--no-source-watch` | Do not restart the service when files in the project change. Project registration watches by default. |
 | `--no-autostart` | Do not start this service at later sign-ins. The immediate first start still happens. |
 
-Already running the official client for this tunnel by hand? [Import its alias](/docs/registration/#import-an-existing-official-alias) instead of starting a competing runtime. A command (`--command`), an HTTP endpoint (`--url`) and descriptor files are also covered in [Register a service](/docs/registration/).
+Already running the official client for this tunnel by hand? [Import its alias](https://docs.tunneltend.com/registration/#import-an-existing-official-alias) instead of starting a competing runtime. A command (`--command`), an HTTP endpoint (`--url`) and descriptor files are also covered in [Register a service](https://docs.tunneltend.com/registration/).
 
 ## Verify the whole connection
 
@@ -173,7 +173,7 @@ Configure the consumer on OpenAI’s side. For ChatGPT, follow [OpenAI’s curre
 
 Then make one real request to a known harmless tool and confirm the expected answer comes back. That call is the proof. Until it succeeds, treat the connection as unverified, even when everything on your PC is green.
 
-If the local checks pass but ChatGPT cannot connect, follow [Troubleshooting](/docs/troubleshooting/), which separates local causes from upstream scope, credential and connector problems.
+If the local checks pass but ChatGPT cannot connect, follow [Troubleshooting](https://docs.tunneltend.com/troubleshooting/), which separates local causes from upstream scope, credential and connector problems.
 
 ## Choose installation policy
 
@@ -214,5 +214,5 @@ To update TunnelTend itself, obtain and verify the newer release, extract it and
 
 ## From here
 
-- [Everyday operation](/docs/operations/): deliberate stops, what the watchdog may restart, source watching, client updates, and [how to uninstall](/docs/operations/#uninstall) while keeping your registrations.
-- [Install with an agent](/docs/install-with-an-agent/): hand this same journey to a local coding agent with explicit inputs and completion evidence.
+- [Everyday operation](https://docs.tunneltend.com/operations/): deliberate stops, what the watchdog may restart, source watching, client updates, and [how to uninstall](https://docs.tunneltend.com/operations/#uninstall) while keeping your registrations.
+- [Install with an agent](https://docs.tunneltend.com/install-with-an-agent/): hand this same journey to a local coding agent with explicit inputs and completion evidence.
