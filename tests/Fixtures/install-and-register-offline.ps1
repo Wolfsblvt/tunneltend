@@ -4,18 +4,19 @@ $ErrorActionPreference = 'Stop'
 # configuration, setup, persistence, descriptor registration and receipts are real.
 function global:Import-Module {
     [CmdletBinding()]
-    param([Parameter(Position=0)][string]$Name, [switch]$Force)
-    Microsoft.PowerShell.Core\Import-Module -Name $Name -Force:$Force -Global
+    param([Parameter(Position=0)][string]$Name, [switch]$Force, [switch]$PassThru)
+    $module=Microsoft.PowerShell.Core\Import-Module -Name $Name -Force:$Force -Global -PassThru
     function global:Install-TtAutomation { @{fixture=$true} }
     function global:Get-TtAutomationStatus { @{tasks=@()} }
     function global:Invoke-TtDoctor { @{status='ok'} }
     function global:Get-TtStatus { @{} }
     function global:Import-TtOfficialRuntime { throw 'Unexpected official runtime import' }
-    & (Get-Module TunnelTend) {
+    & $module {
         function script:Invoke-TtDoctor { @{status='ok'} }
         function script:Import-TtOfficialRuntime { throw 'Unexpected official runtime import' }
     }
     if ((Get-Command Install-TtAutomation).ModuleName) { throw 'Fixture did not contain automation effects' }
+    if ($PassThru) { return $module }
 }
 & $InstallerPath -InstallRoot $InstallRoot -StateRoot $StateRoot -NonInteractive -SkipClientInstall -SkipPath | Out-Null
 $installedModule = (Get-Module TunnelTend).Path

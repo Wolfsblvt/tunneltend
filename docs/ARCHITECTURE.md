@@ -73,6 +73,8 @@ Fleet coordination first runs the hardened updater into an isolated sibling inst
 
 ## Key invariants
 
+Manager reinstallation resolves existing choices before payload replacement. The installer publishes only its changed settings in one existing state-lock boundary and keeps a scoped before/after record until success. Failure recovery compares current values before restoring them; unrelated registry changes and runtime intent survive. Conflicting settings retain their current values and a recovery record rather than being overwritten. This does not roll back optional service registration, alias import or official-client update effects.
+
 - A service must be registered before TunnelTend manages it.
 - Read-only operations do not persist state.
 - A bare PID is never sufficient ownership for destructive process control.
