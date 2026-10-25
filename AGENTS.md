@@ -269,7 +269,7 @@ main:
   required approval/review: none
   resolved conversations: no
   automatic CI: CI; Upstream compatibility watch; Website for its consumed inputs
-  automatic retained branch effects: none
+  automatic retained branch effects: Website publishes relevant accepted main changes through the configured production route
   other pre-update evidence: isolated current-user Windows lifecycle validation before the first public release
 ```
 

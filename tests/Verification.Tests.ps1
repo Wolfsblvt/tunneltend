@@ -32,6 +32,16 @@ Describe 'Repository verification failure propagation' {
         } | Should -Throw '*Pester failed*'
         Test-Path -LiteralPath (Join-Path $root 'later-ran.txt') | Should -BeFalse
     }
+    It 'refuses success when Pester discovers no tests' {
+        $root = Join-Path $TestDrive 'empty-pester-suite'
+        New-Item -ItemType Directory -Path (Join-Path $root 'scripts'),(Join-Path $root 'tests') -Force | Out-Null
+        Copy-Item -LiteralPath $script:Runner -Destination (Join-Path $root 'scripts/Invoke-Tests.ps1')
+        Set-Content -LiteralPath (Join-Path $root 'tests/ZeroDependency.ps1') -Value "Write-Output 'fixture portable success'"
+        Mock Import-Module {}
+        Mock Invoke-Pester { [pscustomobject]@{FailedCount=0;TotalCount=0} }
+
+        { & (Join-Path $root 'scripts/Invoke-Tests.ps1') -RequirePester } | Should -Throw '*Pester discovered no tests*'
+    }
     It 'rejects an invalid package version before creating or deleting output' {
         $root = Join-Path $TestDrive 'invalid-build'
         New-Item -ItemType Directory -Path (Join-Path $root 'scripts') -Force | Out-Null
@@ -45,7 +55,7 @@ Describe 'Repository verification failure propagation' {
         $root = Join-Path $TestDrive 'artifacts/source-with-artifacts'
         New-Item -ItemType Directory -Path $root | Out-Null
         Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..') -Force | Where-Object {
-            $_.Name -notin @('.git', 'artifacts', '.validation')
+            $_.Name -notin @('.git', 'artifacts', '.validation', 'website')
         } | Copy-Item -Destination $root -Recurse -Force
         $artifacts = Join-Path $root 'artifacts'
         New-Item -ItemType Directory -Path $artifacts | Out-Null

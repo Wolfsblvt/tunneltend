@@ -4,15 +4,17 @@
  * postal address) never lives here; it reaches the production build only through the private
  * WOLFSBLVT_LEGAL_OPERATOR_B64 projection.
  */
+import { PRODUCT_ORIGIN, DOCS_ORIGIN } from './src/lib/public-routes.mjs';
 const github = 'https://github.com/Wolfsblvt/tunneltend';
 
 export default {
   title: 'TunnelTend',
   description:
     'Connect an app or tool running on your Windows PC to ChatGPT through OpenAI’s official tunnel client, and let TunnelTend keep it connected: startup at sign-in, health checks, bounded recovery and verified client updates. Free and open source.',
-  url: 'https://tunneltend.com',
+  url: PRODUCT_ORIGIN,
   docs: {
     mode: 'manual',
+    url: DOCS_ORIGIN,
     surfaceName: 'TunnelTend Docs',
   },
   identity: {
@@ -106,7 +108,7 @@ export default {
       provision:
         'Your browser has to send the request data to receive a page. There is no account, form, newsletter or tracking on this site, so no further information is required from you.',
       storage:
-        'The site uses no cookies and no tracking. The only browser storage is what you choose on the page itself: your light/dark theme choice (and, for the system setting, which theme the next toggle switches to) and your plain or developer reading mode. The site keeps them in your browser’s local storage because you asked for them (§ 25(2) TDDDG); they are never sent anywhere, and clearing the site’s local storage resets them. Cloudflare’s security layer may set a strictly necessary short-lived cookie to tell people from bots.',
+        'The site uses no analytics or tracking. Your appearance choice, the next theme-toggle direction and plain or developer reading mode are functional preferences. A first-party cookie (tunneltend.preferences) shares only those values between tunneltend.com and docs.tunneltend.com for up to one year after you choose them; it contains no identifier. Your browser sends it with requests to tunneltend.com and its subdomains, including the hosting provider. Local storage also keeps a fallback copy on each origin. Existing saved choices migrate when you visit their original host if no shared preference exists yet. This necessary preference storage supports the reading experience you request (§ 25(2) TDDDG). Clear the cookie and both sites’ local storage to reset it. If cookies are blocked, choices remain local to each host; if all storage is unavailable, they last for the current page. Cloudflare’s security layer may set a strictly necessary short-lived cookie to tell people from bots.',
       contact:
         'If you write to the contact address on the Impressum, we process your email address and what you wrote only to answer you. Legal basis: Art. 6(1)(b) GDPR where you ask about the product, otherwise Art. 6(1)(f) GDPR. Messages are kept as long as the conversation needs it and deleted afterwards. Writing to us is voluntary.',
     },

@@ -4,6 +4,14 @@
 
 This changelog records user-visible TunnelTend changes by release line. The first stable release account is [TunnelTend 1.0.0](docs/releases/1.0.0.md); downloadable availability is established by the matching GitHub Release.
 
+## [Unreleased]
+
+### Fixed
+
+- Appearance and reader preferences remain consistent when moving between the product website and Docs. A functional first-party preference cookie carries the choice between hosts, with local-storage fallback.
+- Updating TunnelTend by rerunning the installer preserves saved automation choices, scope defaults, credential references and the official-client location unless explicitly changed. Failed installs restore their own settings changes without overwriting unrelated or conflicting current intent.
+- Committed installs survive cleanup warnings even with `-WarningAction Stop`; earlier failures reverse their PATH additions. Conflicting explicit choices are refused even when they initially matched saved state, and source installs reject state inside generated `bin` before moving it.
+
 ## [1.0.1]
 
 ### Added

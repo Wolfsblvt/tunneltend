@@ -13,13 +13,13 @@ TunnelTend never stops a process by name. Before it terminates a process it reco
 - the executable path matches the one TunnelTend started; and
 - the process start time matches, where Windows provides it.
 
-Windows reuses PIDs, so a stale record can point at an unrelated program. Any mismatch, and any missing evidence, blocks termination. A blocked repair is reported as such; it is never an excuse to kill something else. Official tunnel runtimes are stopped and restarted through the official client's own runtime commands rather than by broad operating-system termination. If you ever hit this refusal, [Troubleshooting](/docs/troubleshooting/#tunneltend-refuses-to-stop-a-process) explains how to resolve the stale record.
+Windows reuses PIDs, so a stale record can point at an unrelated program. Any mismatch, and any missing evidence, blocks termination. A blocked repair is reported as such; it is never an excuse to kill something else. Official tunnel runtimes are stopped and restarted through the official client's own runtime commands rather than by broad operating-system termination. If you ever hit this refusal, [Troubleshooting](https://docs.tunneltend.com/troubleshooting/#tunneltend-refuses-to-stop-a-process) explains how to resolve the stale record.
 
 ## Credentials are references, and inline secrets are refused
 
 Durable configuration accepts `env:NAME` and `file:PATH` references only. Values that look like an API key, a bearer token, a credential embedded in a URL, or a named secret assignment are rejected in commands, arguments, environment values, and descriptors. Logs redact common token shapes and do not intentionally record resolved secrets.
 
-This is defense in depth. It is not a general secret scanner, and it does not replace file permissions on your secret file or the ordinary rule that processes running as your user can read your environment. [Privacy and data](/docs/privacy-and-data/) lists exactly what is stored.
+This is defense in depth. It is not a general secret scanner, and it does not replace file permissions on your secret file or the ordinary rule that processes running as your user can read your environment. [Privacy and data](https://docs.tunneltend.com/privacy-and-data/) lists exactly what is stored.
 
 ## The official client is downloaded carefully
 
@@ -33,7 +33,7 @@ TunnelTend's updater has one fixed source: the `openai/tunnel-client` releases o
 6. **Rollback on failure.** A failed replacement or restoration rolls back to the recorded backup. The previous executable remains recoverable until the whole sequence succeeds.
 7. **No automatic downgrade.** An older release is never installed automatically.
 
-The update and rollback commands are described in [Everyday operation](/docs/operations/#official-client-updates). TunnelTend never bundles the official client; it is OpenAI's separate program under OpenAI's licence.
+The update and rollback commands are described in [Everyday operation](https://docs.tunneltend.com/operations/#official-client-updates). TunnelTend never bundles the official client; it is OpenAI's separate program under OpenAI's licence.
 
 ## Everything runs as you, without elevation
 

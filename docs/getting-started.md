@@ -2,6 +2,8 @@
 
 Connect an MCP service you already run, then verify what TunnelTend will maintain for you. This guide covers the Windows installation and first-connection journey. The matching [GitHub Release](https://github.com/Wolfsblvt/tunneltend/releases/latest) carries downloadable availability and its release-specific qualification notes.
 
+For the reader walkthrough, including opening PowerShell, identifying your MCP service and using the released one-line installer, follow [Get started in the public manual](https://tunneltend.com/docs/getting-started/). This repository companion keeps the source-installation and maintainer details below.
+
 You can [follow the steps yourself](#before-installation) or [give this guide to a local coding agent](#install-with-a-local-agent). Both routes use the same installer, commands, and checks.
 
 ## Before installation
@@ -81,7 +83,7 @@ tunneltend service register 'C:\src\my-mcp' --id my-mcp `
 
 If you chose a file reference, replace the final value with your reference, quoting the whole value when its path contains spaces. Do not substitute the key itself.
 
-Registration saves the service and normally starts it immediately. If discovery finds several plausible targets, choose the explicit command it asks for; it will not guess. If startup fails, your registration is retained. Inspect `tunneltend doctor my-mcp` before retrying.
+Registration saves the service and normally starts it immediately. If discovery finds several plausible targets, it lists their types and reasons and asks for a descriptor or explicit command; it does not generate that command. Choose the target from your MCP server's launch instructions. If startup fails, your registration is retained. Inspect `tunneltend doctor my-mcp` before retrying.
 
 Project-path registration enables source watching by default. Add `--no-source-watch` if this service should restart only when you request it. Add `--no-start` to save a registration for inspection without starting it. `--no-autostart` affects later sign-ins; it does not disable this immediate first start.
 
@@ -144,11 +146,17 @@ Unattended tasks use a native launcher to prevent console creation and a stable 
 
 ### Custom paths and reinstallation
 
-Program and state roots must be different directories. A dedicated nested state path such as `C:\Tools\TunnelTend\data\state` is supported; do not put state in a program payload directory such as `src` or `official-client`.
+Program and state roots must be different directories. A dedicated nested state path such as `C:\Tools\TunnelTend\data\state` is supported; do not put state in a program payload directory such as `src` or generated `bin`.
 
 When `-StateRoot` is omitted, reinstall and uninstall read the selected installation's `install.json` receipt before falling back to the default state root. An invalid receipt requires an explicit `-StateRoot` override. Reinstallation preserves the selected state and its dedicated nested container.
 
 To update TunnelTend, obtain and verify the intended newer release, extract it and rerun its installer for the same installation. Check the project's change notes and preserve your state first. `tunneltend client update` updates the official client, not TunnelTend's own source or program files.
+
+The following upgrade-continuity repair is in current source for the next release; published **1.0.1 does not include it**. Before reinstalling 1.0.1, inspect and record your current choices and supply the intended policy, scope, credential-reference and client-location options explicitly.
+
+With the repaired installer, reinstallation keeps saved autostart, automatic-update and watchdog choices, scope defaults, credential reference and official-client location when their options are omitted. This also applies to retained state after uninstall. Interactive questions start from the saved choices; explicitly supplied options take precedence. New state still receives the autonomous defaults. When calling the script directly in a PowerShell session, `-DisableAutostart:$false` explicitly enables autostart, and `-OrganizationId @()` explicitly clears the default organization list.
+
+If installation fails after changing settings, it restores only its own settings changes alongside the previous program payload. It preserves registrations, current session intent and unrelated settings. A conflicting later change is left intact and reported as incomplete recovery, with an `installer-recovery-<id>.json` record in the selected state directory. Keep that record and inspect the named fields with `tunneltend config show`. Use explicit installer options on the next attempt to select any values you want changed; do not replace the registry with the recovery record. Optional service registration, alias import and official-client updates have their own effects; this is not a whole-fleet rollback. Before commitment, failure also removes this attempt's PATH additions while preserving existing and unrelated entries. After commitment, cleanup warnings cannot undo the installation, including with `-WarningAction Stop`. An explicit or interactively confirmed choice that conflicts with a newer write is refused even if it initially matched saved state.
 
 ## Install with a local agent
 
@@ -166,6 +174,7 @@ The guide carries the setup contract. The agent should:
 
 - Read the repository's [AGENTS.md](../AGENTS.md) before working in the source, and follow this guide's prerequisites and selected installation policy.
 - Inspect the existing installation and aliases before changing them. Use the supported installer and CLI; do not assemble or normalize persisted JSON by hand.
+- For the repaired installer in current source/next release, omit policy, scope, credential-reference and client-location options on reinstall unless the operator requested a change. Omission preserves saved choices. Published 1.0.1 lacks this repair: inspect and record the current choices, then pass the intended values explicitly when reinstalling it.
 - Use `env:` or `file:` credential references, preserve download verification and process ownership checks, and elevate only when the chosen installation boundary requires it.
 - Finish with the registration, `status`, `health`, `doctor`, and `automation status` observations above. Report the registered target, sign-in policy, automation, and any failed or unobserved step.
 - Distinguish local setup from the real consumer call and later Windows lifecycle behavior. If it cannot perform an intended check, say which one remains unobserved.

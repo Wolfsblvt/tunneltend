@@ -23,8 +23,6 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows) { throw 'TunnelTend installation currently targets Windows.' }
 if ($PSVersionTable.PSVersion -lt [version]'7.4.0') { throw 'TunnelTend requires PowerShell 7.4 or newer.' }
-if ($null -eq $OrganizationId) { $OrganizationId = @() }
-if ($null -eq $WorkspaceId) { $WorkspaceId = @() }
 
 $sourceRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $InstallRoot) { $InstallRoot = Join-Path $env:LOCALAPPDATA 'Programs/TunnelTend' }
@@ -32,6 +30,12 @@ $InstallRoot = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables(
 . (Join-Path $PSScriptRoot 'InstallationPaths.ps1')
 $StateRoot = Resolve-TtInstallationStateRoot $InstallRoot $StateRoot
 Assert-TtInstallationRoots $InstallRoot $StateRoot
+if (Test-TtInstallationPathWithin $StateRoot $InstallRoot) {
+    $containerName = ([IO.Path]::GetRelativePath($InstallRoot, $StateRoot) -split '[\\/]')[0]
+    if ($containerName -in @('src','scripts','schemas','tests','docs','brand','carriers','examples','bin')) {
+        throw 'A nested StateRoot must use its own directory, separate from TunnelTend program payload paths (for example InstallRoot/data/state).'
+    }
+}
 if (-not $PowerShellPath -and [IO.File]::Exists((Join-Path $InstallRoot 'install.json'))) {
     $previousReceipt = Get-Content -Raw -LiteralPath (Join-Path $InstallRoot 'install.json') | ConvertFrom-Json -AsHashtable
     if ($previousReceipt.Contains('powerShellPath')) { $PowerShellPath = [string]$previousReceipt.powerShellPath }
@@ -45,12 +49,29 @@ function Read-Choice([string]$Prompt,[bool]$Default) {
     return $answer -match '^(?i)y(?:es)?$'
 }
 
+# Validate before replacement without registering a second TunnelTend module in
+# the caller's session. Only state/settings helpers are needed for this read.
+$installerModule = New-Module -ScriptBlock {
+    param($root)
+    $script:TtModuleRoot = Join-Path $root 'src/TunnelTend'
+    foreach ($file in @('00-Utilities.ps1','10-State.ps1','11-InstallerSettings.ps1')) {
+        . (Join-Path $script:TtModuleRoot "Private/$file")
+    }
+} -ArgumentList $sourceRoot
+$settingsPlan = & $installerModule { param($state,$install,$parameters) New-TtInstallerSettingsPlan $state $install $parameters } $StateRoot $InstallRoot $PSBoundParameters
 if (-not $NonInteractive) {
     [Console]::WriteLine('TunnelTend will install a local desired-state manager for MCP tunnel services.')
     [Console]::WriteLine('Recommended defaults: start registered services at logon, verify official-client updates daily, and recover unhealthy services every two minutes.')
-    $DisableAutostart = -not (Read-Choice 'Enable service autostart at Windows logon?' $true)
-    $DisableAutoUpdate = -not (Read-Choice 'Enable verified official tunnel-client updates?' $true)
-    $DisableWatchdog = -not (Read-Choice 'Enable autonomous health recovery?' $true)
+    foreach ($choice in @(
+        @{ parameter='DisableAutostart'; path='automation.autostart'; prompt='Enable service autostart at Windows logon?' },
+        @{ parameter='DisableAutoUpdate'; path='automation.autoUpdate'; prompt='Enable verified official tunnel-client updates?' },
+        @{ parameter='DisableWatchdog'; path='automation.watchdog'; prompt='Enable autonomous health recovery?' }
+    )) {
+        if (-not $PSBoundParameters.ContainsKey($choice.parameter)) {
+            $settingsPlan.values[$choice.path] = Read-Choice $choice.prompt $settingsPlan.values[$choice.path]
+            $settingsPlan.explicit[$choice.path] = $true
+        }
+    }
 }
 
 if (-not $PSCmdlet.ShouldProcess($InstallRoot, 'Install TunnelTend')) { return }
@@ -63,13 +84,15 @@ $nestedState = Test-TtInstallationPathWithin $StateRoot $InstallRoot
 $stateDirectory = if ($nestedState) { ([IO.Path]::GetRelativePath($InstallRoot, $StateRoot) -split '[\\/]')[0] } else { $null }
 $stateContainer = if ($nestedState) { Join-Path $InstallRoot $stateDirectory } else { $null }
 $preservedState = "$InstallRoot.state-$([Guid]::NewGuid().ToString('N'))"
+$settingsRecoveryPath = Join-Path $StateRoot ('installer-recovery-' + [Guid]::NewGuid().ToString('N') + '.json')
+$pathChanges = @{}
 try {
     New-Item -ItemType Directory -Path $temp -Force | Out-Null
     $exclude = @('.git','artifacts','.validation','website')
     foreach ($item in Get-ChildItem -LiteralPath $sourceRoot -Force) {
         if ($item.Name -in $exclude) { continue }
         if ($nestedState -and (Test-TtInstallationPathWithin $StateRoot $item.FullName)) {
-            if ($item.Name -in @('src','scripts','schemas','tests','docs','brand','carriers','examples')) {
+            if ($item.Name -in @('src','scripts','schemas','tests','docs','brand','carriers','examples','bin')) {
                 throw 'A nested StateRoot must use its own directory, separate from TunnelTend program payload paths (for example InstallRoot/data/state).'
             }
             continue
@@ -96,28 +119,13 @@ try {
     }
 
     $env:TUNNELTEND_CLI_PATH = Join-Path $InstallRoot 'tunneltend.ps1'
-    Import-Module (Join-Path $InstallRoot 'src/TunnelTend/TunnelTend.psd1') -Force
-    $PowerShellPath = & (Get-Module TunnelTend | Select-Object -First 1) { param($path) Get-TtPowerShellExecutable $path } $PowerShellPath
+    $installerModule = Import-Module (Join-Path $InstallRoot 'src/TunnelTend/TunnelTend.psd1') -Force -PassThru
+    $PowerShellPath = & $installerModule { param($path) Get-TtPowerShellExecutable $path } $PowerShellPath
     # Acquisition and optional service registration also launch PowerShell. Make
     # the selected runtime available to them inside this rollback transaction.
     $manifest = [ordered]@{ product='tunneltend'; version='1.0.1'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot; powerShellPath=$PowerShellPath }
     $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $InstallRoot 'install.json') -Encoding utf8NoBOM
-    Set-TtConfiguration -Path 'settings.automation.autostart' -Value (-not $DisableAutostart) -StateRoot $StateRoot | Out-Null
-    Set-TtConfiguration -Path 'settings.automation.autoUpdate' -Value (-not $DisableAutoUpdate) -StateRoot $StateRoot | Out-Null
-    Set-TtConfiguration -Path 'settings.automation.watchdog' -Value (-not $DisableWatchdog) -StateRoot $StateRoot | Out-Null
-    Set-TtConfiguration -Path 'settings.defaults.organizationIds' -Value @($OrganizationId) -StateRoot $StateRoot | Out-Null
-    Set-TtConfiguration -Path 'settings.defaults.workspaceIds' -Value @($WorkspaceId) -StateRoot $StateRoot | Out-Null
-    Set-TtConfiguration -Path 'settings.defaults.runtimeKeyRef' -Value $RuntimeKeyRef -StateRoot $StateRoot | Out-Null
-    if ($TunnelClientPath) {
-        $resolvedClient = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($TunnelClientPath))
-        if (-not (Test-Path -LiteralPath $resolvedClient -PathType Leaf)) { throw "Tunnel client '$resolvedClient' does not exist." }
-        Set-TtConfiguration -Path 'settings.officialClient.executablePath' -Value $resolvedClient -StateRoot $StateRoot | Out-Null
-        Set-TtConfiguration -Path 'settings.officialClient.installDirectory' -Value ([IO.Path]::GetDirectoryName($resolvedClient)) -StateRoot $StateRoot | Out-Null
-    }
-    else {
-        Set-TtConfiguration -Path 'settings.officialClient.installDirectory' -Value (Join-Path $InstallRoot 'official-client') -StateRoot $StateRoot | Out-Null
-        Set-TtConfiguration -Path 'settings.officialClient.executablePath' -Value (Join-Path $InstallRoot 'official-client/tunnel-client.exe') -StateRoot $StateRoot | Out-Null
-    }
+    $effectiveSettings = & $installerModule { param($plan,$state,$recovery) Set-TtInstallerSettings $plan $state $recovery } $settingsPlan $StateRoot $settingsRecoveryPath
 
     if (-not $SkipClientInstall -and -not $TunnelClientPath) { Update-TtClient -Force -StateRoot $StateRoot | Out-Null }
     $selectedAliases = @($AutostartAliases | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -125,7 +133,7 @@ try {
         Import-TtOfficialRuntime -Alias $(if ($AllManagedAliases) {@()} else {$selectedAliases}) -Force:$Force -StateRoot $StateRoot | Out-Null
     }
     foreach ($path in @($RegisterPath | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })) {
-        Register-TtService -Path $path -OrganizationId $OrganizationId -WorkspaceId $WorkspaceId -RuntimeKeyRef $RuntimeKeyRef -Force:$Force -StateRoot $StateRoot | Out-Null
+        Register-TtService -Path $path -OrganizationId $effectiveSettings.defaults.organizationIds -WorkspaceId $effectiveSettings.defaults.workspaceIds -RuntimeKeyRef $effectiveSettings.defaults.runtimeKeyRef -Force:$Force -StateRoot $StateRoot | Out-Null
     }
     foreach ($task in (Get-TtAutomationStatus -StateRoot $StateRoot).tasks) {
         if ($task.installed) { $automationSnapshot[$task.name] = Export-ScheduledTask -TaskName $task.name -TaskPath '\TunnelTend\' }
@@ -137,34 +145,52 @@ try {
     # Publish the command only after acquisition, task registration, and the
     # installation receipt succeed. A failed install must not leave a dead PATH.
     if (-not $SkipPath) {
-        $userPath = [Environment]::GetEnvironmentVariable('Path','User')
-        $parts = @($userPath -split ';' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        if ($parts -notcontains $InstallRoot) {
-            [Environment]::SetEnvironmentVariable('Path', (($parts + $InstallRoot) -join ';'), 'User')
-        }
-        if (($env:Path -split ';') -notcontains $InstallRoot) { $env:Path = "$InstallRoot;$env:Path" }
+        & $installerModule { param($root,$changes) Add-TtInstallationPath $root $changes } $InstallRoot $pathChanges
     }
-    [Console]::WriteLine("TunnelTend installed at $InstallRoot")
-    [Console]::WriteLine("State is stored at $StateRoot")
-    [Console]::WriteLine("Doctor status: $($doctor.status)")
-    [Console]::WriteLine('Open a new terminal, then run: tunneltend status')
-    if ($backup -and (Test-Path -LiteralPath $backup)) { Remove-Item -LiteralPath $backup -Recurse -Force }
+    # Last rollback-capable step. A locked recovery record still means failure;
+    # retain it and reverse this attempt's PATH, settings and payload effects.
+    if ([IO.File]::Exists($settingsRecoveryPath)) { Remove-Item -LiteralPath $settingsRecoveryPath -Force }
 }
 catch {
     $installError = $_
-    if ($automationInstalled) {
-        Uninstall-TtAutomation | Out-Null
-        foreach ($name in $automationSnapshot.Keys) { Register-ScheduledTask -TaskName $name -TaskPath '\TunnelTend\' -Xml $automationSnapshot[$name] -Force | Out-Null }
+    $recoveryErrors = @()
+    try { if ($pathChanges.Count -gt 0) { & $installerModule { param($root,$changes) Undo-TtInstallationPath $root $changes } $InstallRoot $pathChanges } }
+    catch { $recoveryErrors += "PATH recovery failed for '$InstallRoot': $($_.Exception.Message)" }
+    try {
+        & $installerModule { param($state,$recovery) Undo-TtInstallerSettings $state $recovery } $StateRoot $settingsRecoveryPath
     }
-    if ($replacementStarted -and $nestedState -and [IO.Directory]::Exists($stateContainer)) { [IO.Directory]::Move($stateContainer, $preservedState) }
-    if ($replacementStarted -and (Test-Path -LiteralPath $InstallRoot)) { Remove-Item -LiteralPath $InstallRoot -Recurse -Force }
-    if ($backup -and (Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $InstallRoot)) { Move-Item -LiteralPath $backup -Destination $InstallRoot }
-    if ([IO.Directory]::Exists($preservedState)) {
-        [IO.Directory]::CreateDirectory($InstallRoot) | Out-Null
-        [IO.Directory]::Move($preservedState, $stateContainer)
+    catch { $recoveryErrors += "Settings recovery failed: $($_.Exception.Message). Recovery record: '$settingsRecoveryPath'." }
+    try {
+        if ($automationInstalled) {
+            Uninstall-TtAutomation | Out-Null
+            foreach ($name in $automationSnapshot.Keys) { Register-ScheduledTask -TaskName $name -TaskPath '\TunnelTend\' -Xml $automationSnapshot[$name] -Force | Out-Null }
+        }
     }
+    catch { $recoveryErrors += "Automation recovery failed: $($_.Exception.Message)" }
+    try {
+        if ($replacementStarted -and $nestedState -and [IO.Directory]::Exists($stateContainer)) { [IO.Directory]::Move($stateContainer, $preservedState) }
+        if ($replacementStarted -and (Test-Path -LiteralPath $InstallRoot)) { Remove-Item -LiteralPath $InstallRoot -Recurse -Force }
+        if ($backup -and (Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $InstallRoot)) { Move-Item -LiteralPath $backup -Destination $InstallRoot }
+        if ([IO.Directory]::Exists($preservedState)) {
+            [IO.Directory]::CreateDirectory($InstallRoot) | Out-Null
+            [IO.Directory]::Move($preservedState, $stateContainer)
+        }
+    }
+    catch { $recoveryErrors += "Payload recovery failed: $($_.Exception.Message). Previous payload: '$backup'; preserved state: '$preservedState'." }
+    if ($recoveryErrors.Count -gt 0) { throw "Installation failed: $($installError.Exception.Message). Recovery incomplete: $($recoveryErrors -join '; ')" }
     throw $installError
 }
 finally {
-    if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }
+    if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue }
 }
+
+# The installation is committed. Neither cleanup nor caller warning preferences
+# may re-enter rollback after the settings recovery coordinate has been retired.
+if ($backup -and (Test-Path -LiteralPath $backup)) {
+    try { Remove-Item -LiteralPath $backup -Recurse -Force }
+    catch { Write-Warning "Installation completed; previous payload cleanup failed at '$backup': $($_.Exception.Message)" -WarningAction Continue }
+}
+[Console]::WriteLine("TunnelTend installed at $InstallRoot")
+[Console]::WriteLine("State is stored at $StateRoot")
+[Console]::WriteLine("Doctor status: $($doctor.status)")
+[Console]::WriteLine('Open a new terminal, then run: tunneltend status')

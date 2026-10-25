@@ -69,9 +69,13 @@ The same planning engine produces explicit actions; context decides eligibility 
 
 ## Update transaction
 
-Fleet coordination first runs the hardened updater into an isolated sibling installation. Release discovery, exact asset selection, checksum verification, safe extraction, and staged version and capability checks finish before any service is stopped. TunnelTend then backs up the existing installation, stops the active fleet, swaps directories, checks the installed capabilities, and restores the fleet. A replacement or fleet-restoration failure restores the previous directory and attempts to restore the stopped services; an incomplete rollback is reported explicitly. An explicit same-version reinstall follows the same path; force never permits a downgrade.
+Fleet coordination first runs the hardened updater into an isolated staging installation. Release discovery, exact asset selection, checksum verification, safe extraction, and staged version and capability checks finish before any service is stopped. TunnelTend then backs up the selected executable, stops the active fleet, replaces that file, checks the installed capabilities, and restores the fleet. Neighboring files and state directories are not the replacement payload. A replacement or fleet-restoration failure restores the previous executable and attempts to restore the stopped services; an incomplete rollback is reported explicitly. An explicit same-version reinstall follows the same path; force never permits a downgrade.
 
 ## Key invariants
+
+Manager reinstallation resolves existing choices before payload replacement. The installer publishes only its changed settings in one existing state-lock boundary and keeps a scoped before/after record until success. Failure recovery compares current values before restoring them; unrelated registry changes and runtime intent survive. Conflicting settings retain their current values and a recovery record rather than being overwritten. This does not roll back optional service registration, alias import or official-client update effects.
+
+Explicit and interactively confirmed settings retain their intent even when they initially match saved values: a conflicting writer between preparation and publication causes refusal. Omitted unchanged settings retain newer current intent. PATH publication tracks only this attempt's user/process additions and reverses them on pre-commit failure, preserving pre-existing and unrelated current entries. Retiring the settings recovery record is the last rollback-capable step; success reporting and non-critical previous-payload cleanup happen afterward and cannot re-enter rollback through caller warning preferences. Generated `bin` is rejected as a nested state container before staging or replacement.
 
 - A service must be registered before TunnelTend manages it.
 - Read-only operations do not persist state.

@@ -18,8 +18,12 @@ const groups: Group[] = [
       `It uses OpenAI’s official \`tunnel-client\` as a separate program. OpenAI owns that client, the tunnel protocol, the hosted side and the access rules; TunnelTend owns the local care around it. [See what you need from OpenAI](/#openai).`,
     ] },
     { id: 'chatgpt-local-tool', q: 'I just want ChatGPT to use a tool on my PC. Is this for me?', a: [
-      'If that tool has an MCP server, yes. ChatGPT reaches it through OpenAI’s Secure MCP Tunnels, and TunnelTend keeps that tunnel and your tool running on your Windows PC without you starting anything by hand after the first setup.',
+      'If the tool has a working MCP server, you use Windows 11, and you have the required OpenAI tunnel access, TunnelTend can take care of the local startup and recovery. Your computer must still be awake, online and signed in.',
       `You still need the OpenAI side: a tunnel in your organization, a runtime key and a connector in ChatGPT. [Get started](${docPaths.getStarted}) walks through all of it in order, and explains the words along the way.`,
+    ] },
+    { id: 'not-a-developer', q: 'Can I use it if I’m not a developer?', a: [
+      `You do not need Git or a source checkout. The released installer and [setup guide](${docPaths.getStarted}) explain which PowerShell app to open, what to paste, what to replace and how to check the result. A local coding agent can also follow the same route with you.`,
+      `You still need a working MCP server for your tool and OpenAI tunnel access. If you only know the app’s name, start with [Find your MCP service](${docPaths.getStarted}#find-your-mcp-service). It explains what to look for in the app’s instructions and what to ask its maintainer or an agent. An app without MCP support needs a separate integration.`,
     ] },
     { id: 'official-client-alone', q: 'Why not just use the official tunnel client?', a: [
       'You can. The official client already connects MCP services, runs detached and lets you inspect and control the runtime. If that is enough, TunnelTend is optional.',
@@ -27,7 +31,7 @@ const groups: Group[] = [
     ] },
     { id: 'existing-mcp-service', q: 'Do I need an MCP server already?', a: [
       'Yes. TunnelTend can register a project folder, a command or an HTTP MCP endpoint, but the server has to run on its own with its own dependencies. It does not turn an arbitrary program or web API into an MCP server.',
-      `Project discovery helps find a launch target and refuses to guess when several are plausible. [Choose a registration method](${docPaths.registration}).`,
+      `If you are unsure what you have, [find the service’s setup details](${docPaths.getStarted}#find-your-mcp-service) first. Project discovery helps find a launch target and refuses to guess when several are plausible. [Choose a registration method](${docPaths.registration}).`,
     ] },
     { id: 'local-or-hosted', q: 'Is TunnelTend a hosting service?', a: [
       'No. It runs on your computer and manages locally launched services or connects the official client to an HTTP endpoint you run. There is no TunnelTend cloud, account, dashboard or control plane.',
@@ -118,7 +122,7 @@ const inline = (text: string): string => text
 </Base>
 
 <style>
-  .faq { padding-block: 56px 88px; display: flex; flex-direction: column; gap: 40px; max-width: calc(96ch + 2 * var(--page-gutter)); margin-inline: 0; }
+  .faq { padding-block: 56px 88px; display: flex; flex-direction: column; gap: 40px; }
   .faq-head { max-width: 68ch; display: flex; flex-direction: column; gap: 10px; }
   .faq-head .lede a { color: var(--fg); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair-strong); }
   .faq-group { display: flex; flex-direction: column; }

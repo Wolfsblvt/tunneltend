@@ -1,6 +1,6 @@
 {
-  // The TunnelTend website: Cloudflare Workers Static Assets from the Astro build. No custom
-  // Worker script; the static assets are the whole site. tunneltend.com is a Cloudflare zone,
+  // One Astro artifact and host-aware Worker for the product site and canonical Docs Home.
+  // tunneltend.com is a Cloudflare zone,
   // so the Workers route (not Pages) is the adopted Wolf Ops split for a dedicated domain.
   //
   // Desired routing only: no provider resource or DNS effect occurs until Wolf Ops admits
@@ -8,12 +8,23 @@
   // disabled so the production build has one selected public Home.
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "tunneltend-website",
+  "main": "src/worker.mjs",
   "compatibility_date": "2026-10-01",
   "workers_dev": false,
   "preview_urls": false,
-  "routes": [{ "pattern": "tunneltend.com", "custom_domain": true }],
+  "routes": [
+    { "pattern": "tunneltend.com", "custom_domain": true },
+    { "pattern": "docs.tunneltend.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./artifacts/site",
+    "binding": "ASSETS",
+    // Host-dependent pages and discovery pass through the Worker. Shared immutable assets
+    // can stay on the native static path without paying a Worker invocation per asset.
+    "run_worker_first": [
+      "/*", "!/_astro/*", "!/pagefind/*", "!/social/*", "!/brand/*",
+      "!/favicon*", "!/apple-touch-icon.png"
+    ],
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
   },

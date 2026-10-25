@@ -79,13 +79,13 @@ There are two kinds of stop, and the difference matters.
 `repair --apply` and a plain `reconcile` consider every enabled, desired-running service, including one you stopped with `--session-only` and one sign-in startup did not activate. They respect a durable stop and a disabled flag. Preview with `tunneltend repair my-mcp` or `tunneltend reconcile my-mcp --plan`, then apply to the service you mean.
 :::
 
-To take a service away from TunnelTend entirely, use `tunneltend service remove my-mcp`. Add `--keep-running` to withdraw supervision but leave the processes up. See [Register a service](/docs/registration/#verify-or-remove-a-registration).
+To take a service away from TunnelTend entirely, use `tunneltend service remove my-mcp`. Add `--keep-running` to withdraw supervision but leave the processes up. See [Register a service](https://docs.tunneltend.com/registration/#verify-or-remove-a-registration).
 
 ## When recovery holds back
 
 The watchdog recovers a service only when it is enabled, desired running, active in this session, not suppressed, configuration-ready and within its retry budget. The default budget is four attempts in a rolling twenty-minute window with backoff growing from ten seconds to five minutes. A running but unhealthy service normally needs two unhealthy observations first; a missing runtime can be started at once.
 
-An exhausted budget shows up in `doctor` and is not a lockout: attempts become eligible again as older ones leave the window. A deferred recovery is reported as `operation.skipped`, not as a failure. Before forcing another attempt, read `doctor`, the [logs](/docs/logging/), the command path, the credential reference and the tunnel scope. Health and readiness are separate: startup waits for both as configured, the watchdog recovers on health, and a readiness-only failure does not by itself trigger a restart. HTTP probes check a response, not a tool call from ChatGPT.
+An exhausted budget shows up in `doctor` and is not a lockout: attempts become eligible again as older ones leave the window. A deferred recovery is reported as `operation.skipped`, not as a failure. Before forcing another attempt, read `doctor`, the [logs](https://docs.tunneltend.com/logging/), the command path, the credential reference and the tunnel scope. Health and readiness are separate: startup waits for both as configured, the watchdog recovers on health, and a readiness-only failure does not by itself trigger a restart. HTTP probes check a response, not a tool call from ChatGPT.
 
 ## Source watching and application updates
 
@@ -96,7 +96,7 @@ Includes and exclusions decide what is watched. Generated, dependency, version-c
 An **application-update command** is a different thing: a command you define in the service definition that updates the application itself. It is off by default and runs only when you explicitly configure and enable it. In this release, maintenance considers every update-enabled registration, including disabled, desired-stopped and session-suppressed ones; those states do not pause the update command. Whether the update then stops and starts the service follows enabled, desired-running and not-suppressed state, and an update can activate such a service.
 
 :::note
-Keep application updates off unless that behavior matches how you work. Manage the policy in the service definition; `service stop` is not a pause button for application maintenance. See [Use a project descriptor](/docs/registration/#use-a-project-descriptor).
+Keep application updates off unless that behavior matches how you work. Manage the policy in the service definition; `service stop` is not a pause button for application maintenance. See [Use a project descriptor](https://docs.tunneltend.com/registration/#use-a-project-descriptor).
 :::
 
 ## Official client updates
@@ -123,7 +123,7 @@ Automatic downgrades are refused. A published SHA-256 digest is always required;
 
 ## Updating TunnelTend itself
 
-`client update` updates OpenAI's client, not TunnelTend. To update TunnelTend, get the newer release and run its installer for the same installation: either the one-line installer on the [home page](/#install), or download, verify and run `scripts\Install-TunnelTend.ps1` from the extracted release. Read the release notes first and keep your state. Reinstallation preserves the selected state root and a dedicated nested state folder. See [Choose installation policy](/docs/getting-started/#choose-installation-policy).
+`client update` updates OpenAI's client, not TunnelTend. To update TunnelTend, get the newer release and run its installer for the same installation: either the one-line installer on the [home page](/#install), or download, verify and run `scripts\Install-TunnelTend.ps1` from the extracted release. Read the release notes first and keep your state. Reinstallation preserves the selected state root and a dedicated nested state folder. See [Choose installation policy](https://docs.tunneltend.com/getting-started/#choose-installation-policy).
 
 ## Where things live
 
@@ -139,13 +139,13 @@ Automatic downgrades are refused. A published SHA-256 digest is always required;
 | `backups\` | Official client rollback snapshots. |
 | `work\` | Temporary operation state. |
 
-[Logging](/docs/logging/) explains the events; [Privacy and data](/docs/privacy-and-data/) explains what is and is not in these files.
+[Logging](https://docs.tunneltend.com/logging/) explains the events; [Privacy and data](https://docs.tunneltend.com/privacy-and-data/) explains what is and is not in these files.
 
 ## When something fails
 
 One failing service does not stop the rest of a fleet pass. A mutating command records a result per service and returns a degraded status when one of them failed. A timeout or an error does not prove nothing happened: run a read-only observation before repeating anything consequential.
 
-When the recorded process does not match what is running now, TunnelTend refuses to terminate it. Resolve the stale record or use the official client's own runtime commands. It never falls back to killing by process name. [Troubleshooting](/docs/troubleshooting/) walks through the common cases.
+When the recorded process does not match what is running now, TunnelTend refuses to terminate it. Resolve the stale record or use the official client's own runtime commands. It never falls back to killing by process name. [Troubleshooting](https://docs.tunneltend.com/troubleshooting/) walks through the common cases.
 
 ## Uninstall
 

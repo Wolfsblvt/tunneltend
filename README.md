@@ -1,88 +1,86 @@
 <h1><picture><source media="(prefers-color-scheme: dark)" srcset="brand/bundle/tunneltend/assets/lockup-default/on-dark.svg"><img src="brand/bundle/tunneltend/assets/lockup-default/on-light.svg" alt="TunnelTend" height="44"></picture></h1>
 
 [![CI](https://github.com/Wolfsblvt/tunneltend/actions/workflows/ci.yml/badge.svg)](https://github.com/Wolfsblvt/tunneltend/actions/workflows/ci.yml)
-[![PowerShell 7.4+](https://img.shields.io/badge/PowerShell-7.4%2B-5391FE?logo=powershell&logoColor=white)](docs/DEVELOPMENT.md)
+[![PowerShell 7.4+](https://img.shields.io/badge/PowerShell-7.4%2B-5391FE?logo=powershell&logoColor=white)](https://docs.tunneltend.com/getting-started/#before-installation)
 [![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-663399.svg)](LICENSE)
 
 **Register once. Leave the routine to TunnelTend.**
 
-TunnelTend is a local-first Windows manager for MCP services connected through OpenAI's official `tunnel-client`. Register one or many services, and it takes care of logon startup, tunnel connection, health observation, bounded recovery, source-change restarts, and verified updates of the official client. It respects deliberate stops and reports clearly when it cannot recover something.
+TunnelTend looks after the local programs that give ChatGPT tools—your **MCP services**. Register one or many on a Windows PC, and it handles startup, tunnel connection, health checks, and bounded recovery through OpenAI's official tunnel client. Your tools might work with notes, files, a local database, or a home server; TunnelTend takes care of keeping their processes connected.
 
-The co-designed website and manual are prepared under [`website/`](https://github.com/Wolfsblvt/tunneltend/tree/main/website) for publication at **[tunneltend.com](https://tunneltend.com)**. Until hosting is admitted, use the repository's [getting-started guide](docs/getting-started.md) and [FAQ](docs/faq.md).
+**[Website](https://tunneltend.com/) · [Documentation](https://docs.tunneltend.com/) · [Latest release](https://github.com/Wolfsblvt/tunneltend/releases/latest) · [FAQ](https://tunneltend.com/faq/)**
 
-> [!IMPORTANT]
-> TunnelTend is an independent open-source project. It is not affiliated with or endorsed by OpenAI. It manages the official client; it does not replace that client or host a tunnel service.
-
-> [!NOTE]
-> [GitHub Releases](https://github.com/Wolfsblvt/tunneltend/releases/latest) carries downloadable availability; the [1.0.1 account](docs/releases/1.0.1.md) describes the diagnostic and installer fixes. Natural sign-in, sleep/resume recovery and a real remote MCP call were observed on Windows 11 during the [original qualification](docs/releases/1.0.0.md), which names the tested client versions and limits. Source installation is also supported below.
-
-## Install and get running
-
-You need Windows 11, PowerShell 7.4 or later, and an existing OpenAI tunnel ID with a runtime credential supplied by reference. [Prepare that access](docs/getting-started.md#prepare-your-openai-tunnel) before registration. The installer downloads and verifies the official client; TunnelTend never bundles it.
-
-```powershell
-git clone https://github.com/Wolfsblvt/tunneltend.git
-Set-Location .\tunneltend
-.\Install-TunnelTend.cmd
-```
-
-The guided installer explains the recommended defaults: logon startup, a watchdog every two minutes, and daily verified client maintenance. Each can be disabled.
-
-Open a new terminal, register a project, and inspect the result:
-
-```powershell
-tunneltend service register C:\src\internal-tools --id internal-tools `
-  --tunnel-id YOUR_EXISTING_TUNNEL_ID `
-  --runtime-key-ref env:CONTROL_PLANE_API_KEY
-tunneltend status
-tunneltend doctor
-```
-
-Registration is retained if startup fails. Use `doctor` to resolve missing scope, credentials, or launch configuration; a saved registration alone does not prove a healthy tunnel. Discovery refuses ambiguous projects and returns the explicit choice needed. TunnelTend does not invent credentials or edit your MCP project.
-
-**Prefer a local coding agent?** Codex or another agent that can run commands on this Windows PC can follow the canonical guide:
-
-> Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: https://tunneltend.com/docs/install-with-an-agent/
-
-The [getting-started guide](docs/getting-started.md) covers deterministic installation, policy switches, credential references, and uninstall. The [registration guide](docs/registration.md) covers explicit commands, HTTP services, descriptors, and existing aliases.
+TunnelTend is an independent open-source project, unaffiliated with OpenAI. [How it works](https://docs.tunneltend.com/how-it-works/) explains the service, tunnel, and ChatGPT connection.
 
 ## What it takes care of
 
-| Need | TunnelTend's boundary |
+| When… | TunnelTend… |
 | --- | --- |
-| Start the fleet | Current-user Startup, Watchdog, and Maintenance tasks under `\TunnelTend\`. |
-| Respect a deliberate stop | Desired state and current-logon suppression control what recovery may restart. |
-| Recover a failed service | Ownership checks, thresholds, backoff, and persisted retry budgets. |
-| React to source changes | Project registration enables local watching by default, with exclusions and stable debounce; `--no-source-watch` disables it. |
-| Maintain the official client | Official Windows asset selection, digest verification, guarded extraction, backup, replacement, and rollback. |
-| Understand a failure | Read-only facts and diagnosis with structured output for local agents. |
+| You sign in | Starts the services you selected through current-user Windows tasks. |
+| A service fails | Checks process ownership and retries within a recovery budget, with backoff. Deliberate stops stay respected. |
+| Your project changes | Restarts after watched files settle. Project watching is on by default; `--no-source-watch` turns it off. |
+| OpenAI releases a client update | Verifies and stages the official client, keeps a backup, and rolls back if replacement or restoration fails. |
 
-TunnelTend manages the lifecycle around the official client. It does not implement the tunnel protocol, host a control plane, manage secrets, or infer `git pull`, builds, dependency upgrades, or deployment commands. Application-update commands are explicit and opt-in.
+[Everyday operation](https://docs.tunneltend.com/operations/) explains the controls and limits. TunnelTend does not infer builds, dependency upgrades, or `git pull`; application-update commands are explicit and opt-in.
 
-## Inspect, then act
+## Get running
+
+Before installing, you need:
+
+- **Windows 11 and PowerShell 7.4+.**
+- **An MCP service that already works**, with its runtime and dependencies installed.
+- **OpenAI Secure MCP Tunnels access**, an existing tunnel ID, and a runtime credential supplied by reference. [Prepare your access](https://docs.tunneltend.com/getting-started/#prepare-your-openai-access), including a credential source the Windows task account can read.
+
+If all you have so far is an app name or an idea, start with [Find your MCP service](https://docs.tunneltend.com/getting-started/#find-your-mcp-service). It explains what to look for in the app's setup instructions and what you can hand to a local coding agent. TunnelTend does not turn an arbitrary app or folder into an MCP server. You do not need Git or a developer checkout for the released installer.
+
+Use a persistent user environment variable or protected file for the credential; a variable set only in one terminal will not reach scheduled tasks. Your PC must stay awake and signed in for current-user automation.
+
+The current release is **1.0.1**. Its [release account](docs/releases/1.0.1.md) describes the diagnostic and installer fixes; the [Windows qualification account](docs/releases/1.0.0.md) names the versions and limits of the original sign-in, recovery and remote-call observations. Confirm your own service and consumer during setup.
+
+### Install
+
+Open **PowerShell 7** from Windows Start and run:
 
 ```powershell
-tunneltend status --json
-tunneltend health --json
-tunneltend doctor --json
-tunneltend reconcile --plan --json
+irm https://tunneltend.com/install.ps1 | iex
 ```
 
-These commands observe or plan without saving state. Mutations use commands such as `service start`, `service stop`, `repair --apply`, `reconcile`, and `client update`. `--force` never bypasses process identity, secret-reference validation, scope, digest verification, or archive safety.
+The bootstrap verifies the release ZIP before running the guided installer. The default installation needs no administrator rights; it offers sign-in startup, recovery checks every two minutes, and daily verified updates of **OpenAI's client**. Each can be disabled.
 
-See [operations](docs/OPERATIONS.md), the [CLI reference](docs/cli-reference.md), and [troubleshooting](docs/troubleshooting.md) for ordinary use and recovery.
+[Read the installer](https://tunneltend.com/install.ps1), [download and verify a release yourself](https://docs.tunneltend.com/getting-started/#download-and-verify-yourself), or [install from source](https://docs.tunneltend.com/getting-started/#from-source).
 
-## Local state and trust
+### Register and verify
 
-By default, service definitions, observations, recovery budgets, logs, and client backups live under `%LOCALAPPDATA%\TunnelTend\state`. Credentials remain `env:` or `file:` references. Normal uninstall preserves registered state; explicit purge removes it.
+Open a **new terminal**. Replace the folder and tunnel ID below; `my-mcp` is your local service name. Registration starts the service immediately. Supply a credential **reference**, never the key itself.
 
-Read [privacy and data](docs/PRIVACY-AND-DATA.md), [logging](docs/LOGGING.md), and the [security model](docs/SECURITY.md) for storage, redaction, process-control, and download boundaries. The official client and control plane remain external dependencies.
+```powershell
+tunneltend service register 'C:\src\my-mcp' --id my-mcp `
+  --tunnel-id YOUR_EXISTING_TUNNEL_ID `
+  --runtime-key-ref env:CONTROL_PLANE_API_KEY
+tunneltend status my-mcp
+tunneltend health my-mcp
+tunneltend doctor my-mcp
+```
+
+Add `--no-start` to save without starting. If startup fails, the registration stays and `doctor` explains the problem. Ambiguous project discovery asks you to choose. Already running the official client? [Import its alias](https://docs.tunneltend.com/registration/#import-an-existing-official-alias) instead.
+
+**Success means more than a saved registration:** the intended host and official runtime are observed, configured probes pass, and ChatGPT can call a harmless tool successfully. [Finish the connection and verify it](https://docs.tunneltend.com/getting-started/#verify-the-whole-connection); local health alone cannot prove the remote call.
+
+**Prefer a local coding agent?** Give an agent that can run commands on this Windows PC the same maintained journey:
+
+> Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: https://docs.tunneltend.com/install-with-an-agent/
+
+The agent needs access to your Windows PC, the service's setup details and your OpenAI tunnel ID. Give it a credential **reference**, never the raw key. A cloud-only chat can explain the steps but cannot install on your PC.
+
+## Stay in control
+
+`status`, `health`, `doctor`, `repair`, and `reconcile --plan` read or plan without saving state. Changes use explicit actions such as `service start`, `service stop`, `repair --apply`, and `client update`. Add `--json` for structured output. See the [CLI reference](https://docs.tunneltend.com/cli/) and [troubleshooting](https://docs.tunneltend.com/troubleshooting/).
+
+Registrations, observations, logs, and backups stay under `%LOCALAPPDATA%\TunnelTend\state` by default. Credentials remain `env:` or `file:` references, and normal uninstall preserves state. Read [privacy and data](https://docs.tunneltend.com/privacy-and-data/) and the [security model](https://docs.tunneltend.com/security/) for storage, network, and process-control boundaries. MCP requests and responses travel through OpenAI's official client and infrastructure; TunnelTend also fetches releases and probes the health/readiness addresses you configure. [What leaves your computer](https://docs.tunneltend.com/privacy-and-data/#what-leaves-your-computer) separates those paths from your MCP service's own traffic. OpenAI's client and control plane remain external dependencies.
 
 ## Develop and contribute
 
-Read [AGENTS.md](AGENTS.md) for repository rules and [development](docs/DEVELOPMENT.md) for the pinned tooling, root verification command, package build, and safe no-credential smoke path. [Contributing](CONTRIBUTING.md) explains the contribution route; [architecture](docs/ARCHITECTURE.md) explains the implementation.
-
-Local tests, hosted CI, package installation, Windows lifecycle observations and remote MCP calls each prove their own boundary. The [release account](docs/releases/1.0.0.md) identifies the qualified versions and remaining coverage limits.
+Start with [Contributing](CONTRIBUTING.md), the [development guide](docs/DEVELOPMENT.md), and [repository instructions](AGENTS.md). The [architecture](docs/ARCHITECTURE.md) explains the implementation; [release notes](https://github.com/Wolfsblvt/tunneltend/releases) and the [Windows qualification account](docs/releases/1.0.0.md) identify tested versions and coverage limits.
 
 ## License
 

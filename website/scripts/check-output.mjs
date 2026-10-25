@@ -15,10 +15,18 @@ const pages = resolvedPages(site, publicPages, projectRoot);
 const indexable = new Set([...pages.values()]
   .filter((page) => page.indexing === 'index' && page.canonical)
   .map((page) => page.canonical));
-const sitemap = readFileSync(resolve(outputRoot, 'sitemap-0.xml'), 'utf8');
+const sitemap = ['sitemap-0.xml', 'docs-sitemap-0.xml']
+  .map(file => readFileSync(resolve(outputRoot, file), 'utf8')).join('');
 const emitted = new Set([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/gu)].map((match) => match[1]));
 if (emitted.size !== indexable.size || [...indexable].some((url) => !emitted.has(url))) {
   throw new Error('Built sitemap does not match the resolved indexable page identities.');
+}
+for (const [file, origin] of [['sitemap-0.xml', site.url], ['docs-sitemap-0.xml', site.docs.url]]) {
+  const xml = readFileSync(resolve(outputRoot, file), 'utf8');
+  const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/gu)].map(match => match[1]);
+  if (urls.length === 0 || urls.some(url => new URL(url).origin !== origin)) {
+    throw new Error(`Built ${file} contains a foreign-host URL or no URLs.`);
+  }
 }
 if (siteBasePath(site) === '/') {
   const robots = readFileSync(resolve(outputRoot, 'robots.txt'), 'utf8');
@@ -31,6 +39,9 @@ if (siteBasePath(site) === '/') {
 for (const page of pages.values()) {
   const output = page.role === 'error' ? '404.html' : `${page.path.slice(1)}index.html`;
   const html = readFileSync(resolve(outputRoot, output), 'utf8');
+  if (/\bhref="(?:https:\/\/tunneltend\.com)?\/docs(?:\/|["?#])/u.test(html)) {
+    throw new Error(`Built page still links to the compatibility bridge: ${page.path}.`);
+  }
   const base = siteBasePath(site);
   if (base !== '/' && [...html.matchAll(/\b(?:href|src)="(\/[^"]+)"/gu)]
     .some((match) => match[1].startsWith(`${base}${base.slice(1)}`))) {
@@ -41,6 +52,17 @@ for (const page of pages.values()) {
   }
   if (page.canonical && !html.includes(`href="${page.canonical}"`)) {
     throw new Error(`Built canonical URL disagrees with ${page.path}.`);
+  }
+  // Joining manual revisions must preserve their actual destinations and section links,
+  // including new first-use links that did not exist when the host move was authored.
+  for (const [, href] of html.matchAll(/\bhref="(https:\/\/docs\.tunneltend\.com\/[^"\s]*)"/gu)) {
+    const target = new URL(href.replaceAll('&amp;', '&'));
+    if (!target.pathname.endsWith('/')) continue;
+    const targetPath = resolve(outputRoot, 'docs', target.pathname.slice(1), 'index.html');
+    if (!existsSync(targetPath)) throw new Error(`Broken Docs destination on ${page.path}: ${href}`);
+    if (target.hash && !readFileSync(targetPath, 'utf8').includes(`id="${decodeURIComponent(target.hash.slice(1))}"`)) {
+      throw new Error(`Broken Docs section on ${page.path}: ${href}`);
+    }
   }
   if (page.indexing === 'noindex' && !html.includes('name="robots"')) {
     throw new Error(`Built page lacks noindex metadata: ${page.path}.`);
