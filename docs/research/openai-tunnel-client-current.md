@@ -2,17 +2,20 @@
 
 ## Meaning
 
-This record pins the stable official-client release and command surface used while qualifying the current TunnelTend adapter. The release coordinate, verified Windows amd64 download, version output, and six help-based capability probes were refreshed on 2026-10-21 for v0.0.17. Acquisition and capability evidence covers that binary. Earlier connected runtime and remote-consumer proof covers v0.0.16; it is not relabeled as a connected v0.0.17 run.
+This maintained record separates the latest stable official-client release observed upstream from the latest release actually acquired and exercised through TunnelTend's compatibility path. As of 2026-10-25, v0.0.18 is the latest stable release. Its `runtimes` command implementation is byte-identical in source to v0.0.17, but the exact Windows binary, generated release coordinate, and six capability probes have not been refreshed in this pass. v0.0.17 therefore remains the last accepted binary compatibility evidence. Earlier connected runtime and remote-consumer proof still covers v0.0.16; it is not relabeled as a connected run on either later release.
 
 - Repository: `openai/tunnel-client`
-- Stable release: `v0.0.17`
-- Published: 2026-10-21
-- Source commit/tag: `v0.0.17`, `a248b7f725fc989c1eb26680cf4351ee33421f61`
-- Release checksum asset: `SHA256SUMS.txt`
-- Windows release assets: architecture-specific ZIPs with published SHA-256 material
-- Generated release coordinate: [`openai-tunnel-client-release.json`](openai-tunnel-client-release.json)
-- Downloaded asset: `tunnel-client-v0.0.17-windows-amd64.zip`
-- Archive SHA-256: `b89074637596262067061308cf174959561a1a8bcffe2db956650dad7303052b`, verified against the GitHub release-asset digest.
+- Latest stable release observed: `v0.0.18`
+- Published: 2026-10-23
+- Latest source tag/commit: `v0.0.18`, `274a5588414819f063d27100a4fb1096aae3830f`
+- Latest official checksum asset digest observed: `sha256:63f9996246424301c8b0680c943c67d0ea7fe2f0853a234649104f8062c67329`
+- Latest official Windows amd64 asset digest observed: `sha256:8d0da1ce79532d44ccc5ed5d8bd36cdfffba37dfd287c602d69635c8bb5db2b2`
+- Latest official Windows arm64 asset digest observed: `sha256:b73237513d50bf7acbeb960d80d9cbb6513879292f80ec1bd04b886fac1fe1c8`
+- Last accepted generated release coordinate: [`openai-tunnel-client-release.json`](openai-tunnel-client-release.json), still `v0.0.17`
+- Last downloaded and exercised asset: `tunnel-client-v0.0.17-windows-amd64.zip`
+- Last verified archive SHA-256: `b89074637596262067061308cf174959561a1a8bcffe2db956650dad7303052b`
+
+The v0.0.18 digests above are release-page metadata, not a claim that TunnelTend downloaded or independently hashed those assets. The generated JSON remains at the last performed snapshot rather than being hand-edited from rounded web presentation.
 
 ## Runtime command surface used by TunnelTend
 
@@ -48,7 +51,6 @@ TunnelTend admits only that specific code-2 transition, with boolean launch/runn
 
 Credential-free regressions exercise this transition and the updater's restoration/rollback path through the real adapter and reconciler, with the external CLI boundary doubled.
 
-
 ## v0.0.17 compatibility refresh
 
 The official release strengthens retry behavior during startup discovery and MCP initialization, and keeps readiness false until its startup catalog is ready. These startup retries do not replay MCP tool calls. Existing configurations retain their defaults; optional tracing and expanded request-ID forwarding are not enabled by TunnelTend. The full-client package updates its bundled cloudflared companion.
@@ -57,6 +59,14 @@ The public TunnelTend updater acquired the primary Windows amd64 archive with pu
 
 This refresh does not claim a newly credentialed remote session on v0.0.17. The October 19 real sign-in, resume recovery and remote Unicode echo retain their v0.0.16 execution boundary. See the [official release account](https://github.com/openai/tunnel-client/releases/tag/v0.0.17) for its changed readiness semantics and optional flags.
 
+## v0.0.18 upstream observation
+
+The official release adds three optional capability families: AWS workload identity for production control-plane authentication, explicit loopback HTTP access in Harpoon templates, and per-attempt response-upload tracing. Existing API-key deployments remain supported. The AWS route introduces provider identity, STS and authentication-network assumptions that are not part of TunnelTend's current local Windows registration model; the Harpoon and tracing additions are official-client behavior outside the adapter surface TunnelTend currently configures. No product expansion is selected by observing them.
+
+At tags `v0.0.17` and `v0.0.18`, `cmd/client/runtimes_command.go` resolves to the same Git blob, `728fed65c0619ba70e9057327b62dae28f41028f`. The command implementation behind TunnelTend's six help-based probes is therefore unchanged in source. This narrows compatibility risk but does not prove the compiled Windows binary, bundled dependencies, release packaging, process behavior, or control-plane journey.
+
+The exact next compatibility movement is already supported by the repository's existing route: refresh the generated release snapshot from the authoritative API, acquire the real Windows amd64 asset through TunnelTend's updater, verify the published digest, exercise all six capability probes, and retain the transactional replacement or rollback result. A connected remote session is useful additional evidence but is not silently required for a command-surface compatibility claim.
+
 ## Acceptance boundary
 
-Actual Windows acquisition and the required capability surface were exercised for the exact downloaded v0.0.17 binary. Live connected control-plane behavior on that new binary remains unobserved. Source inspection and release metadata support adapter design but do not prove Windows process, control-plane, or runtime behavior.
+Actual Windows acquisition and the required capability surface were exercised for the exact downloaded v0.0.17 binary. Live connected control-plane behavior on that binary remains unobserved. For v0.0.18, the stable release, published asset digests, and unchanged `runtimes` command source are observed; generated snapshot refresh, Windows acquisition, independent hashing, executable probes, updater replacement, and connected behavior remain unobserved. Source inspection and release metadata support adapter judgment but do not prove Windows process, control-plane, or runtime behavior.
