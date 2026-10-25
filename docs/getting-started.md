@@ -152,6 +152,10 @@ When `-StateRoot` is omitted, reinstall and uninstall read the selected installa
 
 To update TunnelTend, obtain and verify the intended newer release, extract it and rerun its installer for the same installation. Check the project's change notes and preserve your state first. `tunneltend client update` updates the official client, not TunnelTend's own source or program files.
 
+Reinstallation keeps saved autostart, automatic-update and watchdog choices, scope defaults, credential reference and official-client location when their options are omitted. This also applies to retained state after uninstall. Interactive questions start from the saved choices; explicitly supplied options take precedence. New state still receives the autonomous defaults. When calling the script directly in a PowerShell session, `-DisableAutostart:$false` explicitly enables autostart, and `-OrganizationId @()` explicitly clears the default organization list.
+
+If installation fails after changing settings, it restores only its own settings changes alongside the previous program payload. It preserves registrations, current session intent and unrelated settings. A conflicting later change is left intact and reported as incomplete recovery, with an `installer-recovery-<id>.json` record in the selected state directory. Keep that record and inspect the named fields with `tunneltend config show`. Use explicit installer options on the next attempt to select any values you want changed; do not replace the registry with the recovery record. Optional service registration, alias import and official-client updates have their own effects; this is not a whole-fleet rollback.
+
 ## Install with a local agent
 
 Use an agent that can run commands on the Windows computer being configured. Give it the project path or launch target, the existing tunnel ID, the credential **reference**, and any policy changes you want. A cloud chat without local computer access can explain the steps but cannot execute them there.
@@ -168,6 +172,7 @@ The guide carries the setup contract. The agent should:
 
 - Read the repository's [AGENTS.md](../AGENTS.md) before working in the source, and follow this guide's prerequisites and selected installation policy.
 - Inspect the existing installation and aliases before changing them. Use the supported installer and CLI; do not assemble or normalize persisted JSON by hand.
+- On reinstall, omit policy, scope, credential-reference and client-location options unless the operator requested a change. Omission preserves saved choices; it does not reapply first-install defaults.
 - Use `env:` or `file:` credential references, preserve download verification and process ownership checks, and elevate only when the chosen installation boundary requires it.
 - Finish with the registration, `status`, `health`, `doctor`, and `automation status` observations above. Report the registered target, sign-in policy, automation, and any failed or unobserved step.
 - Distinguish local setup from the real consumer call and later Windows lifecycle behavior. If it cannot perform an intended check, say which one remains unobserved.

@@ -267,6 +267,10 @@ When `-StateRoot` is omitted, reinstall and uninstall read the installation’s 
 
 To update TunnelTend itself, obtain and verify the newer release, extract it and rerun its installer for the same installation. Preserve your state first and read the change notes. `tunneltend client update` updates OpenAI’s client, not TunnelTend.
 
+Reinstallation preserves saved autostart, automatic-update and watchdog choices, scope defaults, credential reference and official-client location when their options are omitted, including retained state after uninstall. Questions start from saved choices; explicit options take precedence. New state still uses the autonomous defaults. When calling the script directly in a PowerShell session, `-DisableAutostart:$false` enables autostart explicitly, and `-OrganizationId @()` clears the default organization list.
+
+If a later installation step fails, the installer restores its own settings changes and the previous program payload while preserving registrations, session intent and unrelated settings. If another writer changed the same field, recovery leaves that value intact and reports the conflict and an `installer-recovery-<id>.json` record in the selected state directory. Keep the record and inspect the named fields with `tunneltend config show`. Use explicit installer options on the next attempt to select any values you want changed; do not replace the registry with the recovery record. Optional registration, alias import and official-client updates retain their own effects; this is not a whole-fleet rollback.
+
 ## From here
 
 - [Everyday operation](https://docs.tunneltend.com/operations/): deliberate stops, what the watchdog may restart, source watching, client updates, and [how to uninstall](https://docs.tunneltend.com/operations/#uninstall) while keeping your registrations.

@@ -4,6 +4,12 @@
 
 This changelog records user-visible TunnelTend changes by release line. The first stable release account is [TunnelTend 1.0.0](docs/releases/1.0.0.md); downloadable availability is established by the matching GitHub Release.
 
+## [Unreleased]
+
+### Fixed
+
+- Updating TunnelTend by rerunning the installer preserves saved automation choices, scope defaults, credential references and the official-client location unless explicitly changed. Failed installs restore their own settings changes without overwriting unrelated or conflicting current intent.
+
 ## [1.0.1]
 
 ### Added

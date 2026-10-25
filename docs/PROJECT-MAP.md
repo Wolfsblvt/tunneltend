@@ -28,6 +28,7 @@ This map explains where TunnelTend's product behavior, contracts, tooling, and e
 | `src/TunnelTend/Private/00-Utilities.ps1` | Shared paths, atomic I/O, secret handling, process execution, ownership, and CLI helpers. |
 | `src/TunnelTend/Private/05-WindowsProcess.ps1` | Stable PowerShell selection, alias resolution, and unattended interpreter options. |
 | `src/TunnelTend/Private/10-State.ps1` | Registry/runtime defaults, validation, persistence, and schema-shape repair. |
+| `src/TunnelTend/Private/11-InstallerSettings.ps1` | Omitted-option continuity, locked installer settings publication and scoped failure recovery. |
 | `src/TunnelTend/Private/20-OfficialClient.ps1` | Narrow adapter around official `tunnel-client` runtime commands. |
 | `src/TunnelTend/Private/30-Discovery.ps1` | Descriptors, conservative project discovery, glob matching, and source fingerprints. |
 | `src/TunnelTend/Private/40-Health.ps1` | Health probes, observations, recovery budgets, and source debounce decisions. |

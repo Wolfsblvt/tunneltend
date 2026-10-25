@@ -50,7 +50,7 @@ Use the supported installer; never assemble program files or state by hand. From
 & ([scriptblock]::Create((irm https://tunneltend.com/install.ps1))) -NonInteractive
 ```
 
-That resolves the latest stable release, downloads the ZIP and its SHA-256 file, refuses a checksum mismatch, extracts to `%LOCALAPPDATA%\TunnelTend\downloads\tunneltend-<version>\`, and runs `scripts\Install-TunnelTend.ps1` with the given switches. `-NonInteractive` applies the recommended defaults (sign-in startup, watchdog every two minutes, daily verified client updates). Add policy switches when the human asked for them:
+That resolves the latest stable release, downloads the ZIP and its SHA-256 file, refuses a checksum mismatch, extracts to `%LOCALAPPDATA%\TunnelTend\downloads\tunneltend-<version>\`, and runs `scripts\Install-TunnelTend.ps1` with the given switches. For new state, `-NonInteractive` applies the recommended defaults (sign-in startup, watchdog every two minutes, daily verified client updates). On reinstall it preserves saved choices for omitted options, including scope defaults, credential reference and official-client location. Add policy switches when the human asked for a change:
 
 | Human wish | Switch |
 | --- | --- |
