@@ -31,6 +31,7 @@ if ($pester) {
     New-Item -ItemType Directory (Join-Path $root 'artifacts') -Force | Out-Null
     $result=Invoke-Pester -Configuration $configuration
     if ($result.FailedCount -gt 0) { throw "Pester failed: $($result.FailedCount) test(s)." }
+    if ([int]$result.TotalCount -eq 0) { throw 'Pester discovered no tests.' }
 } elseif ($RequirePester) { throw 'Pester 6.x is required but not installed.' } else { Write-Warning 'Pester 6.x is not installed; portable tests still ran.' }
 $analyzer=Get-Module PSScriptAnalyzer -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1
 if ($analyzer) {
