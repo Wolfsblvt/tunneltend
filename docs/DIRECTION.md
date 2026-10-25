@@ -20,7 +20,7 @@ The launch direction selected from 21 through 24 October is complete at its decl
 - Preserve the no-hand-written-JSON normal journey for humans and local coding agents.
 - Keep website source, build/preview, public hosting and actual consumer operation distinct.
 - Keep the reader-facing manual under `website/` distinct from maintainer and product truth under `docs/`.
-- Product copy, identity and manual remain in TunnelTend; provider/DNS/credential and live publication evidence remain with Wolf Ops.
+- TunnelTend owns product copy, identity, manual, deployment through admitted hosting, reader/install evidence and rollback choice; Wolf Ops owns hosting/provider/DNS/credential admission, provider receipts and the recovery interface.
 
 ## Not now
 
