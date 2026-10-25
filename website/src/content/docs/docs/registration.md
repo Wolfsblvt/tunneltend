@@ -5,7 +5,7 @@ description: "Register a project folder, a launch command, an HTTP MCP endpoint 
 
 Registering tells TunnelTend what to keep running: which MCP server, how to start it, which OpenAI tunnel it uses, and how it should behave at sign-in. A registration survives a failed first start, so you can inspect and fix it without losing the definition.
 
-[Get started](/docs/getting-started/) covers installation, your existing OpenAI tunnel ID and the runtime credential reference. The examples below assume those are ready. Replace every example path, URL and tunnel ID with your own.
+[Get started](https://docs.tunneltend.com/getting-started/) covers installation, your existing OpenAI tunnel ID and the runtime credential reference. The examples below assume those are ready. Replace every example path, URL and tunnel ID with your own.
 
 ## Choose a registration method
 
@@ -19,7 +19,7 @@ Registering tells TunnelTend what to keep running: which MCP server, how to star
 
 A *stdio* MCP server is a program that talks to the assistant through its own input and output streams; the official client launches it. An *HTTP* MCP server is one you run yourself, reachable at a URL.
 
-If you only know which app or files you want ChatGPT to use, start with [Find your MCP service](/docs/getting-started/#find-your-mcp-service). Register the MCP server described by that tool's instructions, not the app's shortcut or the folder of files you want it to read. You do not have to create a Git repository to use TunnelTend.
+If you only know which app or files you want ChatGPT to use, start with [Find your MCP service](https://docs.tunneltend.com/getting-started/#find-your-mcp-service). Register the MCP server described by that tool's instructions, not the app's shortcut or the folder of files you want it to read. You do not have to create a Git repository to use TunnelTend.
 
 ## Service IDs, aliases and tunnel IDs
 
@@ -91,7 +91,7 @@ env:CONTROL_PLANE_API_KEY
 file:C:\secure\runtime-key.txt
 ```
 
-The default is `env:CONTROL_PLANE_API_KEY`. The source must be readable by the Windows account that runs the Scheduled Tasks; a variable set only in your current terminal is not. Anything that looks like an inline secret in a command, argument, environment value, descriptor or URL is rejected before it is saved. [Prepare your OpenAI access](/docs/getting-started/#prepare-your-openai-access) explains where the key comes from.
+The default is `env:CONTROL_PLANE_API_KEY`. The source must be readable by the Windows account that runs the Scheduled Tasks; a variable set only in your current terminal is not. Anything that looks like an inline secret in a command, argument, environment value, descriptor or URL is rejected before it is saved. [Prepare your OpenAI access](https://docs.tunneltend.com/getting-started/#prepare-your-openai-access) explains where the key comes from.
 
 ## Choose startup and watching
 
@@ -105,7 +105,7 @@ The default is `env:CONTROL_PLANE_API_KEY`. The source must be readable by the W
 
 Project registration turns source watching on by default: stable changes to the project's files restart the service. Command-only and URL-only registrations have no project folder to watch. A descriptor can set source policy explicitly.
 
-Watching notices local file changes and restarts; it never runs a build, installs dependencies, pulls from Git or deploys anything. Read [source watching and application updates](/docs/operations/#source-watching-and-application-updates) before relying on either.
+Watching notices local file changes and restarts; it never runs a build, installs dependencies, pulls from Git or deploys anything. Read [source watching and application updates](https://docs.tunneltend.com/operations/#source-watching-and-application-updates) before relying on either.
 
 ## Import an existing official alias
 
@@ -141,6 +141,6 @@ Do not edit TunnelTend's installed registry JSON by hand. Use registration, the 
 
 ## Verify or remove a registration
 
-Replace `ID` with the local name you chose (`my-mcp` or `docs-mcp` in the examples). Inspect the result with `tunneltend service show ID`, `tunneltend status ID`, `tunneltend health ID` and `tunneltend doctor ID`. Continue with [Verify the whole connection](/docs/getting-started/#verify-the-whole-connection), then [connect it in ChatGPT](/docs/getting-started/#connect-it-in-chatgpt) and request a harmless result you can recognize. Registration alone is not the last step.
+Replace `ID` with the local name you chose (`my-mcp` or `docs-mcp` in the examples). Inspect the result with `tunneltend service show ID`, `tunneltend status ID`, `tunneltend health ID` and `tunneltend doctor ID`. Continue with [Verify the whole connection](https://docs.tunneltend.com/getting-started/#verify-the-whole-connection), then [connect it in ChatGPT](https://docs.tunneltend.com/getting-started/#connect-it-in-chatgpt) and request a harmless result you can recognize. Registration alone is not the last step.
 
-`tunneltend service remove ID` stops the service and unregisters it; if a safe stop fails, removal is refused. `tunneltend service remove ID --keep-running` withdraws TunnelTend's supervision but leaves the processes running. Neither touches your project files or the tunnel object at OpenAI. To keep the registration but stop, disable or restart the service, see [Everyday operation](/docs/operations/#stop-a-service-on-purpose).
+`tunneltend service remove ID` stops the service and unregisters it; if a safe stop fails, removal is refused. `tunneltend service remove ID --keep-running` withdraws TunnelTend's supervision but leaves the processes running. Neither touches your project files or the tunnel object at OpenAI. To keep the registration but stop, disable or restart the service, see [Everyday operation](https://docs.tunneltend.com/operations/#stop-a-service-on-purpose).

@@ -2,7 +2,7 @@
 
 ## Meaning
 
-This is the product website and user manual prepared for `https://tunneltend.com`: the front door, a Starlight manual at `/docs/`, the FAQ, the legal pages, the online installer at `/install.ps1` and the brand bundle mirror at `/brand/tunneltend/`. It is an Astro static site that owns its reader-facing content; the repository's `docs/` tree stays maintainer documentation. A local build or preview establishes none of hosting, DNS, indexing or Windows qualification.
+This is the product website at `https://tunneltend.com` and Starlight manual at `https://docs.tunneltend.com/`, served by one host-aware Worker and one Astro artifact. The product host retains the FAQ, legal pages, online installer at `/install.ps1` and brand mirror at `/brand/tunneltend/`; old `/docs/*` addresses permanently redirect to the manual. The website owns reader-facing content; the repository's `docs/` tree stays maintainer documentation. A local build or preview establishes none of hosting, DNS, indexing or Windows qualification.
 
 ## Build and use locally
 
@@ -19,6 +19,8 @@ npm run brand:check  # validate the TunnelTend bundle and the vendored Works bun
 
 Output is `artifacts/site/`. `npm run check:publish` additionally refuses demonstration identity and fixture legal data; production supplies the private `WOLFSBLVT_LEGAL_OPERATOR_B64` projection.
 
+`astro dev` and `astro preview` show internal build routes; they do not exercise the host bridge. For local Worker routing use `node node_modules/wrangler/bin/wrangler.js dev --local --local-upstream docs.tunneltend.com` and open `/` or `/getting-started/`. Use `--local-upstream tunneltend.com` for product-host behavior. Public links intentionally name their canonical hosts. A controlled browser request route can map both canonical origins to separate local upstream instances without contacting production. [Website integration](../docs/documentation-site.md) owns that serving contract and the Ops admission/rollback join.
+
 ## Source map
 
 | Path | Owns |
@@ -33,7 +35,9 @@ Output is `artifacts/site/`. `npm run check:publish` additionally refuses demons
 | `src/lib/` | Pre-paint theme and reader-mode script, shared client behaviour, search, clipboard |
 | `scripts/` | Identity model, asset generation (favicons, social cards, brand mirror, installer copy), brand export, publication checks |
 | `vendor/brand/works/` | The vendored Wolfsblvt Works brand bundle (sponsor banner and component), validated as a byte copy |
-| `wrangler.jsonc` | Cloudflare Workers Static Assets configuration, dormant until Wolf Ops admits the Home |
+| `src/worker.mjs`, `src/lib/public-routes.mjs` | Host routing, permanent compatibility bridge and shared public destinations |
+| `scripts/finalize-public-routes.mjs` | Canonical emitted anchors and host-specific sitemaps from the single build |
+| `wrangler.jsonc` | One Cloudflare Worker, the apex and Docs custom domains, and one static-assets binding |
 
 ## Reader mode
 

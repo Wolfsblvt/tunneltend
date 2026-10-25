@@ -5,7 +5,7 @@ description: "Every tunneltend command with what it reads, plans or changes, the
 
 Every command is `tunneltend` followed by a verb. Commands that only read never save anything; commands that change state say so in their name or need an explicit flag. `tunneltend --help` prints the same grammar in the terminal.
 
-For your first connection, follow [Get started](/docs/getting-started/). This page is a reference: `ID`, `PATH`, `FILE` and `URL` stand for your values; square brackets mark optional parts, and `...` means a value may be repeated. Do not type the brackets or the dots.
+For your first connection, follow [Get started](https://docs.tunneltend.com/getting-started/). This page is a reference: `ID`, `PATH`, `FILE` and `URL` stand for your values; square brackets mark optional parts, and `...` means a value may be repeated. Do not type the brackets or the dots.
 
 **Reads** means read-only: it may probe processes and endpoints but does not persist observations, budgets or repairs. **Plans** means it computes and shows what would change, and changes nothing. **Changes** means it mutates desired state, running processes, files or Windows tasks.
 
@@ -21,7 +21,7 @@ For your first connection, follow [Get started](/docs/getting-started/). This pa
 | `tunneltend reconcile [SERVICE...] --plan` | Plans | What converging every selected service to its desired state would change. |
 | `tunneltend reconcile [SERVICE...] [--context CONTEXT]` | Changes | Converges to desired state. Context is `manual` (default), `startup`, `watchdog` or `maintenance`. |
 
-Without `SERVICE` arguments a command covers every registered service. An applied manual repair or reconciliation can resume an enabled, desired-running service that is inactive or suppressed for this session; see [Stop a service on purpose](/docs/operations/#stop-a-service-on-purpose).
+Without `SERVICE` arguments a command covers every registered service. An applied manual repair or reconciliation can resume an enabled, desired-running service that is inactive or suppressed for this session; see [Stop a service on purpose](https://docs.tunneltend.com/operations/#stop-a-service-on-purpose).
 
 ## Services
 
@@ -37,7 +37,7 @@ Without `SERVICE` arguments a command covers every registered service. An applie
 | `tunneltend service remove ID [--keep-running]` | Changes | Stops and unregisters the service; `--keep-running` leaves its processes up. |
 | `tunneltend service import [ALIAS...] [--force]` | Changes | Imports existing official client aliases; with no alias, all available ones. `--force` deliberately adopts an alias that already exists upstream. |
 
-Registration options: `--id`, `--alias`, `--tunnel-id`, `--organization-id` (repeatable), `--workspace-id` (repeatable), `--runtime-key-ref`, `--admin-profile`, `--working-directory` for command targets, `--health-url`, `--ready-url`, `--no-start`, `--no-autostart`, `--no-watchdog`, `--no-source-watch`, `--disabled`, and `--force` for deliberate replacement. [Register a service](/docs/registration/) explains argument quoting and the difference between the immediate first start and later sign-in policy.
+Registration options: `--id`, `--alias`, `--tunnel-id`, `--organization-id` (repeatable), `--workspace-id` (repeatable), `--runtime-key-ref`, `--admin-profile`, `--working-directory` for command targets, `--health-url`, `--ready-url`, `--no-start`, `--no-autostart`, `--no-watchdog`, `--no-source-watch`, `--disabled`, and `--force` for deliberate replacement. [Register a service](https://docs.tunneltend.com/registration/) explains argument quoting and the difference between the immediate first start and later sign-in policy.
 
 ### Intent and lifecycle
 
@@ -72,7 +72,7 @@ Registration options: `--id`, `--alias`, `--tunnel-id`, `--organization-id` (rep
 | `tunneltend automation watchdog` | Changes | Runs one Watchdog pass now. |
 | `tunneltend automation maintenance [--skip-client-update] [--skip-service-updates]` | Changes | Runs one Maintenance pass now. |
 
-[The three Windows tasks](/docs/operations/#the-three-windows-tasks) explains what each pass may do.
+[The three Windows tasks](https://docs.tunneltend.com/operations/#the-three-windows-tasks) explains what each pass may do.
 
 ## Setup, configuration and version
 
@@ -83,7 +83,7 @@ Registration options: `--id`, `--alias`, `--tunnel-id`, `--organization-id` (rep
 | `tunneltend config set PATH VALUE` | Changes | One configuration value, for example `settings.automation.watchdog false`. |
 | `tunneltend version` | Reads | The installed TunnelTend version. |
 
-First-time program and official client acquisition belong to the installer, not to `setup`; see [Choose installation policy](/docs/getting-started/#choose-installation-policy). Prefer installer switches and service commands over `config set`.
+First-time program and official client acquisition belong to the installer, not to `setup`; see [Choose installation policy](https://docs.tunneltend.com/getting-started/#choose-installation-policy). Prefer installer switches and service commands over `config set`.
 
 ## Global options
 

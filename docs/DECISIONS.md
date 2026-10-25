@@ -121,7 +121,7 @@ This record preserves TunnelTend choices whose rationale cannot be reconstructed
 
 **Rejected or superseded:** Generating the site from the repository `docs/` allowlist at build time (the earlier integration note's plan).
 
-**Current consequence:** Product facts changed in `docs/` must be carried into the matching website page in the same change. The FAQ keeps its stable answer ids. The agent handoff destination is `https://tunneltend.com/docs/install-with-an-agent/`.
+**Current consequence:** Product facts changed in `docs/` must be carried into the matching website page in the same change. The FAQ keeps its stable answer ids. D-013 supersedes the original `/docs/` public address; the reader-content ownership selected here remains unchanged.
 
 **Source:** Wolf's website direction, 2026-10-22, carried by Tala.
 
@@ -148,3 +148,15 @@ This record preserves TunnelTend choices whose rationale cannot be reconstructed
 **Current consequence:** `brand/source/tunneltend/tunneltend-wordmark*.svg` and `tunneltend-lockup*.svg` are masters; the lockup carries `titleCompatible` for README and site use. Manrope's OFL licence travels in the bundle as provenance; no font file is distributed.
 
 **Source:** Wolf's selection, 2026-10-22, carried by Tala.
+
+## D-013: The manual has a canonical Docs Home
+
+**Decision:** `https://docs.tunneltend.com/` is the canonical TunnelTend Docs Home. Existing `https://tunneltend.com/docs/*` addresses remain a direct permanent bridge to the matching manual paths with queries preserved. The product site, installer and legal pages stay on the apex.
+
+**Why:** Wolf selected `docs.<product-domain>` as the Works default for substantial public documentation. His first use of the published manual also exposed misaligned navigation and a TOC divider running through the footer. The manual needs its own honest host identity while retaining the approved shared shell and every supported reader/agent journey.
+
+**Rejected or superseded:** D-010's original same-host public path, which established content ownership without comparing host choices. Two separately operated builds or publication rituals are unnecessary: one host-aware Worker can serve the existing single content artifact.
+
+**Current consequence:** Canonical metadata, links, agent handoffs and search select the Docs host. One relevant-main workflow deploys the artifact and Worker together. Per-host robots and sitemaps contain only their own indexable pages. Wolf Ops owns domain admission, www bridge ordering, TLS, live readback, Search Console reconciliation and rollback.
+
+**Source:** Wolf's selected Docs default returned by Nyxara on 2026-10-24 and accepted for implementation by Katja on 2026-10-25, including Wolf's FAQ-grid repair. Local source/build evidence remains distinct from live publication.

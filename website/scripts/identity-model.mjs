@@ -1,4 +1,5 @@
 import { composeDocumentTitle, normalizePublicRoute, resolveSocialImage } from './social-preview-model.mjs';
+import { publicDestination } from '../src/lib/public-routes.mjs';
 
 export function siteBasePath(site) {
   return normalizePublicRoute(new URL(site.url).pathname);
@@ -15,7 +16,7 @@ export function routeFromPath(site, pathname) {
 export function publicUrl(site, route) {
   const base = siteBasePath(site);
   const path = normalizePublicRoute(route);
-  return new URL(`${base}${path.slice(1)}`, new URL(site.url).origin).href;
+  return publicDestination(new URL(`${base}${path.slice(1)}`, new URL(site.url).origin).href);
 }
 
 export function assetPath(site, path) {
@@ -76,12 +77,13 @@ export function resolvePageIdentity(site, route, source = {}, { surfaceName = si
   const imageUrl = socialImage
     ? socialImage.startsWith('https://') ? socialImage : assetUrl(site, socialImage)
     : null;
-  const structuredData = role === 'public' && path === '/'
+  const docsHome = path === '/docs/';
+  const structuredData = role === 'public' && (path === '/' || docsHome)
     ? {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: site.identity.hostSiteName,
-        url: publicUrl(site, '/'),
+        name: docsHome ? site.docs.surfaceName : site.identity.hostSiteName,
+        url: publicUrl(site, path),
         description,
         inLanguage: language,
       }

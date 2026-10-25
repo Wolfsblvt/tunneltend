@@ -47,7 +47,7 @@ These checks change nothing. If startup failed, your registration is kept so you
 
 **Prefer a local coding agent?** Codex or another agent that can run commands on this Windows PC can follow the canonical guide:
 
-> Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: https://tunneltend.com/docs/install-with-an-agent/
+> Install TunnelTend for my current Windows user and register the MCP service I identify, following this guide: https://docs.tunneltend.com/install-with-an-agent/
 
 The agent needs access to your Windows PC, the service's setup details and your OpenAI tunnel ID. Give it a credential **reference**, never the raw key. A cloud-only chat can explain the steps but cannot install on your PC.
 

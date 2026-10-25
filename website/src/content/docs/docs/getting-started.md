@@ -6,9 +6,9 @@ identity:
     eyebrow: Documentation
 ---
 
-This guide takes you from a working MCP service on your Windows PC to a useful result from that service in ChatGPT. You will check the prerequisites, prepare OpenAI access, install TunnelTend, register the service, and try a real request. If a word is new, [How it works](/docs/how-it-works/) explains the pieces.
+This guide takes you from a working MCP service on your Windows PC to a useful result from that service in ChatGPT. You will check the prerequisites, prepare OpenAI access, install TunnelTend, register the service, and try a real request. If a word is new, [How it works](https://docs.tunneltend.com/how-it-works/) explains the pieces.
 
-You can follow the steps yourself, or [hand this guide to a local coding agent](/docs/install-with-an-agent/). Both routes use the same installer, the same commands and the same checks.
+You can follow the steps yourself, or [hand this guide to a local coding agent](https://docs.tunneltend.com/install-with-an-agent/). Both routes use the same installer, the same commands and the same checks.
 
 ## Before installation
 
@@ -34,13 +34,13 @@ Look in the app or MCP server's setup instructions for one of these:
 | What its instructions give you | What to keep for registration |
 | --- | --- |
 | A project folder containing an MCP server, with its dependencies already installed | The full folder path, such as `C:\Tools\my-mcp`. TunnelTend will look for a descriptor or one supported launch target. |
-| A command that starts the MCP server, often described as **stdio** | The executable, each argument, and any required working directory. Use [the command route](/docs/registration/#register-a-command). |
-| A running server's **HTTP MCP endpoint** | Its exact MCP URL. Use [the HTTP route](/docs/registration/#register-an-http-endpoint). An ordinary web page or health-check address will not do. |
-| An existing OpenAI tunnel-client alias | [Inspect and import that alias](/docs/registration/#import-an-existing-official-alias) instead of starting another runtime for it. |
+| A command that starts the MCP server, often described as **stdio** | The executable, each argument, and any required working directory. Use [the command route](https://docs.tunneltend.com/registration/#register-a-command). |
+| A running server's **HTTP MCP endpoint** | Its exact MCP URL. Use [the HTTP route](https://docs.tunneltend.com/registration/#register-an-http-endpoint). An ordinary web page or health-check address will not do. |
+| An existing OpenAI tunnel-client alias | [Inspect and import that alias](https://docs.tunneltend.com/registration/#import-an-existing-official-alias) instead of starting another runtime for it. |
 
 **Only know the app's name so far?** Give its setup-documentation link to a local coding agent, or ask the app's maintainer whether it supports MCP and how to start that server. An agent can help identify the target, but an app without MCP support needs a separate integration. TunnelTend does not build that integration or install the server's dependencies. Get the server working using its own instructions before returning here.
 
-The [agent installation guide](/docs/install-with-an-agent/) tells you what to hand over once you have those details. You can keep using the manual even if you have no local coding agent.
+The [agent installation guide](https://docs.tunneltend.com/install-with-an-agent/) tells you what to hand over once you have those details. You can keep using the manual even if you have no local coding agent.
 
 ## Open PowerShell 7
 
@@ -80,11 +80,11 @@ Do not put the key into the commands below, share it with an agent, or print it 
 
 If you already keep the runtime key in a file protected for your Windows account, use a `file:` reference instead. Both the environment variable and the file must be accessible to the account running TunnelTend; neither is an encrypted secret store. The file example above is a placeholder, not a file TunnelTend creates for you.
 
-Keep the tunnel ID and your chosen reference ready. The tunnel ID is OpenAI’s; the service ID you choose in a moment is TunnelTend’s local name for the service. Organization and workspace selectors are available for workflows that need them; they do not bypass OpenAI’s access rules. [Register a service](/docs/registration/) explains the relationship between IDs, aliases and tunnel IDs.
+Keep the tunnel ID and your chosen reference ready. The tunnel ID is OpenAI’s; the service ID you choose in a moment is TunnelTend’s local name for the service. Organization and workspace selectors are available for workflows that need them; they do not bypass OpenAI’s access rules. [Register a service](https://docs.tunneltend.com/registration/) explains the relationship between IDs, aliases and tunnel IDs.
 
 ## Install TunnelTend
 
-The one-line route is the shortest. You can also download the release yourself, install from source, or [ask a local coding agent to follow the guide](/docs/install-with-an-agent/). Each uses the same installer. It asks whether to start registered services at sign-in, check for verified client updates daily, and check for services needing recovery every two minutes. The recommended answer to each is yes, and each can be changed later.
+The one-line route is the shortest. You can also download the release yourself, install from source, or [ask a local coding agent to follow the guide](https://docs.tunneltend.com/install-with-an-agent/). Each uses the same installer. It asks whether to start registered services at sign-in, check for verified client updates daily, and check for services needing recovery every two minutes. The recommended answer to each is yes, and each can be changed later.
 
 ### One line
 
@@ -122,11 +122,11 @@ tunneltend version
 tunneltend automation status
 ```
 
-`version` should report the installed TunnelTend version. `automation status` should show the tasks selected during installation. An empty service list is expected until you register one. Installed tasks alone do not prove that any connection works. If Windows says `tunneltend` is not recognized, use [the command-not-found steps](/docs/troubleshooting/#the-command-is-not-found).
+`version` should report the installed TunnelTend version. `automation status` should show the tasks selected during installation. An empty service list is expected until you register one. Installed tasks alone do not prove that any connection works. If Windows says `tunneltend` is not recognized, use [the command-not-found steps](https://docs.tunneltend.com/troubleshooting/#the-command-is-not-found).
 
 ## Register your first service
 
-Use the route that matches [the service details you found](#find-your-mcp-service). The example below is for an **MCP project folder**. If your instructions give a launch command or an HTTP URL, follow [Register a service](/docs/registration/) for that command, then return to [Verify the whole connection](#verify-the-whole-connection).
+Use the route that matches [the service details you found](#find-your-mcp-service). The example below is for an **MCP project folder**. If your instructions give a launch command or an HTTP URL, follow [Register a service](https://docs.tunneltend.com/registration/) for that command, then return to [Verify the whole connection](#verify-the-whole-connection).
 
 Replace `'C:\Tools\my-mcp'` with the actual MCP project folder and `YOUR_EXISTING_TUNNEL_ID` with the tunnel ID from OpenAI. `my-mcp` is a local name you choose; use that same name in the checks below. The backtick at the end of a line continues the command onto the next line: copy the whole block together.
 
@@ -142,7 +142,7 @@ What happens:
 
 - TunnelTend uses a project descriptor when present, or looks for one supported launch target. If it finds none or several, it stops before saving a guessed definition. Use the server's documented launch command or a descriptor; the error lists candidate reasons when there are several, but does not write the correct command for you.
 - Once the definition is valid, TunnelTend saves the registration and attempts to start it and connect the official client to your tunnel.
-- If that first start fails, the registration stays. Read the command's error and run `tunneltend doctor my-mcp` before retrying. If it only reports an unhealthy service, [Troubleshooting](/docs/troubleshooting/#registration-was-saved-but-the-service-will-not-start) shows how to inspect more detail.
+- If that first start fails, the registration stays. Read the command's error and run `tunneltend doctor my-mcp` before retrying. If it only reports an unhealthy service, [Troubleshooting](https://docs.tunneltend.com/troubleshooting/#registration-was-saved-but-the-service-will-not-start) shows how to inspect more detail.
 
 Useful switches for this first command:
 
@@ -152,7 +152,7 @@ Useful switches for this first command:
 | `--no-source-watch` | Do not restart the service when files in the project change. Project registration watches by default. |
 | `--no-autostart` | Do not start this service at later sign-ins. The immediate first start still happens. |
 
-Already running the official client for this tunnel by hand? [Import its alias](/docs/registration/#import-an-existing-official-alias) instead of starting a competing runtime. A command (`--command`), an HTTP endpoint (`--url`) and descriptor files are also covered in [Register a service](/docs/registration/).
+Already running the official client for this tunnel by hand? [Import its alias](https://docs.tunneltend.com/registration/#import-an-existing-official-alias) instead of starting a competing runtime. A command (`--command`), an HTTP endpoint (`--url`) and descriptor files are also covered in [Register a service](https://docs.tunneltend.com/registration/).
 
 ## Verify the whole connection
 
@@ -164,7 +164,7 @@ tunneltend health my-mcp
 tunneltend doctor my-mcp
 ```
 
-Look for your service with `desired=running`. The observed state uses different words: a ready service shows `observed=ready`; `healthy`, `degraded` and `stopped` are other possible observations. In the health output, check `healthy=True` and `ready=True`, then read any diagnostic messages. `doctor` prints `No problems detected.` when it finds nothing to report. If a check reports a problem, start with [Troubleshooting](/docs/troubleshooting/); do not repeatedly register the same service or add `--force` to make the message disappear.
+Look for your service with `desired=running`. The observed state uses different words: a ready service shows `observed=ready`; `healthy`, `degraded` and `stopped` are other possible observations. In the health output, check `healthy=True` and `ready=True`, then read any diagnostic messages. `doctor` prints `No problems detected.` when it finds nothing to report. If a check reports a problem, start with [Troubleshooting](https://docs.tunneltend.com/troubleshooting/); do not repeatedly register the same service or add `--force` to make the message disappear.
 
 For the saved definition, use `tunneltend service show my-mcp`. Add `--json` to any check when you or an agent need the complete structured fields, including diagnostic repair suggestions. Read the facts, not just the exit code:
 
@@ -192,9 +192,9 @@ Choose a harmless task supported by **your** MCP server, with a result you can r
 
 For another kind of server, choose an equivalent read-only request from its documented tools. TunnelTend does not add a universal test tool. Until a real request succeeds, treat the connection as unverified, even when everything on your PC is green.
 
-**You have reached the first useful result** when that request returns the expected information. You can close the terminal afterwards. Sign-in startup and recovery follow the policies you selected; an awake, online PC and a signed-in Windows session are still required. [Everyday operation](/docs/operations/) explains later starts, stops and updates.
+**You have reached the first useful result** when that request returns the expected information. You can close the terminal afterwards. Sign-in startup and recovery follow the policies you selected; an awake, online PC and a signed-in Windows session are still required. [Everyday operation](https://docs.tunneltend.com/operations/) explains later starts, stops and updates.
 
-If the local checks pass but ChatGPT cannot connect, follow [Troubleshooting](/docs/troubleshooting/), which separates local causes from upstream scope, credential and connector problems.
+If the local checks pass but ChatGPT cannot connect, follow [Troubleshooting](https://docs.tunneltend.com/troubleshooting/), which separates local causes from upstream scope, credential and connector problems.
 
 ## Other ways to install
 
@@ -269,5 +269,5 @@ To update TunnelTend itself, obtain and verify the newer release, extract it and
 
 ## From here
 
-- [Everyday operation](/docs/operations/): deliberate stops, what the watchdog may restart, source watching, client updates, and [how to uninstall](/docs/operations/#uninstall) while keeping your registrations.
-- [Install with an agent](/docs/install-with-an-agent/): hand this same journey to a local coding agent with explicit inputs and completion evidence.
+- [Everyday operation](https://docs.tunneltend.com/operations/): deliberate stops, what the watchdog may restart, source watching, client updates, and [how to uninstall](https://docs.tunneltend.com/operations/#uninstall) while keeping your registrations.
+- [Install with an agent](https://docs.tunneltend.com/install-with-an-agent/): hand this same journey to a local coding agent with explicit inputs and completion evidence.

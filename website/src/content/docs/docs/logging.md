@@ -38,7 +38,7 @@ The event families you will meet:
 | State or compatibility errors | A stored file or an official-client response did not match what TunnelTend expects. |
 
 :::note
-A line saying a process was started is an acknowledgement, not health. Look for the later health or readiness event, or run `tunneltend health`, before concluding the service is up. [Service state](/docs/service-state/) explains the difference.
+A line saying a process was started is an acknowledgement, not health. Look for the later health or readiness event, or run `tunneltend health`, before concluding the service is up. [Service state](https://docs.tunneltend.com/service-state/) explains the difference.
 :::
 
 ## Logs versus command output
@@ -69,6 +69,6 @@ Scheduled Task failures also show up in Windows Task Scheduler's history. Tunnel
 
 ## Sharing logs in a bug report
 
-Share only the days and lines that cover the problem. Before you paste or attach anything, remove organization, workspace, and tunnel identifiers, local paths and hostnames, and anything that looks like a secret even though redaction should have caught it. Read the text yourself instead of trusting the redaction, and follow the checklist in [Privacy and data](/docs/privacy-and-data/#before-you-share-diagnostics).
+Share only the days and lines that cover the problem. Before you paste or attach anything, remove organization, workspace, and tunnel identifiers, local paths and hostnames, and anything that looks like a secret even though redaction should have caught it. Read the text yourself instead of trusting the redaction, and follow the checklist in [Privacy and data](https://docs.tunneltend.com/privacy-and-data/#before-you-share-diagnostics).
 
-Submit reproducible problems through the [bug report form](https://github.com/Wolfsblvt/tunneltend/issues/new?template=bug.yml) with the versions, the command, the expected result, and the observed diagnostic. For anything that looks like a vulnerability, use the private route in [Security](/docs/security/#report-a-vulnerability).
+Submit reproducible problems through the [bug report form](https://github.com/Wolfsblvt/tunneltend/issues/new?template=bug.yml) with the versions, the command, the expected result, and the observed diagnostic. For anything that looks like a vulnerability, use the private route in [Security](https://docs.tunneltend.com/security/#report-a-vulnerability).

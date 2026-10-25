@@ -48,7 +48,7 @@ Registration is kept even when the first start fails. The service stays visible 
 Disabled services and services with `desiredState=stopped` stay inactive until you change them.
 
 :::note
-Manual `repair --apply` and a plain `reconcile` act on enabled, desired-running services even when they are inactive in this session or suppressed with `--session-only`. They respect a durable stop and a disabled flag. An application-update command, if you enabled one, can run during maintenance even for a stopped or disabled service. See [Everyday operation](/docs/operations/#stop-a-service-on-purpose) before treating a session-only stop as a full pause.
+Manual `repair --apply` and a plain `reconcile` act on enabled, desired-running services even when they are inactive in this session or suppressed with `--session-only`. They respect a durable stop and a disabled flag. An application-update command, if you enabled one, can run during maintenance even for a stopped or disabled service. See [Everyday operation](https://docs.tunneltend.com/operations/#stop-a-service-on-purpose) before treating a session-only stop as a full pause.
 :::
 
 ## Observed state
@@ -79,7 +79,7 @@ These commands may contact your endpoints and inspect processes, but they do not
 
 `healthy` means your configured health probe answered as expected on your PC. It does not say that OpenAI accepted the tunnel, that your ChatGPT connector points at it, or that the tool itself answers an MCP request correctly. A readiness probe adds one more local fact, nothing more.
 
-The only proof of the whole chain is a real, harmless tool call from ChatGPT. [Get started](/docs/getting-started/#verify-the-whole-connection) ends with exactly that step, and [Troubleshooting](/docs/troubleshooting/) starts from the case where local checks pass and the consumer still cannot connect.
+The only proof of the whole chain is a real, harmless tool call from ChatGPT. [Get started](https://docs.tunneltend.com/getting-started/#verify-the-whole-connection) ends with exactly that step, and [Troubleshooting](https://docs.tunneltend.com/troubleshooting/) starts from the case where local checks pass and the consumer still cannot connect.
 
 ## Recovery, budget and backoff
 
@@ -87,7 +87,7 @@ The watchdog may recover a service only when it is registered, enabled, desired 
 
 The default budget allows four attempts within a rolling twenty-minute window, with exponential backoff from ten seconds to five minutes between attempts. A service that is running but unhealthy normally needs two unhealthy observations before recovery; a missing runtime can be started without that wait. Success resets the budget.
 
-When the budget is spent, `doctor` says so. That is a visible condition, not a permanent lock: as older attempts age out of the window, new attempts become eligible again. Look at `doctor`, the [logs](/docs/logging/), the command path, the credential reference and the tunnel scope before forcing another attempt. `--force` can override the budget for an explicit manual action; it can never override process ownership or the other hard safety boundaries.
+When the budget is spent, `doctor` says so. That is a visible condition, not a permanent lock: as older attempts age out of the window, new attempts become eligible again. Look at `doctor`, the [logs](https://docs.tunneltend.com/logging/), the command path, the credential reference and the tunnel scope before forcing another attempt. `--force` can override the budget for an explicit manual action; it can never override process ownership or the other hard safety boundaries.
 
 ## Source changes
 
@@ -95,7 +95,7 @@ Source watching records an initial fingerprint of the watched files, notices whe
 
 ## The official client's lifecycle
 
-OpenAI's tunnel client has its own install path and its own update cadence. Client maintenance takes a snapshot of the intended fleet, performs a verified, staged replacement, checks that the new client still offers the commands TunnelTend needs, restores the fleet, and rolls back if replacement or restoration fails. [Official client updates](/docs/operations/#official-client-updates) has the details.
+OpenAI's tunnel client has its own install path and its own update cadence. Client maintenance takes a snapshot of the intended fleet, performs a verified, staged replacement, checks that the new client still offers the commands TunnelTend needs, restores the fleet, and rolls back if replacement or restoration fails. [Official client updates](https://docs.tunneltend.com/operations/#official-client-updates) has the details.
 
 ## What an operation records
 
