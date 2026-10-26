@@ -7,6 +7,8 @@ import { fixtureRecord, reportZip, NOW, SHA } from './evidence-fixtures.mjs';
 import { validateQualificationReport } from '../../scripts/lib/client-qualification.mjs';
 
 const assemble = (records, histories = []) => buildEvidence({ records, histories, websiteCommit: SHA, websiteRun: { id: 99, attempt: 1 }, now: NOW });
+// Explicitly retained prehistory for scenarios testing routine qualification, not bootstrap/loss.
+const retained = () => ({ ...assemble([]).identityHistory, continuity: 'retained' });
 test('single JSON metadata is decoded without extracting artifact paths', () => {
   const record = fixtureRecord();
   for (const method of [0, 8]) {
@@ -35,7 +37,7 @@ test('same-repository default-branch workflow identity and event are required', 
 test('same-tag mutation remains open on repeat and across package/contract changes', () => {
   const first = fixtureRecord({ id: 1, time: '2026-10-24T10:00:00Z' });
   const changed = fixtureRecord({ id: 2, digest: '9'.repeat(64), time: '2026-10-25T10:00:00Z' });
-  const initial = assemble([first, changed]);
+  const initial = assemble([first, changed], [retained()]);
   assert.equal(initial.groups[0].qualified.evidence.runId, 1);
   const repeat = fixtureRecord({ id: 3, digest: '9'.repeat(64), time: '2026-10-26T10:00:00Z' });
   repeat.report.package.version = '1.0.2'; repeat.report.contractVersion = 2;
@@ -49,12 +51,12 @@ test('same-tag mutation remains open on repeat and across package/contract chang
 test('new tag resumes qualification, failed latest preserves previous pass and separate boundaries', () => {
   const pass = fixtureRecord({ id: 1, time: '2026-10-24T10:00:00Z' });
   const failure = fixtureRecord({ id: 2, tag: 'v0.0.19', outcome: 'failed', time: '2026-10-25T10:00:00Z' });
-  const facts = assemble([pass, failure]);
+  const facts = assemble([pass, failure], [retained()]);
   assert.equal(facts.groups[0].qualified.release.tag, 'v0.0.18');
   assert.equal(facts.groups[0].newest.distribution.outcome, 'failed');
   assert.equal(facts.groups[0].newest.connectedConsumer.outcome, 'not exercised');
-  assert.equal(assemble([pass, failure, fixtureRecord({ id: 3, tag: 'v0.0.19' })]).groups[0].qualified.release.tag, 'v0.0.19');
-  assert.equal(facts.historyAvailable, false); // bootstrap does not claim earlier identity history
+  assert.equal(assemble([pass, failure, fixtureRecord({ id: 3, tag: 'v0.0.19' })], [retained()]).groups[0].qualified.release.tag, 'v0.0.19');
+  assert.equal(assemble([pass]).historyAvailable, false); // bootstrap does not claim earlier identity history
 });
 test('48 hours changes disclosure only; unknown fields and fabricated history are refused', () => {
   assert.equal(evidenceAge('2026-10-24T12:00:00Z', NOW).stale, true);
@@ -168,7 +170,7 @@ test('a release-only rerun preserves successful source attempt1 and chooses late
   };
   const retained = await retainedReports({ reader, validateReport: validateQualificationReport, now: NOW });
   assert.equal(retained.records.length, 3);
-  const facts = assemble(retained.records);
+  const facts = assemble(retained.records, [{ ...assemble([]).identityHistory, continuity: 'retained' }]);
   const release = facts.groups.find(group => group.kind === 'release' && group.architecture === 'amd64');
   const sourceGroup = facts.groups.find(group => group.kind === 'source' && group.architecture === 'amd64');
   assert.equal(release.newest.evidence.artifactId, 100);
@@ -177,4 +179,91 @@ test('a release-only rerun preserves successful source attempt1 and chooses late
   assert.equal(sourceGroup.qualified.evidence.conclusion, 'failure');
   assert.equal(sourceGroup.qualified.evidence.qualificationConclusion, 'success');
   assert.equal(retained.records.find(record => record.artifact.id === 9000).qualificationConclusion, 'failure');
+});
+
+test('total history loss stays unknown through saved snapshots, repeated changed bytes and reversion', async () => {
+  let histories = [];
+  for (const [id, digest] of [[1, '8'], [2, '9'], [3, '9'], [4, '8']]) {
+    const record = fixtureRecord({ id, digest: digest.repeat(64) });
+    record.report.package.version = `1.0.${id}`;
+    const lookup = await retainedReports({ reader: fakeReader([record]), validateReport: validateQualificationReport, now: NOW });
+    const facts = buildEvidence({ ...lookup, histories, websiteCommit: SHA, websiteRun: { id: 99, attempt: 1 }, now: NOW });
+    assert.equal(facts.identityHistory.continuity, 'unknown');
+    assert.equal(facts.historyAvailable, false);
+    assert.equal(facts.groups[0].qualified, null);
+    assert.equal(facts.groups[0].newest.distribution.outcome, 'passed'); // real boundary proof stays separate
+    histories = [validateIdentityHistory(JSON.parse(JSON.stringify(facts.identityHistory)))];
+  }
+  assert.equal(histories[0].identities[0].changes.length, 1);
+  assert.equal(histories[0].identities[0].changes[0].runId, 2);
+});
+
+test('reader merges older open changes with newer incomplete snapshots before qualification', async () => {
+  const first = fixtureRecord({ id: 1, time: '2026-10-24T10:00:00Z' });
+  const changed = fixtureRecord({ id: 2, digest: '9'.repeat(64), time: '2026-10-25T10:00:00Z' });
+  const old = assemble([first, changed], [retained()]).identityHistory;
+  const newer = { ...assemble([changed], [retained()]).identityHistory, run: { id: 100, attempt: 1 } };
+  const latest = fixtureRecord({ id: 3, digest: '9'.repeat(64) });
+  latest.report.package.version = '1.0.2';
+  const baseReader = fakeReader([latest]);
+  const historyRecords = [old, newer].map((history, index) => {
+    const zip = reportZip(history);
+    const run = { ...latest.run, id: history.run.id, path: '.github/workflows/website.yml', event: 'workflow_run' };
+    return { history, zip, run, artifact: { ...latest.artifact, id: 9990 + index,
+      name: 'client-qualification-history', workflow_run: { id: run.id, head_sha: SHA }, digest: zip.digest,
+      created_at: `2026-10-26T12:0${index + 1}:00Z` } };
+  });
+  const reader = {
+    async json(path) {
+      if (path.includes('artifacts?name=client-qualification-history')) return { artifacts: historyRecords.map(item => item.artifact) };
+      if (path === `compare/${SHA}...main`) return { status: 'identical' };
+      const item = historyRecords.find(item => path === `actions/runs/${item.run.id}`);
+      return item ? item.run : baseReader.json(path);
+    },
+    async archive(id) { return historyRecords.find(item => item.artifact.id === id)?.zip.bytes ?? baseReader.archive(id); },
+  };
+  const lookup = await retainedReports({ reader, validateReport: validateQualificationReport, now: new Date('2026-10-26T12:03:00Z') });
+  assert.equal(lookup.histories.length, 2);
+  assert.equal(lookup.historyWritable, true);
+  const facts = buildEvidence({ ...lookup, websiteCommit: SHA, websiteRun: { id: 101, attempt: 1 }, now: NOW });
+  assert.equal(facts.identityHistory.identities[0].baseline.sha256, first.report.architectures[0].asset.sha256);
+  assert.equal(facts.identityHistory.identities[0].changes[0].runId, 2);
+  assert.equal(facts.groups[0].qualified, null); // latest incomplete snapshot's baseline is not authority
+  const restored = assemble([first], [validateIdentityHistory(facts.identityHistory)]);
+  assert.equal(restored.identityHistory.identities[0].changes.length, 1);
+});
+
+test('legacy and incomplete retrieval preserve known identities without inventing continuity', () => {
+  const known = assemble([fixtureRecord(), fixtureRecord({ id: 11, digest: '9'.repeat(64) })], [retained()]).identityHistory;
+  const { continuity, ...legacy } = known;
+  const normalized = validateIdentityHistory({ ...legacy, schemaVersion: 1 });
+  assert.equal(normalized.continuity, 'unknown');
+  assert.equal(normalized.identities[0].changes.length, 1);
+  const partial = buildEvidence({ records: [fixtureRecord()], histories: [known], historyWritable: false,
+    websiteCommit: SHA, websiteRun: { id: 99, attempt: 1 }, now: NOW });
+  assert.equal(partial.identityHistory.continuity, 'unknown');
+  assert.equal(partial.groups[0].qualified, null);
+});
+
+test('bounded incomplete collection cannot upload a replacement history or imply continuity', async () => {
+  let pages = 0;
+  const reader = {
+    async json(path) {
+      if (!path) return { id: 1, default_branch: 'main' };
+      if (path.includes('workflows/')) return { id: 123 };
+      if (path.includes('artifacts?')) {
+        assert.ok(Number(new URLSearchParams(path.split('?')[1]).get('page')) <= 10);
+        pages++;
+        return { artifacts: Array.from({ length: 100 }, () => ({ name: 'client-qualification-history',
+          workflow_run: { head_branch: 'untrusted-branch' } })) };
+      }
+      throw new Error(`unexpected ${path}`);
+    },
+    async archive() { assert.fail('out-of-scope artifact downloaded'); },
+  };
+  const lookup = await retainedReports({ reader, validateReport: validateQualificationReport, now: NOW });
+  assert.equal(pages, 30);
+  assert.equal(lookup.historyWritable, false);
+  assert.ok(lookup.issues.includes('collection-incomplete'));
+  assert.equal(buildEvidence({ ...lookup, websiteCommit: SHA, websiteRun: { id: 99, attempt: 1 }, now: NOW }).identityHistory.continuity, 'unknown');
 });

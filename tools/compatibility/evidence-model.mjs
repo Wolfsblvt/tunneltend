@@ -9,7 +9,12 @@ const exact = (object, keys) => object && typeof object === 'object' && !Array.i
 
 /** Only release identities survive beyond their original report; never copy an expired pass. */
 export function validateIdentityHistory(value) {
-  if (!exact(value, ['schemaVersion', 'generatedAt', 'sourceCommit', 'run', 'identities']) || value.schemaVersion !== 1
+  // Legacy snapshots preserve identities but never prove continuity that their schema could not express.
+  if (value?.schemaVersion === 1 && exact(value, ['schemaVersion', 'generatedAt', 'sourceCommit', 'run', 'identities'])) {
+    value = { ...value, schemaVersion: 2, continuity: 'unknown' };
+  }
+  if (!exact(value, ['schemaVersion', 'continuity', 'generatedAt', 'sourceCommit', 'run', 'identities']) || value.schemaVersion !== 2
+    || !['retained', 'unknown'].includes(value.continuity)
     || !utc.test(value.generatedAt) || !Number.isFinite(Date.parse(value.generatedAt)) || !/^[a-f0-9]{40}$/.test(value.sourceCommit)
     || !exact(value.run, ['id', 'attempt']) || !Number.isSafeInteger(value.run.id) || value.run.id < 1
     || !Number.isSafeInteger(value.run.attempt) || value.run.attempt < 1 || !Array.isArray(value.identities)) throw new Error('identity-history');
@@ -38,8 +43,10 @@ function validAsset(asset) {
 }
 
 /** Fold observations in provider order. A repeat or reversion cannot close an identity change. */
-export function buildEvidence({ records, issues = [], histories = [], websiteCommit, websiteRun, now = new Date() }) {
+export function buildEvidence({ records, issues = [], histories = [], historyWritable = true, websiteCommit, websiteRun, now = new Date() }) {
   const identities = new Map();
+  const continuity = historyWritable && histories.length > 0 && histories.every(history => history.continuity === 'retained')
+    ? 'retained' : 'unknown';
   // Merge retained snapshots instead of allowing a failed or concurrent later build to erase an open change.
   for (const history of histories) {
     for (const item of history.identities) mergeIdentity(item);
@@ -70,19 +77,19 @@ export function buildEvidence({ records, issues = [], histories = [], websiteCom
     for (const architecture of ['amd64', 'arm64']) {
       const items = observations.filter(item => item.package.kind === kind && item.architecture === architecture);
       const newest = items.at(-1) ?? null;
-      const qualified = items.findLast(item => item.evidence.qualificationConclusion === 'success' && item.distribution.outcome === 'passed'
+      const qualified = continuity === 'retained' ? items.findLast(item => item.evidence.qualificationConclusion === 'success' && item.distribution.outcome === 'passed'
         && (item.execution === 'native' ? item.credentialFreeCli.outcome === 'passed' : item.credentialFreeCli.outcome === 'not exercised')
-        && item.asset?.sha256 === identities.get(`${item.release?.tag}/${architecture}`)?.baseline.sha256) ?? null;
+        && item.asset?.sha256 === identities.get(`${item.release?.tag}/${architecture}`)?.baseline.sha256) ?? null : null;
       if (newest) groups.push({ kind, architecture, newest, qualified });
     }
   }
   return {
     schemaVersion: 1, builtAt: now.toISOString(), websiteCommit, groups, issues,
-    identityHistory: { schemaVersion: 1, generatedAt: now.toISOString(), sourceCommit: websiteCommit, run: websiteRun,
+    identityHistory: { schemaVersion: 2, continuity, generatedAt: now.toISOString(), sourceCommit: websiteCommit, run: websiteRun,
       // Keep the currently observed baseline and open changes, rather than making a version registry.
       identities: [...identities.values()].filter(item => item.changes.length > 0 ||
         ![...identities.values()].some(other => other.architecture === item.architecture && Date.parse(other.lastObservedAt) > Date.parse(item.lastObservedAt))) },
-    historyAvailable: histories.some(history => history.identities.length > 0),
+    historyAvailable: continuity === 'retained',
   };
 
   function mergeIdentity(incoming) {

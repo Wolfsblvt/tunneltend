@@ -10,6 +10,7 @@ export const ARTIFACT_NAMES = ['client-qualification-source', 'client-qualificat
 export const REPORT_FILE = 'report.json';
 const MAX_REPORT_BYTES = 256 * 1024;
 const MAX_ARCHIVE_BYTES = 512 * 1024;
+const MAX_ARTIFACT_PAGES = 10;
 
 /** Read exactly one regular JSON entry from a small ZIP, without trusting or writing paths. */
 export function readReportArchive(bytes, digest) {
@@ -116,22 +117,22 @@ export async function retainedReports({ reader, validateReport, now = new Date()
     const attemptJobs = new Map();
     const artifacts = [];
     for (const name of [...ARTIFACT_NAMES, HISTORY_ARTIFACT]) {
-      for (let page = 1; ; page++) {
+      for (let page = 1; page <= MAX_ARTIFACT_PAGES; page++) {
         const result = await reader.json(`actions/artifacts?name=${name}&per_page=100&page=${page}`);
         artifacts.push(...result.artifacts.filter(artifact => artifact.name === name));
         if (result.artifacts.length < 100) break;
+        if (page === MAX_ARTIFACT_PAGES) {
+          issues.add('collection-incomplete');
+          historyWritable = false;
+        }
       }
     }
     artifacts.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id);
-    // A complete snapshot already carries earlier open changes. Download only the newest valid one,
-    // all later observations, and enough earlier reports to retain the last routine qualifications.
+    // Read every retained snapshot in the bounded collection: even a valid newer snapshot may be incomplete.
     const ordered = [...artifacts.filter(artifact => artifact.name === HISTORY_ARTIFACT), ...artifacts.filter(artifact => artifact.name !== HISTORY_ARTIFACT)];
-    const qualified = new Set();
     for (const artifact of ordered) {
         const isHistory = artifact.name === HISTORY_ARTIFACT;
         if (artifact.workflow_run?.head_branch && artifact.workflow_run.head_branch !== repository.default_branch) continue;
-        if (isHistory && histories.length) continue;
-        if (!isHistory && histories.length && qualified.size === 4 && Date.parse(artifact.created_at) < Date.parse(histories[0].generatedAt)) break;
         if (artifact.expired || !(Date.parse(artifact.expires_at) > now.getTime())) { issues.add('expired'); continue; }
         try {
           if (!Number.isSafeInteger(artifact.id) || !Number.isSafeInteger(artifact.workflow_run?.id)
@@ -172,12 +173,6 @@ export async function retainedReports({ reader, validateReport, now = new Date()
           if (!job || job.run_attempt !== attempt || job.status !== 'completed' || !['success', 'failure'].includes(job.conclusion)
             || !(Date.parse(job.started_at) <= Date.parse(artifact.created_at) && Date.parse(artifact.created_at) <= Date.parse(job.completed_at))) throw new Error('report-job');
           records.push({ report, run, artifact, qualificationConclusion: job.conclusion });
-          for (const arch of report.architectures) {
-            const baseline = histories[0]?.identities.find(item => item.tag === report.release?.tag && item.architecture === arch.architecture)?.baseline.sha256;
-            if (job.conclusion === 'success' && arch.distribution.outcome === 'passed'
-              && (arch.execution === 'native' ? arch.credentialFreeCli.outcome === 'passed' : arch.credentialFreeCli.outcome === 'not exercised')
-              && arch.asset?.sha256 && (!baseline || baseline === arch.asset.sha256)) qualified.add(`${report.package.kind}/${arch.architecture}`);
-          }
         } catch {
           issues.add(isHistory ? 'identity-history-invalid-or-inaccessible' : 'invalid-or-inaccessible');
           if (isHistory) historyWritable = false;
@@ -188,5 +183,6 @@ export async function retainedReports({ reader, validateReport, now = new Date()
     || Date.parse(a.report.checkedAt) - Date.parse(b.report.checkedAt) || a.run.run_attempt - b.run.run_attempt);
   if (!records.length && !issues.size) issues.add('missing-or-expired');
   histories.sort((a, b) => Date.parse(a.generatedAt) - Date.parse(b.generatedAt));
+  if (!histories.length || histories.some(history => history.continuity === 'unknown')) issues.add('identity-continuity-unknown');
   return { records, histories, issues: [...issues], historyWritable };
 }

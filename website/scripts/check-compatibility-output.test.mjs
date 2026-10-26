@@ -9,8 +9,30 @@ import { test } from 'node:test';
 import { buildEvidence } from '../../tools/compatibility/evidence-model.mjs';
 import { fixtureRecord, NOW, SHA } from '../../tools/compatibility/evidence-fixtures.mjs';
 import { validateQualificationReport } from '../../scripts/lib/client-qualification.mjs';
+import { refreshEvidence } from '../src/lib/compatibility-evidence.ts';
 
 const checker = fileURLToPath(new URL('./check-compatibility-output.mjs', import.meta.url));
+
+test('expiry makes all four current outcomes and routine qualification unavailable, preserving historical results', () => {
+  const expiresAt = '2027-01-24T10:00:00Z';
+  const outcomes = ['Passed', 'Failed', 'Not exercised', 'Unavailable'].map(textContent => ({
+    textContent, dataset: { evidenceAvailableUntil: expiresAt },
+  }));
+  const routine = { textContent: 'Retained qualification:', dataset: { routineAvailableUntil: expiresAt } };
+  const expiry = { textContent: 'Retained', dataset: { evidenceExpiry: expiresAt } };
+  const root = { querySelectorAll: selector => ({
+    '[data-evidence-available-until]': outcomes,
+    '[data-routine-available-until]': [routine],
+    '[data-evidence-expiry]': [expiry],
+  })[selector] };
+  refreshEvidence(root, Date.parse(expiresAt) - 1);
+  assert.deepEqual(outcomes.map(item => item.textContent), ['Passed', 'Failed', 'Not exercised', 'Unavailable']);
+  refreshEvidence(root, Date.parse(expiresAt));
+  assert.deepEqual(outcomes.map(item => item.textContent), Array(4).fill('Unavailable'));
+  assert.match(routine.textContent, /Unavailable.*expired.*Historical/);
+  refreshEvidence(root, Date.parse(expiresAt) + 1000);
+  assert.deepEqual(outcomes.map(item => item.textContent), Array(4).fill('Unavailable'));
+});
 
 test('built-output checker accepts unavailable release identity while preserving source evidence', (t) => {
   const release = fixtureRecord({ id: 501, kind: 'release', outcome: 'unavailable' });
