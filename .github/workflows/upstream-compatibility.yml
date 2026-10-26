@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
+    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/QualificationWorkflow.Tests.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
   pull_request:
-    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
+    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/QualificationWorkflow.Tests.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
 
 permissions:
   contents: read
@@ -58,14 +58,22 @@ jobs:
           # Preserve the runner's upload environment; qualification clears its
           # own process environment before executing downloaded binaries.
           $arguments = @('-NoProfile','-NonInteractive','-File','scripts/Invoke-ClientQualification.ps1')
-          foreach ($key in $parameters.Keys) { $arguments += @('-' + $key, [string]$parameters[$key]) }
+          foreach ($key in $parameters.Keys) { $arguments += @("-$key", [string]$parameters[$key]) }
           $info = [Diagnostics.ProcessStartInfo]::new()
           $info.FileName = (Get-Process -Id $PID).Path
+          $info.WorkingDirectory = $PWD.Path
           $info.UseShellExecute = $false
           $info.CreateNoWindow = $true
+          $info.RedirectStandardOutput = $true
+          $info.RedirectStandardError = $true
           foreach ($argument in $arguments) { $info.ArgumentList.Add($argument) }
           $process = [Diagnostics.Process]::Start($info)
+          $stdout = $process.StandardOutput.ReadToEndAsync()
+          $stderr = $process.StandardError.ReadToEndAsync()
           $process.WaitForExit()
+          # Drain, but never publish arbitrary downloaded-client output.
+          $null = $stdout.GetAwaiter().GetResult()
+          $null = $stderr.GetAwaiter().GetResult()
           if ($process.ExitCode -ne 0) { throw 'Qualification failed; preserve the bounded report.' }
       - name: Validate report for retention
         id: validate
