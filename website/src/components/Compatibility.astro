@@ -47,7 +47,7 @@ const outcomeLabel = (value: string) => value === 'not exercised'
     <ul class="compatibility-outcomes" aria-label="Four compatibility outcomes">
       {layers.map(([key, label]) => <li data-compatibility-outcome={key}>
         <span>{label}</span>
-        <strong>{outcomeLabel(latest?.[key].outcome ?? 'unavailable')}</strong>
+        <strong data-evidence-available-until={latest?.evidence.expiresAt}>{outcomeLabel(latest?.[key].outcome ?? 'unavailable')}</strong>
       </li>)}
     </ul>
     {latest && age && <p class="compatibility-time">
@@ -56,10 +56,11 @@ const outcomeLabel = (value: string) => value === 'not exercised'
       · <span data-evidence-age={latest.checkedAt}>{age.hours}h old at build{age.stale ? ' · stale (48h)' : ''}</span>
     </p>}
     {!latest && <p class="compatibility-time">No valid retained Windows x64 release report is available in this build. Local installation and updates remain independent.</p>}
+    {latest && <p class="compatibility-time" data-evidence-expiry={latest.evidence.expiresAt}>Retained evidence; expires {formatDateTime(latest.evidence.expiresAt)}.</p>}
   </section>
 
   {changes.length > 0 && <p class="compatibility-warning" role="note" data-same-tag-warning>
-    <strong>Same-tag asset changes need maintainer judgment.</strong>
+    <strong>Same-tag asset changes need maintainer judgment.</strong>{' '}
     Existing same-version installations keep their current bytes.
   </p>}
 
@@ -78,7 +79,7 @@ const outcomeLabel = (value: string) => value === 'not exercised'
         </p>
         <dl>
           <div><dt>Newest observed</dt><dd>{item.release?.tag ?? 'Release unavailable'}{item.asset && <> · {item.asset.name} · <code>{item.asset.sha256 ? shortHash(item.asset.sha256) : 'checksum unavailable'}</code></>}</dd></div>
-          <div><dt>Last routine-qualified</dt><dd>{qualified ? <>{qualified.release?.tag} · <code>{shortHash(qualified.asset?.sha256 ?? null)}</code> · TunnelTend {qualified.package.version} ({qualified.package.kind}) · <time datetime={qualified.checkedAt}>{formatDateTime(qualified.checkedAt)}</time> · <a class="link-quiet" href={qualified.evidence.artifactUrl}>evidence #{qualified.evidence.artifactId}</a> · <span data-evidence-expiry={qualified.evidence.expiresAt}>retained at build; expires {formatDateTime(qualified.evidence.expiresAt)}</span></> : 'Unavailable in retained evidence'}</dd></div>
+          <div><dt>Last routine-qualified</dt><dd>{qualified ? <><span data-routine-available-until={qualified.evidence.expiresAt}>Retained qualification:</span> {qualified.release?.tag} · <code>{shortHash(qualified.asset?.sha256 ?? null)}</code> · TunnelTend {qualified.package.version} ({qualified.package.kind}) · <time datetime={qualified.checkedAt}>{formatDateTime(qualified.checkedAt)}</time> · <a class="link-quiet" href={qualified.evidence.artifactUrl}>evidence #{qualified.evidence.artifactId}</a> · <span data-evidence-expiry={qualified.evidence.expiresAt}>retained at build; expires {formatDateTime(qualified.evidence.expiresAt)}</span></> : 'Unavailable in retained evidence'}</dd></div>
         </dl>
         <ul class="compatibility-outcomes" aria-label={`Separate evidence boundaries for ${packageKind}, ${architecture}`}>
           {layers.map(([key, label]) => <li><span>{label}</span><strong>{outcomeLabel(item[key].outcome)}</strong></li>)}
@@ -91,7 +92,7 @@ const outcomeLabel = (value: string) => value === 'not exercised'
         <details>
           <summary>Exact report, hashes and checks</summary>
           <p><a class="link-quiet" href={item.evidence.runUrl}>Run {item.evidence.runId}, attempt {item.evidence.attempt}</a> · <a class="link-quiet" href={item.evidence.artifactUrl}>artifact {item.evidence.artifactId}</a> · qualifier job {item.evidence.qualificationConclusion} · run outcome {item.evidence.conclusion}</p>
-          <p><span data-evidence-expiry={item.evidence.expiresAt}>Retained at build; artifact expires {formatDateTime(item.evidence.expiresAt)}.</span> Qualification source <code>{item.source.commit}</code>; harness <code>{item.source.harnessSha256}</code>; adapter <code>{item.source.adapterSha256 ?? 'unavailable'}</code>.</p>
+          <p><span data-evidence-expiry={item.evidence.expiresAt}>Retained at build; artifact expires {formatDateTime(item.evidence.expiresAt)}.</span> Qualification source <code>{item.source.commit}</code>; harness <code>{item.source.harnessSha256}</code>; adapter <code>{item.source.adapterSha256 ?? 'unavailable'}</code>; updater <code>{item.source.updaterSha256 ?? 'unavailable'}</code>.</p>
           <p>Official asset SHA-256 <code>{item.asset?.sha256 ?? 'unavailable'}</code>. Tested package SHA-256 <code>{item.package.sha256 ?? 'unavailable'}</code>.</p>
           {layers.map(([key, label]) => <p><strong>{label}:</strong> {item[key].checks.map(check => `${check.id}: ${outcomeLabel(check.outcome)}`).join('; ') || 'No checks exercised'}</p>)}
         </details>
@@ -110,17 +111,17 @@ const outcomeLabel = (value: string) => value === 'not exercised'
 </aside>
 
 <script>
+  import { refreshEvidence } from '../lib/compatibility-evidence';
   function refreshAges() {
     for (const element of document.querySelectorAll<HTMLElement>('[data-evidence-age]')) {
       const hours = Math.max(0, Math.floor((Date.now() - Date.parse(element.dataset.evidenceAge!)) / 3_600_000));
       element.textContent = `${hours}h old${hours >= 48 ? ' · stale (48h)' : ''}`;
     }
-    for (const element of document.querySelectorAll<HTMLElement>('[data-evidence-expiry]')) {
-      if (Date.now() >= Date.parse(element.dataset.evidenceExpiry!)) element.textContent = 'Expired — this historical check is no longer retained.';
-    }
+    refreshEvidence(document);
   }
   refreshAges();
   window.addEventListener('pageshow', refreshAges);
+  document.addEventListener('visibilitychange', refreshAges);
 </script>
 
 <style>

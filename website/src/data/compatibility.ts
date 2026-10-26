@@ -19,13 +19,13 @@ interface Observation {
 interface CompatibilityFacts {
   builtAt: string | null; websiteCommit: string | null; historyAvailable: boolean; issues: string[];
   groups: { kind: string; architecture: string; newest: Observation; qualified: Observation | null }[];
-  identityHistory: { identities: { tag: string; architecture: string; baseline: HistoricalAsset; changes: HistoricalAsset[]; lastObservedAt: string }[] };
+  identityHistory: { continuity: 'retained' | 'unknown'; identities: { tag: string; architecture: string; baseline: HistoricalAsset; changes: HistoricalAsset[]; lastObservedAt: string }[] };
 }
 
 /** Input assembled by the clean build controller; downloaded executable artifacts are never imported. */
 export function loadCompatibility(): CompatibilityFacts {
   // Astro bundles this module; import.meta.url would then name an emitted chunk, not the source directory.
   const path = resolve(process.cwd(), 'artifacts/compatibility/facts.json');
-  if (!existsSync(path)) return { builtAt: null, websiteCommit: null, groups: [], issues: ['not-resolved'], historyAvailable: false, identityHistory: { identities: [] } };
+  if (!existsSync(path)) return { builtAt: null, websiteCommit: null, groups: [], issues: ['not-resolved'], historyAvailable: false, identityHistory: { continuity: 'unknown', identities: [] } };
   return JSON.parse(readFileSync(path, 'utf8')) as CompatibilityFacts;
 }
