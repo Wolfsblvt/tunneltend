@@ -16,7 +16,15 @@ The adapter normalizes upstream fields before the rest of the application sees t
 
 `client status` performs live help-based capability checks. A new binary is not accepted after update until those checks pass. The Windows release checklist verifies concrete JSON fields and exit codes against the selected release.
 
-`docs/research/openai-tunnel-client-release.json` is a dated, generated release snapshot, not an allowlist or local installation prerequisite. `docs/research/openai-tunnel-client-current.md` is an authored historical qualification account. Neither is a forever-latest claim.
+## Local installation authority
+
+Maintenance resolves the latest stable release directly from `openai/tunnel-client`. It selects the host architecture, requires a published digest/checksum, guards archive extraction and executable selection, and checks the staged version against the selected release before downtime. The coordinator pins that selected tag for acquisition rather than independently resolving a newer latest release midway through staging. Installed capability/fleet failure retains transactional rollback and explicit incomplete-recovery reporting. No central report, allowlist or website availability is consulted.
+
+Automatic same-version maintenance keeps installed bytes, including when upstream republishes that tag with a different digest. The central reader preserves the old/new official identity for maintainer judgment; a changed digest alone is not a compromise verdict. New installations use the current official asset and checksum. A deliberately forced reinstall remains explicit and cannot bypass checks or permit downgrade. A genuinely newer compatible release resumes ordinary maintenance.
+
+## Maintained upstream context
+
+`docs/research/openai-tunnel-client-release.json` remains an optional dated generated release coordinate, refreshed explicitly with `scripts/Update-UpstreamSnapshot.ps1`. It is not an allowlist or local installation prerequisite. The watch no longer fails because that tracked snapshot changed. `docs/research/openai-tunnel-client-current.md` preserves useful authored semantic context and historical evidence; neither file is a permanent latest-version claim or installation gate. Actual upstream contract failure earns focused adapter work and, when needed, a separately authorized TunnelTend patch.
 
 ## Retained qualification and public facts
 
