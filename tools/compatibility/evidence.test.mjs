@@ -235,7 +235,7 @@ test('reader merges older open changes with newer incomplete snapshots before qu
 
 test('legacy and incomplete retrieval preserve known identities without inventing continuity', () => {
   const known = assemble([fixtureRecord(), fixtureRecord({ id: 11, digest: '9'.repeat(64) })], [retained()]).identityHistory;
-  const { continuity, ...legacy } = known;
+  const { continuity, continuousSince, ...legacy } = known;
   const normalized = validateIdentityHistory({ ...legacy, schemaVersion: 1 });
   assert.equal(normalized.continuity, 'unknown');
   assert.equal(normalized.identities[0].changes.length, 1);
@@ -243,6 +243,29 @@ test('legacy and incomplete retrieval preserve known identities without inventin
     websiteCommit: SHA, websiteRun: { id: 99, attempt: 1 }, now: NOW });
   assert.equal(partial.identityHistory.continuity, 'unknown');
   assert.equal(partial.groups[0].qualified, null);
+});
+
+test('after loss a genuinely newer release qualifies automatically without clearing unknown prehistory or open changes', () => {
+  const old = fixtureRecord({ id: 1 });
+  const mutation = fixtureRecord({ id: 2, digest: '9'.repeat(64) });
+  const bootstrap = assemble([old, mutation]).identityHistory;
+  const next = fixtureRecord({ id: 3, tag: 'v0.0.19', time: '2026-10-28T10:00:00Z' });
+  next.report.release.publishedAt = '2026-10-27T10:00:00Z';
+  const facts = buildEvidence({ records: [next], histories: [validateIdentityHistory(JSON.parse(JSON.stringify(bootstrap)))],
+    websiteCommit: SHA, websiteRun: { id: 100, attempt: 1 }, now: new Date('2026-10-28T12:00:00Z') });
+  assert.equal(facts.identityHistory.continuity, 'unknown');
+  assert.equal(facts.historyAvailable, false);
+  assert.equal(facts.groups[0].qualified.release.tag, 'v0.0.19');
+  assert.equal(facts.identityHistory.identities.find(item => item.tag === 'v0.0.18').changes.length, 1);
+  const repeat = buildEvidence({ records: [next], histories: [validateIdentityHistory(facts.identityHistory)],
+    websiteCommit: SHA, websiteRun: { id: 101, attempt: 1 }, now: new Date('2026-10-29T12:00:00Z') });
+  assert.equal(repeat.groups[0].qualified.release.tag, 'v0.0.19');
+  assert.equal(repeat.identityHistory.continuousSince, bootstrap.continuousSince);
+  const republished = fixtureRecord({ id: 4, time: '2026-10-28T10:00:00Z' });
+  republished.report.release.publishedAt = next.report.release.publishedAt;
+  const oldTag = buildEvidence({ records: [republished], histories: [bootstrap], websiteCommit: SHA,
+    websiteRun: { id: 102, attempt: 1 }, now: new Date('2026-10-29T12:00:00Z') });
+  assert.equal(oldTag.groups[0].qualified, null); // a later release record cannot launder a known pre-loss tag
 });
 
 test('bounded incomplete collection cannot upload a replacement history or imply continuity', async () => {
