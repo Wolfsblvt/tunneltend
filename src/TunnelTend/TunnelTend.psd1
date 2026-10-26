@@ -1,6 +1,6 @@
 @{
     RootModule = 'TunnelTend.psm1'
-    ModuleVersion = '1.0.1'
+    ModuleVersion = '1.0.2'
     CompatiblePSEditions = @('Core')
     GUID = '856f4c88-94bf-4d62-b209-352a424489d4'
     Author = 'Wolfsblvt Works'

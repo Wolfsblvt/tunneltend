@@ -35,7 +35,7 @@ If all you have so far is an app name or an idea, start with [Find your MCP serv
 
 Use a persistent user environment variable or protected file for the credential; a variable set only in one terminal will not reach scheduled tasks. Your PC must stay awake and signed in for current-user automation.
 
-The current release is **1.0.1**. Its [release account](docs/releases/1.0.1.md) describes the diagnostic and installer fixes; the [Windows qualification account](docs/releases/1.0.0.md) names the versions and limits of the original sign-in, recovery and remote-call observations. Confirm your own service and consumer during setup.
+The [latest stable GitHub Release](https://github.com/Wolfsblvt/tunneltend/releases/latest) establishes downloadable availability and release notes. The [Windows qualification account](docs/releases/1.0.0.md) names the versions and limits of the original sign-in, recovery and remote-call observations. Confirm your own service and consumer during setup.
 
 ### Install
 
