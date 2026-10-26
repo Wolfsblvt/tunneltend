@@ -40,6 +40,13 @@ test('built-output checker accepts unavailable release identity while preserving
   for (const architecture of release.report.architectures) {
     architecture.asset = null;
     architecture.execution = 'not exercised';
+    architecture.distribution = {
+      outcome: 'unavailable',
+      checks: architecture.distribution.checks.map(({ id }) => ({
+        id,
+        outcome: ['version-agreement', 'installation-agreement'].includes(id) ? 'not exercised' : 'unavailable',
+      })),
+    };
   }
   validateQualificationReport(release.report);
 
