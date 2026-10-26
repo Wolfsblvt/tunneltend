@@ -1,0 +1,88 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-only
+import { loadCompatibility } from '../data/compatibility';
+import { evidenceAge } from '../../../tools/compatibility/evidence-model.mjs';
+const facts = loadCompatibility();
+const layers = [
+  ['distribution', 'Distribution'], ['credentialFreeCli', 'Credential-free CLI'],
+  ['localFleet', 'Owned fleet restored'], ['connectedConsumer', 'Connected consumer'],
+] as const;
+const changes = facts.identityHistory.identities.filter(item => item.changes.length > 0);
+const shortHash = (value: string | null) => value?.slice(0, 12) ?? 'unavailable';
+---
+<aside class="compatibility" aria-labelledby="compatibility-title" data-compatibility data-website-source={facts.websiteCommit}>
+  <div class="compatibility-heading">
+    <h3 id="compatibility-title">Official-client checks</h3>
+    <a class="link-quiet" href="https://github.com/Wolfsblvt/tunneltend/actions/workflows/upstream-compatibility.yml">Check history</a>
+  </div>
+  <p class="compatibility-intro">Dated checks of OpenAI’s Windows client. Your installation verifies releases locally; this report never grants or blocks an update.</p>
+  {facts.groups.length === 0 ? <p class="compatibility-unavailable"><strong>Evidence unavailable.</strong> No valid retained report is available in this build. Local installation and updates remain independent.</p> : <>
+    {facts.groups.map(group => {
+      const latest = group.newest;
+      const qualified = group.qualified;
+      const age = evidenceAge(latest.checkedAt);
+      return <details class="compatibility-group" open={group.kind === 'release' && group.architecture === 'amd64'}>
+        <summary>{group.kind === 'release' ? 'Released TunnelTend' : 'Unreleased source'} · {group.architecture === 'amd64' ? 'Windows x64' : 'Windows ARM64'}</summary>
+        <p class="compatibility-build">Tested TunnelTend {latest.package.version ?? 'version unavailable'} · package <code>{shortHash(latest.package.sha256)}</code>{latest.package.sourceCommit && <> · source <code>{shortHash(latest.package.sourceCommit)}</code></>}</p>
+        <dl>
+          <div><dt>Newest observed</dt><dd>{latest.release?.tag ?? 'Release unavailable'}{latest.asset && <> · {latest.asset.name} · <code>{latest.asset.sha256 ? shortHash(latest.asset.sha256) : 'checksum unavailable'}</code></>}</dd></div>
+          <div><dt>Last routine-qualified</dt><dd>{qualified ? <>{qualified.release?.tag} · <code>{shortHash(qualified.asset?.sha256 ?? null)}</code> · TunnelTend {qualified.package.version} ({qualified.package.kind}) · <time datetime={qualified.checkedAt}>{qualified.checkedAt}</time> · <a class="link-quiet" href={qualified.evidence.artifactUrl}>evidence #{qualified.evidence.artifactId}</a> · <span data-evidence-expiry={qualified.evidence.expiresAt}>retained at build; expires {qualified.evidence.expiresAt}</span></> : 'Unavailable in retained evidence'}</dd></div>
+        </dl>
+        <ul class="compatibility-outcomes" aria-label="Separate evidence boundaries">
+          {layers.map(([key, label]) => <li><span>{label}</span><strong>{latest[key].outcome}</strong></li>)}
+        </ul>
+        <p class="compatibility-time">Observed <time datetime={latest.observedAt}>{latest.observedAt}</time><br />Checked <time datetime={latest.checkedAt}>{latest.checkedAt}</time> · <span data-evidence-age={latest.checkedAt}>{age.hours}h old at build{age.stale ? ' · stale (48h)' : ''}</span><br />Execution: {latest.execution}. {group.architecture === 'arm64' && latest.execution !== 'native' && 'Asset verification does not establish ARM64 execution.'}</p>
+        <details>
+          <summary>Exact evidence and checks</summary>
+          <p><a class="link-quiet" href={latest.evidence.runUrl}>Run {latest.evidence.runId}, attempt {latest.evidence.attempt}</a> · <a class="link-quiet" href={latest.evidence.artifactUrl}>artifact {latest.evidence.artifactId}</a> · qualifier job {latest.evidence.qualificationConclusion} · run outcome {latest.evidence.conclusion}</p>
+          <p><span data-evidence-expiry={latest.evidence.expiresAt}>Retained at build; artifact expires {latest.evidence.expiresAt}.</span> Qualification source <code>{latest.source.commit}</code>; harness <code>{latest.source.harnessSha256}</code>; adapter <code>{latest.source.adapterSha256 ?? 'unavailable'}</code>.</p>
+          <p>Official asset SHA-256 <code>{latest.asset?.sha256 ?? 'unavailable'}</code>. Tested package SHA-256 <code>{latest.package.sha256 ?? 'unavailable'}</code>.</p>
+          {layers.map(([key, label]) => <p><strong>{label}:</strong> {latest[key].checks.map(check => `${check.id}: ${check.outcome}`).join('; ') || 'No checks exercised'}</p>)}
+        </details>
+      </details>;
+    })}
+  </>}
+  {changes.length > 0 && <div class="compatibility-changes"><strong>Same-tag bytes changed — maintainer judgment remains open.</strong><p>Existing same-version installations keep their bytes. A repeat check does not resolve this history.</p><ul>{changes.map(item => <li>{item.tag} · {item.architecture} · baseline <code>{shortHash(item.baseline.sha256)}</code> → {item.changes.map(asset => <><code>{shortHash(asset.sha256)}</code> · first observed <time datetime={asset.observedAt}>{asset.observedAt}</time> · <a class="link-quiet" href={`https://github.com/Wolfsblvt/tunneltend/actions/runs/${asset.runId}`}>run {asset.runId}</a> </>)}</li>)}</ul></div>}
+  {!facts.historyAvailable && <p class="compatibility-time">Earlier same-tag history is unavailable; no clean historical baseline is inferred.</p>}
+  {facts.historyAvailable && <p class="compatibility-time">History covers retained observations only; predecessors before each baseline’s first observation remain unknown.</p>}
+  {facts.issues.length > 0 && <p class="compatibility-time">Retained-data notices: {facts.issues.join(', ')}. Missing, expired, invalid or inaccessible reports are not successful checks.</p>}
+  {facts.websiteCommit && <p class="compatibility-time">Website source <code>{facts.websiteCommit}</code> · built <time datetime={facts.builtAt}>{facts.builtAt}</time>.</p>}
+</aside>
+
+<script>
+  function refreshAges() {
+    for (const element of document.querySelectorAll<HTMLElement>('[data-evidence-age]')) {
+      const hours = Math.max(0, Math.floor((Date.now() - Date.parse(element.dataset.evidenceAge!)) / 3_600_000));
+      element.textContent = `${hours}h old${hours >= 48 ? ' · stale (48h)' : ''}`;
+    }
+    for (const element of document.querySelectorAll<HTMLElement>('[data-evidence-expiry]')) {
+      if (Date.now() >= Date.parse(element.dataset.evidenceExpiry!)) element.textContent = 'Expired — this historical check is no longer retained.';
+    }
+  }
+  refreshAges();
+  window.addEventListener('pageshow', refreshAges);
+</script>
+
+<style>
+  .compatibility { margin-top: 24px; padding: 20px; border: 1px solid var(--hair); border-radius: var(--r-block); background: var(--bg-raised); font-size: 14px; }
+  .compatibility-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  h3 { margin: 0; font-size: 17px; }
+  .compatibility-group > summary { font-size: 15px; font-weight: 600; }
+  p { margin: 10px 0 0; }
+  .compatibility-intro, .compatibility-build { color: var(--fg-2); }
+  .compatibility-group { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--hair); }
+  dl { display: grid; gap: 8px; margin: 14px 0; }
+  dl > div { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 12px; }
+  dt { color: var(--fg-2); }
+  dd { margin: 0; }
+  code, dd, time, details p { overflow-wrap: anywhere; }
+  .compatibility-outcomes { padding: 0; margin: 12px 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 24px; }
+  .compatibility-outcomes li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--hair); padding: 6px 0; }
+  .compatibility-outcomes strong { white-space: nowrap; font-weight: 500; }
+  .compatibility-time { font-size: 12px; line-height: 1.65; color: var(--fg-2); }
+  details { margin-top: 12px; font-size: 12px; }
+  summary { cursor: pointer; color: var(--accent-text); }
+  .compatibility-changes { margin-top: 18px; border-top: 1px solid var(--hair); padding-top: 16px; }
+  .compatibility-changes ul { margin: 8px 0 0; padding-left: 20px; }
+  @media (max-width: 650px) { dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } .compatibility-outcomes { grid-template-columns: minmax(0, 1fr); } }
+</style>

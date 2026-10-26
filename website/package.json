@@ -13,7 +13,7 @@
     "check": "astro check",
     "assets:generate": "node scripts/generate-site-assets.mjs",
     "build": "npm run assets:generate && astro build && node scripts/finalize-public-routes.mjs",
-    "test": "npm run brand:check && npm run check && node scripts/check-manual-verify.mjs && node scripts/check-workflow-credentials.mjs && node --test scripts/public-routes.test.mjs scripts/theme-preferences.test.mjs && npm run build && node scripts/check-output.mjs",
+    "test": "npm run brand:check && npm run check && node scripts/check-manual-verify.mjs && node scripts/check-workflow-credentials.mjs && node --test scripts/public-routes.test.mjs scripts/theme-preferences.test.mjs ../tools/compatibility/*.test.mjs && npm run build && node scripts/check-output.mjs && node scripts/check-compatibility-output.mjs",
     "preview": "astro preview",
     "check:publish": "node scripts/check-publish.mjs && npm run build && node scripts/check-output.mjs",
     "brand:export": "node scripts/export-brand.mjs",
