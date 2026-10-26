@@ -86,10 +86,11 @@ function Get-TtOfficialClientUpdaterConfig {
 
 function Invoke-TtBundledUpdater {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][hashtable]$Registry, [string]$StateRoot, [switch]$CheckOnly, [switch]$Force)
+    param([Parameter(Mandatory)][hashtable]$Registry, [string]$StateRoot, [switch]$CheckOnly, [switch]$Force, [string]$ReleaseTag)
     Assert-TtRegistry $Registry
     $paths = Initialize-TtStateDirectories $StateRoot
     $config = Get-TtOfficialClientUpdaterConfig $Registry $StateRoot
+    if ($ReleaseTag) { $config.releaseTag = $ReleaseTag }
     Write-TtJsonAtomic $paths.ClientUpdater $config
     $arguments = @('-NoLogo','-NoProfile','-NonInteractive','-File',(Get-TtUpdaterScriptPath),'-ConfigPath',$paths.ClientUpdater,'-RequirePublishedChecksum')
     if ($CheckOnly) { $arguments += '-CheckOnly' }
@@ -201,11 +202,11 @@ function Invoke-TtOfficialClientUpdateInternal {
     $stagedRegistry.settings.officialClient.installDirectory = $stage
     $stagedRegistry.settings.officialClient.executablePath = Join-Path $stage 'tunnel-client.exe'
     try {
-        $updaterResult = Invoke-TtBundledUpdater $stagedRegistry $StateRoot -Force:$Force
+        $updaterResult = Invoke-TtBundledUpdater $stagedRegistry $StateRoot -Force:$Force -ReleaseTag ([string](Get-TtMapValue $check 'latestTag' ('v' + $check.latestVersion)))
         if ($updaterResult.exit_code -ne 0) { throw "Bundled updater failed: $(Protect-TtLogText (($updaterResult.stderr + $updaterResult.stdout).Trim()))" }
         $version = Get-TtOfficialClientVersion $stagedRegistry $StateRoot
         if (-not $version.installed -or $version.version -ne $check.latestVersion) { throw 'Staged official-client version does not match the selected release.' }
-        if (-not (Test-TtOfficialClientCapabilities $stagedRegistry $StateRoot).compatible) { throw 'Staged official client does not provide the capabilities required by tunneltend.' }
+        if (-not (Test-TtOfficialClientCapabilities $stagedRegistry $StateRoot -Behavioral).compatible) { throw 'Staged official client does not provide the capabilities required by tunneltend.' }
         $backup = New-TtOfficialClientBackup $Registry $StateRoot
         $result = Invoke-TtClientFileTransaction $Registry $Runtime $StateRoot $stagedRegistry.settings.officialClient.executablePath
         $Runtime.officialClient.lastUpdateResult = [ordered]@{ checkedAt=Get-TtUtcNow; changed=$true; installed=(Get-TtOfficialClientVersion $Registry $StateRoot).version; latest=$check.latestVersion; backup=$backup }

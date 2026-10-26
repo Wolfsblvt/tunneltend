@@ -8,6 +8,7 @@ This guide is the complete local development and verification contract for Tunne
 
 - PowerShell 7.4 or later.
 - Git.
+- Node 24 for the dependency-free qualification-report contract tests and validator.
 - Pester 6.2.0.
 - PSScriptAnalyzer 1.25.0.
 - Windows 11 for Scheduled Task, logon, process-identity, sleep/resume, and live executable-replacement qualification.
@@ -38,6 +39,23 @@ This command:
 Zero tests, missing required tools, parser failures, Pester failures, and analyzer warnings/errors are nonzero results when their gate is required.
 
 Required failures throw from the runner, so a later successful script cannot mask them in a caller. CI also runs source verification and repository validation as separate steps. Quiet-launcher tests exercise actual Windows streams/exit, no-console creation and cancellation with detached-host survival; Task Scheduler registration itself remains a separate live qualification.
+
+The report's Node contract suite runs separately in the qualification workflow:
+
+```powershell
+node --test tests/client-qualification.test.mjs
+```
+
+## Official-client qualification
+
+Run the harness in a dedicated profile-free process: it clears inherited credentials and replaces profile/state directories before executing downloaded binaries. It never installs tasks, changes PATH, uses the live fleet or bundles the official client. The default acquires and verifies the currently supported public TunnelTend package as well as the latest stable official client:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File ./scripts/Invoke-ClientQualification.ps1 -SourceCommit <actual-harness-commit>
+node scripts/lib/client-qualification.mjs artifacts/qualification/report.json
+```
+
+For a source candidate, build its package first, then supply `-PackageKind source -PackagePath <actual-zip> -PackageVersion <built-version>`. `-ReleaseTag v0.0.17` can select an existing stable official artifact for a bounded transition specimen; it does not add a runtime version gate. Hosted callers additionally provide `-RunId` and `-RunAttempt`. Local run id `0` is local evidence, not hosted workflow provenance. The file is written on a diagnosed qualification failure as well as success; nonzero exit and fixed check outcomes retain the exact distinction. [Compatibility](upstream-compatibility.md) explains the four boundaries, package identities and producer/consumer responsibilities.
 
 ## Repository contract validation
 

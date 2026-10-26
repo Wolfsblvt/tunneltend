@@ -71,6 +71,12 @@ The same planning engine produces explicit actions; context decides eligibility 
 
 Fleet coordination first runs the hardened updater into an isolated staging installation. Release discovery, exact asset selection, checksum verification, safe extraction, and staged version and capability checks finish before any service is stopped. TunnelTend then backs up the selected executable, stops the active fleet, replaces that file, checks the installed capabilities, and restores the fleet. Neighboring files and state directories are not the replacement payload. A replacement or fleet-restoration failure restores the previous executable and attempts to restore the stopped services; an incomplete rollback is reported explicitly. An explicit same-version reinstall follows the same path; force never permits a downgrade.
 
+The coordinator passes its selected stable tag to acquisition, then checks staged version agreement and credential-free behavior before downtime. Behavioral probes use a fresh disposable official-client state root and a clean environment, never the operator's aliases or credentials. Same-version automatic checks retain installed bytes.
+
+## Compatibility evidence boundary
+
+The daily Windows producer reuses the hardened updater's selection/checksum/extraction functions through its internal `-LibraryOnly` entry. It executes the adapter from each actual tested TunnelTend package and emits the fixed `client-qualification.schema.json` report. Source and published-package jobs are independent and credential-free. The report's adapter hash names extracted package bytes, while the harness hash names test instrumentation. The retained website consumer is a separate clean publication responsibility; neither its state nor its availability participates in local update decisions. [Compatibility](upstream-compatibility.md) owns the full evidence and same-tag policy.
+
 ## Key invariants
 
 Manager reinstallation resolves existing choices before payload replacement. The installer publishes only its changed settings in one existing state-lock boundary and keeps a scoped before/after record until success. Failure recovery compares current values before restoring them; unrelated registry changes and runtime intent survive. Conflicting settings retain their current values and a recovery record rather than being overwritten. This does not roll back optional service registration, alias import or official-client update effects.

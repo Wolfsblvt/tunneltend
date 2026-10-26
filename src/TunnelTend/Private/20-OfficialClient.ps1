@@ -89,14 +89,14 @@ function Get-TtOfficialClientVersion {
 
 function Test-TtOfficialClientCapabilities {
     [CmdletBinding()]
-    param([hashtable]$Registry, [string]$StateRoot)
+    param([hashtable]$Registry, [string]$StateRoot, [switch]$Behavioral)
     $checks = @(
         [ordered]@{ id='version'; arguments=@('--version'); pattern='[0-9]+\.[0-9]+\.[0-9]+' },
-        [ordered]@{ id='runtimes'; arguments=@('runtimes','--help'); pattern='connect' },
+        [ordered]@{ id='runtimes'; arguments=@('runtimes','list','--help'); pattern='--json' },
         [ordered]@{ id='runtimes-json'; arguments=@('runtimes','--help'); pattern='--json' },
-        [ordered]@{ id='runtime-status'; arguments=@('runtimes','status','--help'); pattern='Inspect' },
-        [ordered]@{ id='runtime-connect'; arguments=@('runtimes','connect','--help'); pattern='--mcp-(server-url|command)' },
-        [ordered]@{ id='runtime-stop'; arguments=@('runtimes','stop','--help'); pattern='Stop' }
+        [ordered]@{ id='runtime-status'; arguments=@('runtimes','status','--help'); pattern='--json' },
+        [ordered]@{ id='runtime-connect'; arguments=@('runtimes','connect','--help'); pattern='(?s)(?=.*--alias\b)(?=.*--mcp-server-url\b)(?=.*--mcp-command\b)(?=.*--runtime-api-key\b)(?=.*--profile-dir\b)(?=.*--tunnel-id\b)(?=.*--organization-id\b)(?=.*--workspace-id\b)(?=.*--admin-profile\b)(?=.*--profile\b)(?=.*--json\b)' },
+        [ordered]@{ id='runtime-stop'; arguments=@('runtimes','stop','--help'); pattern='--json' }
     )
     $results = @()
     foreach ($check in $checks) {
@@ -108,7 +108,63 @@ function Test-TtOfficialClientCapabilities {
         }
         catch { $results += [ordered]@{ id=$check.id; ok=$false; error=$_.Exception.Message } }
     }
+    if ($Behavioral) {
+        $results += @(Test-TtOfficialClientBehavior -Executable (Get-TtOfficialClientPath $Registry $StateRoot))
+    }
     return [ordered]@{ compatible = (@($results | Where-Object { -not $_.ok }).Count -eq 0); checks = $results }
+}
+
+function Test-TtOfficialClientBehavior {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Executable)
+    # Never inherit admin/runtime credentials or consult the operator's aliases.
+    $root = Join-Path ([IO.Path]::GetTempPath()) ('tunneltend-contract-' + [Guid]::NewGuid().ToString('N'))
+    [IO.Directory]::CreateDirectory($root) | Out-Null
+    try {
+        foreach ($probe in @(
+            @{ id='list-json'; arguments=@('runtimes','list','--json'); exitCode=0 },
+            @{ id='status-missing'; arguments=@('runtimes','status','qualification-missing','--json'); exitCode=1 },
+            @{ id='stop-missing'; arguments=@('runtimes','stop','qualification-missing','--json'); exitCode=1 }
+        )) {
+            $process = $null
+            try {
+                $info = [Diagnostics.ProcessStartInfo]::new()
+                $info.FileName = $Executable
+                $info.UseShellExecute = $false
+                $info.CreateNoWindow = $true
+                $info.RedirectStandardOutput = $true
+                $info.RedirectStandardError = $true
+                $info.WorkingDirectory = $root
+                $info.Environment.Clear()
+                foreach ($key in @('SystemRoot','WINDIR')) {
+                    $value = [Environment]::GetEnvironmentVariable($key)
+                    if ($value) { $info.Environment[$key] = $value }
+                }
+                foreach ($key in @('TEMP','TMP','HOME','USERPROFILE','APPDATA','LOCALAPPDATA','XDG_STATE_HOME','XDG_CONFIG_HOME','CODEX_HOME','TUNNEL_CLIENT_STATE_DIR')) { $info.Environment[$key] = $root }
+                foreach ($argument in $probe.arguments) { $info.ArgumentList.Add($argument) }
+                $process = [Diagnostics.Process]::Start($info)
+                $stdout = $process.StandardOutput.ReadToEndAsync()
+                $stderr = $process.StandardError.ReadToEndAsync()
+                if (-not $process.WaitForExit(20000)) { $process.Kill($true); $process.WaitForExit(); throw 'Probe timed out.' }
+                $text = $stdout.GetAwaiter().GetResult()
+                $errorText = $stderr.GetAwaiter().GetResult()
+                $ok = $process.ExitCode -eq $probe.exitCode
+                if ($probe.id -eq 'list-json') {
+                    $payload = ConvertFrom-Json -InputObject $text -AsHashtable -Depth 20
+                    $ok = $ok -and $payload.Contains('aliases') -and $payload.aliases -is [array] -and $payload.aliases.Count -eq 0
+                }
+                else {
+                    # Upstream's missing-alias failure is exit 1 and empty stdout,
+                    # even with --json. Do not invent a JSON failure payload.
+                    $ok = $ok -and [string]::IsNullOrWhiteSpace($text) -and -not [string]::IsNullOrWhiteSpace($errorText)
+                }
+                [ordered]@{ id=$probe.id; ok=[bool]$ok; exit_code=$process.ExitCode }
+            }
+            catch { [ordered]@{ id=$probe.id; ok=$false; exit_code=$null } }
+            finally { if ($process) { $process.Dispose() } }
+        }
+    }
+    finally { if ([IO.Directory]::Exists($root)) { Remove-Item -LiteralPath $root -Recurse -Force } }
 }
 
 function Get-TtOfficialRuntimeList {

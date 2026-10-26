@@ -67,7 +67,10 @@ param(
     [switch] $AllowUnverifiedAsset,
 
     [Parameter()]
-    [switch] $RequirePublishedChecksum
+    [switch] $RequirePublishedChecksum,
+
+    # Internal reuse by the isolated qualification harness; performs no update.
+    [switch] $LibraryOnly
 )
 
 Set-StrictMode -Version Latest
@@ -331,6 +334,7 @@ function Save-HttpsFile {
 }
 
 function Get-LatestStableRelease {
+    param([string]$Tag)
     $headers = @{
         'Accept'               = 'application/vnd.github+json'
         'X-GitHub-Api-Version' = '2022-11-28'
@@ -341,8 +345,13 @@ function Get-LatestStableRelease {
         $headers['Authorization'] = "Bearer $($env:GITHUB_TOKEN)"
     }
 
+    $uri = $LatestReleaseApi
+    if ($Tag) {
+        if ($Tag -cnotmatch '^v?[0-9]+\.[0-9]+\.[0-9]+$') { throw 'A selected stable release tag must be a numeric version.' }
+        $uri = "https://api.github.com/repos/openai/tunnel-client/releases/tags/$Tag"
+    }
     $release = Invoke-WithRetry -Description 'GitHub release query' -Operation {
-        Invoke-RestMethod -Method Get -Uri $LatestReleaseApi -Headers $headers
+        Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
     }
 
     if ($release.draft -or $release.prerelease) {
@@ -352,6 +361,7 @@ function Get-LatestStableRelease {
     if ([string]::IsNullOrWhiteSpace([string]$release.tag_name)) {
         throw 'The latest release has no tag name.'
     }
+    if ($Tag -and [string]$release.tag_name -cne $Tag) { throw 'Selected release tag does not match the official response.' }
 
     $htmlUri = [Uri][string]$release.html_url
     if ($htmlUri.Scheme -ne 'https' -or
@@ -368,7 +378,8 @@ function Get-LatestStableRelease {
 function Select-WindowsReleaseAsset {
     param(
         [Parameter(Mandatory)] [object] $Release,
-        [AllowEmptyString()] [string] $ExplicitAssetName
+        [AllowEmptyString()] [string] $ExplicitAssetName,
+        [ValidateSet('X64','Arm64','X86')][string] $Architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
     )
 
     $assets = @($Release.assets | Where-Object {
@@ -398,7 +409,6 @@ function Select-WindowsReleaseAsset {
     $windowsPattern = '(?i)(?:^|[-_.])(windows|win|win32|win64|pc-windows)(?:[-_.]|$)'
     $knownArchitecturePattern = '(?i)(?:^|[-_.])(x86_64|x64|amd64|aarch64|arm64|i386|i686|x86)(?:[-_.]|$)'
 
-    $architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
     $architecturePattern = switch ($architecture) {
         'X64'   { '(?i)(?:^|[-_.])(x86_64|x64|amd64)(?:[-_.]|$)' }
         'Arm64' { '(?i)(?:^|[-_.])(aarch64|arm64)(?:[-_.]|$)' }
@@ -1630,7 +1640,8 @@ function Invoke-Updater {
 
         $statePath = Join-Path $stateDirectory 'state.json'
         $state = Read-StateFile -Path $statePath
-        $release = Get-LatestStableRelease
+        $selectedTag = [string](Get-OptionalValue -Object $config -Name 'releaseTag' -DefaultValue '')
+        $release = Get-LatestStableRelease -Tag $selectedTag
         $asset = Select-WindowsReleaseAsset -Release $release -ExplicitAssetName $explicitAssetName
 
         $latestTag = [string]$release.tag_name
@@ -1903,6 +1914,8 @@ function Invoke-Updater {
         Remove-OldLogs -LogDirectory $logDirectory -Keep 20
     }
 }
+
+if ($LibraryOnly) { return }
 
 try {
     Invoke-Updater
