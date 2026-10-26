@@ -12,17 +12,21 @@ if (existsSync('artifacts/compatibility/facts.json')) {
   const facts = JSON.parse(readFileSync('artifacts/compatibility/facts.json', 'utf8'));
   assert.ok(home.includes(`data-website-source="${facts.websiteCommit}"`), 'built page lost its actual website source identity');
   const release = facts.groups.find(group => group.kind === 'release' && group.architecture === 'amd64');
-  if (release) {
-    const item = release.newest;
+  const item = release?.newest;
+  if (item?.release) {
     assert.ok(summary.includes(item.release.tag), 'visible summary lost the latest released-client tag');
     assert.ok(summary.includes(`datetime="${item.release.publishedAt}"`), 'visible summary lost the official publication date');
+  } else {
+    assert.match(summary, /Release evidence unavailable/);
+    assert.match(summary, /Publication date unavailable/);
+  }
+  if (item) {
     for (const key of ['distribution', 'credentialFreeCli', 'localFleet', 'connectedConsumer']) {
       const outcome = item[key].outcome === 'not exercised' ? 'Not exercised' : item[key].outcome[0].toUpperCase() + item[key].outcome.slice(1);
       assert.ok(summary.includes(outcome), `visible summary lost the ${key} outcome`);
     }
     assert.ok(!summary.includes(item.package.sha256 ?? '\u0000'), 'package hashes belong behind the details disclosure');
   } else {
-    assert.match(summary, /Release evidence unavailable/);
     assert.equal((summary.match(/Unavailable/g) ?? []).length, 4, 'missing release evidence must remain explicit for each boundary');
   }
   const hasIdentityChange = facts.identityHistory.identities.some(item => item.changes.length > 0);
