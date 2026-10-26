@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TunnelTend client qualification report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contractVersion", "observedAt", "checkedAt", "run", "source", "package", "release", "architectures"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contractVersion": { "const": 1 },
+    "observedAt": { "$ref": "#/$defs/time" },
+    "checkedAt": { "$ref": "#/$defs/time" },
+    "run": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "attempt", "workflow", "artifact"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[0-9]{1,20}$" },
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "workflow": { "const": "upstream-compatibility.yml" },
+        "artifact": { "enum": ["client-qualification-source", "client-qualification-release"] }
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repository", "commit", "harnessSha256", "adapterSha256"],
+      "properties": {
+        "repository": { "const": "Wolfsblvt/tunneltend" },
+        "commit": { "$ref": "#/$defs/commit" },
+        "harnessSha256": { "$ref": "#/$defs/hash" },
+        "adapterSha256": { "$ref": "#/$defs/nullableHash" }
+      }
+    },
+    "package": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "version", "sha256", "sourceCommit"],
+      "properties": {
+        "kind": { "enum": ["source", "release"] },
+        "version": { "type": ["string", "null"], "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$", "maxLength": 100 },
+        "sha256": { "$ref": "#/$defs/nullableHash" },
+        "sourceCommit": { "type": ["string", "null"], "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "release": {
+      "type": ["object", "null"], "additionalProperties": false,
+      "required": ["id", "tag", "publishedAt"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1 },
+        "tag": { "type": "string", "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+$", "maxLength": 100 },
+        "publishedAt": { "$ref": "#/$defs/time" }
+      }
+    },
+    "architectures": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["architecture", "asset", "execution", "distribution", "credentialFreeCli", "localFleet", "connectedConsumer"],
+        "properties": {
+          "architecture": { "enum": ["amd64", "arm64"] },
+          "asset": {
+            "type": ["object", "null"], "additionalProperties": false,
+            "required": ["id", "name", "sha256"],
+            "properties": {
+              "id": { "type": "integer", "minimum": 1 },
+              "name": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.zip$", "maxLength": 180 },
+              "sha256": { "$ref": "#/$defs/nullableHash" }
+            }
+          },
+          "execution": { "enum": ["native", "not exercised"] },
+          "distribution": { "$ref": "#/$defs/boundary" },
+          "credentialFreeCli": { "$ref": "#/$defs/boundary" },
+          "localFleet": { "$ref": "#/$defs/boundary" },
+          "connectedConsumer": { "$ref": "#/$defs/boundary" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "nullableHash": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+    "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "time": { "type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,7})?Z$", "maxLength": 40 },
+    "outcome": { "enum": ["passed", "failed", "not exercised", "unavailable"] },
+    "boundary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["outcome", "checks"],
+      "properties": {
+        "outcome": { "$ref": "#/$defs/outcome" },
+        "checks": {
+          "type": "array", "minItems": 1, "maxItems": 32,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "outcome"],
+            "properties": {
+              "id": { "enum": ["package-acquisition", "release-selection", "asset-selection", "published-digest", "guarded-extraction", "version-agreement", "installation-agreement", "version", "runtimes", "runtimes-json", "runtime-status", "runtime-connect", "runtime-stop", "list-json", "status-missing", "stop-missing", "owned-fleet", "connected-call"] },
+              "outcome": { "$ref": "#/$defs/outcome" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

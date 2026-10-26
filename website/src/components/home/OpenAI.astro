@@ -5,6 +5,7 @@
 // documents are the authority for all of that, so this section points rather than restates.
 import Icon from '../Icon.astro';
 import SectionHead from '../SectionHead.astro';
+import Compatibility from '../Compatibility.astro';
 import { docPaths, openai } from '../../data/site';
 const needs = [
   { title: 'A tunnel ID', body: 'Created in your OpenAI organization (and workspace, where it applies) on the Platform Tunnels page or through the onboarding guide. If someone else administers that organization, ask them for the ID.' },
@@ -37,6 +38,7 @@ const links = [
       </ul>
     </div>
     <p class="notice"><strong>Who can use this?</strong> OpenAI documents consumers including ChatGPT, Codex, the Responses API and AgentKit; availability, organization or workspace scope and permissions are controlled by OpenAI and may depend on your plan. Installing TunnelTend does not change that. <a class="link-quiet" href={docPaths.prepareOpenAI}>Prepare your OpenAI access</a> before you register a service.</p>
+    <Compatibility />
   </div>
 </section>
 

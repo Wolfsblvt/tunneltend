@@ -2,7 +2,7 @@
 
 ## Meaning
 
-This document defines how TunnelTend tracks and verifies the changing official `openai/tunnel-client` surface. It localizes upstream assumptions, distinguishes a new release from an incompatibility, and names the source, CI, and Windows evidence required before accepting changed behavior.
+This document defines TunnelTend's local compatibility boundary and its independent retained public evidence. Local verified staging remains installation authority. Native GitHub run/artifact metadata feeds the one accepted-main website publisher; missing central evidence does not disable local updates or unrelated site delivery. Source implementation, activated workflows and actual binary/provider encounters are separate evidence.
 
 TunnelTend depends on the official client's stable release assets and these command families:
 
@@ -16,4 +16,40 @@ The adapter normalizes upstream fields before the rest of the application sees t
 
 `client status` performs live help-based capability checks. A new binary is not accepted after update until those checks pass. The Windows release checklist verifies concrete JSON fields and exit codes against the selected release.
 
-`docs/research/openai-tunnel-client-release.json` is the generated, machine-readable stable-release snapshot. The scheduled watch refreshes only that factual coordinate and fails when it changes. `docs/research/openai-tunnel-client-current.md` remains the authored semantic compatibility account and changes only after the new release is actually reviewed. Neither file is a forever contract.
+`docs/research/openai-tunnel-client-release.json` is a dated, generated release snapshot, not an allowlist or local installation prerequisite. `docs/research/openai-tunnel-client-current.md` is an authored historical qualification account. Neither is a forever-latest claim.
+
+## Retained qualification and public facts
+
+The qualification producer owns `schemas/client-qualification.schema.json` and `scripts/lib/client-qualification.mjs`. It reports separately on the released TunnelTend package and current source: exact package/build, official release and architecture/asset/digest, actual adapter and harness identity, timestamps, and distribution, credential-free CLI, owned-fleet and connected-consumer boundaries. `passed`, `failed`, `not exercised` and `unavailable` remain distinct. A current-source result is not evidence that a repair exists in the public package. ARM64 acquisition is not ARM64 execution; no active fleet or connected session is `not exercised`.
+
+The native artifacts are `client-qualification-release` and `client-qualification-source`, each containing exactly `report.json`. The clean website runner uses `tools/compatibility/github-evidence.mjs` to retrieve retained metadata through the read-only Actions API. It verifies same-repository/default-main workflow, run/attempt/source identity, provider artifact digest and actual expiry, a single bounded regular JSON ZIP entry, and the producer's shared fixed-schema validator. It writes no downloaded paths and executes no artifact content. It rejects PR/fork/other-workflow artifacts, invalid schema, stale report/run identities, expired artifacts, links, traversal, extra files, encryption, CRC/digest mismatch and oversized input. Only schema-checked metadata reaches the Astro templates, which escape text and construct evidence links from native numeric IDs.
+
+Reruns may retain multiple same-name artifacts. Resolve the report's exact native attempt and its package qualification job, including job outcome and upload timing. A successful source job from attempt 1 remains valid if only the release job reruns in attempt 2; the whole first attempt may have failed because of that other job. Keep job outcome distinct from attempt outcome, preserve failed reports, and order observations by provider/check timestamps. Neither artifact-ID rank, name-only downloads nor a blanket latest-attempt requirement selects the correct evidence.
+
+`website/scripts/resolve-compatibility.mjs` assembles build-local `website/artifacts/compatibility/facts.json`. It lists only the three named metadata artifact families, reads the newest valid history snapshot, then subsequent reports and enough older evidence for the last routine-qualified assets. Missing/expired/invalid/inaccessible evidence is disclosed; provider outages do not stop ordinary website builds. Incomplete provider/history retrieval suppresses only the new history upload, preserving older recoverable snapshots rather than replacing them with partial state. A failed qualification retains its report for diagnosis and cannot overwrite an earlier routine-qualified asset. The public display separates newest observations from last routine-qualified evidence and displays package identity, exact outcomes, checked/observed times, age, run/artifact links and expiry. At 48 hours, age becomes stale disclosure only. Reader-side age/expiry refresh on visits and back/forward restoration; without JavaScript the actual times and the age **at build** remain explicit. No central result, freshness threshold or website state gates local installation.
+
+## Identity history and expiry
+
+The same official tag/architecture with different bytes is exceptional. Existing same-version installations retain their bytes; a repeat observation, reversion, changed TunnelTend package or changed qualification contract cannot silently close a known mutation. The existing clean Website controller retains `client-qualification-history`, also one `report.json`, carrying only the currently observed baseline plus open identity changes, original first-observation run/artifact coordinates and timestamps. This is native metadata in the selected artifact home, not a package-version registry, Git writer, cache service or second publisher. Multiple retained snapshots are merged so a later incomplete snapshot cannot erase a known open change. Old routine tags are not accumulated as a permanent registry.
+
+History uses its own exact fixed-shape validation and requires a same-repository/default-main Website run plus an actual built-source commit in accepted-main ancestry. A queued event's SHA is not substituted for the source actually built. History preserves identities only: it never renews qualification time, copies a pass past the original artifact's expiry, or fabricates an earlier baseline when prior history is unavailable. A lost baseline with only changed-byte repeats must remain unknown. Meaningful open incidents belong in ordinary maintainer Work before temporary evidence expires.
+
+All three metadata artifacts request 90 days; the current repository readback was 90 days with a 90-day maximum. No repository setting is changed. Consumers use actual provider `expires_at`; retention of 48 hours or less is disclosed. GitHub may omit already-expired artifacts entirely, so an empty lookup is honestly `missing-or-expired`. A provider outage is not a false clean history. Recovery is the next successful ordinary qualification/controller build using remaining valid native reports and snapshots. Complete loss of that native history is explicitly unavailable, not reconstructable from a green current probe. No separate backup service is promised.
+
+## One production controller and failure encounter
+
+`.github/workflows/website.yml` remains the only credentialed publisher and uses its existing production concurrency group. Relevant accepted-main pushes, manual production dispatch and a successful filtered `Upstream compatibility watch` completion enter that controller. Executable qualification and publication use separate disposable runners. The publisher checks out **current main after acquiring the concurrency slot**, not the older qualification/event SHA, then resolves current retained evidence. A failed qualification cannot block independent website delivery. Metadata/build failure leaves the deployed site in place; a later valid build can recover without per-release source edits.
+
+The executable job receives no deployment/legal credentials, OIDC, write token, reusable cache or persisted checkout credential. Website retrieval uses only Actions/contents read permissions. The existing legal projection remains in the publication build; the Cloudflare credential remains solely in the existing deploy step. No second mutation identity or credential is introduced. The generated display and job summary identify the website commit and consumed evidence run/artifact identities; actual public acceptance must read both from the deployed output.
+
+Compatibility failures remain failed provider runs. The existing GitHub Actions per-run notification route for `Wolfsblvt` and ordinary maintainer CI stewardship carry failure encounter; a run failure alone is not notification delivery or stopped-agent wake. A prior actual watch-failure notification establishes the existing receiver route, while activation of a changed producer still needs its actual failure/report/receiver encounter. Katja owns that activation/readback and triage. Group failures by release tag, digest, architecture, contract and failed check IDs; record recovery against the same identity. Do not manufacture green to silence alerts or add a speculative deduplication bot.
+
+## Focused verification
+
+From the repository root, use Node 24:
+
+```powershell
+node --test tools/compatibility/*.test.mjs
+```
+
+From `website/`, `node scripts/resolve-compatibility.mjs` reads public metadata (or uses `GH_TOKEN` with Actions read). `npm test` includes trust/state tests, existing site checks and the built-output contract. Tests and local rendering prove their own boundaries; actual native artifact download/expiry, failure delivery, current-main publication and public readback remain explicit hosted/activation evidence. A future naturally published upstream release is later field confirmation, not a calendar gate on source implementation.
