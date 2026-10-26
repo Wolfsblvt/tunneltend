@@ -8,13 +8,13 @@ export const boundary = (outcome = 'passed', ids = ['fixture-check']) => ({ outc
 export function fixtureRecord({ id = 10, digest = 'b'.repeat(64), kind = 'release', outcome = 'passed', tag = 'v0.0.18', time = '2026-10-26T10:00:00Z' } = {}) {
   return {
     report: {
-      schemaVersion: 1, contractVersion: 1, observedAt: time, checkedAt: time,
+      schemaVersion: 2, contractVersion: 2, observedAt: time, checkedAt: time,
       run: { id: String(id), attempt: 1, workflow: 'upstream-compatibility.yml', artifact: `client-qualification-${kind}` },
-      source: { repository: 'Wolfsblvt/tunneltend', commit: SHA, harnessSha256: 'c'.repeat(64), adapterSha256: 'd'.repeat(64) },
+      source: { repository: 'Wolfsblvt/tunneltend', commit: SHA, harnessSha256: 'c'.repeat(64), adapterSha256: 'd'.repeat(64), updaterSha256: 'a'.repeat(64) },
       package: { kind, version: '1.0.1', sha256: 'e'.repeat(64), sourceCommit: kind === 'source' ? SHA : null },
       release: { id: 100, tag, publishedAt: '2026-10-23T00:00:00Z' },
       architectures: ['amd64', 'arm64'].map(architecture => ({ architecture, asset: { id: architecture === 'amd64' ? 200 : 201, name: `tunnel-client-windows-${architecture}.zip`, sha256: digest }, execution: architecture === 'amd64' ? 'native' : 'not exercised',
-        distribution: boundary(outcome, ['package-acquisition', 'release-selection', 'asset-selection', 'published-digest', 'guarded-extraction', 'version-agreement', 'installation-agreement']),
+        distribution: { outcome, checks: ['package-acquisition', 'release-selection', 'asset-selection', 'published-digest', 'guarded-extraction', 'version-agreement', 'installation-agreement'].map((id, i) => ({ id, outcome: architecture === 'arm64' && i >= 5 ? 'not exercised' : outcome })) },
         credentialFreeCli: boundary(architecture === 'amd64' ? outcome : 'not exercised', ['version', 'runtimes', 'runtimes-json', 'runtime-status', 'runtime-connect', 'runtime-stop', 'list-json', 'status-missing', 'stop-missing']),
         localFleet: boundary('not exercised', ['owned-fleet']), connectedConsumer: boundary('not exercised', ['connected-call']) })),
     },

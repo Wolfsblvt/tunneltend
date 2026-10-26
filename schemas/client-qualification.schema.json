@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "TunnelTend client qualification report v1",
+  "title": "TunnelTend client qualification report v2",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "contractVersion", "observedAt", "checkedAt", "run", "source", "package", "release", "architectures"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "contractVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
+    "contractVersion": { "const": 2 },
     "observedAt": { "$ref": "#/$defs/time" },
     "checkedAt": { "$ref": "#/$defs/time" },
     "run": {
@@ -21,12 +21,13 @@
     },
     "source": {
       "type": "object", "additionalProperties": false,
-      "required": ["repository", "commit", "harnessSha256", "adapterSha256"],
+      "required": ["repository", "commit", "harnessSha256", "adapterSha256", "updaterSha256"],
       "properties": {
         "repository": { "const": "Wolfsblvt/tunneltend" },
         "commit": { "$ref": "#/$defs/commit" },
         "harnessSha256": { "$ref": "#/$defs/hash" },
-        "adapterSha256": { "$ref": "#/$defs/nullableHash" }
+        "adapterSha256": { "$ref": "#/$defs/nullableHash" },
+        "updaterSha256": { "$ref": "#/$defs/nullableHash" }
       }
     },
     "package": {

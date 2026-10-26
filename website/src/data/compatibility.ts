@@ -13,7 +13,7 @@ interface Observation {
   architecture: 'amd64' | 'arm64'; execution: 'native' | 'not exercised';
   distribution: Boundary; credentialFreeCli: Boundary; localFleet: Boundary; connectedConsumer: Boundary;
   observedAt: string; checkedAt: string;
-  source: { repository: string; commit: string; harnessSha256: string; adapterSha256: string | null };
+  source: { repository: string; commit: string; harnessSha256: string; adapterSha256: string | null; updaterSha256: string | null };
   evidence: { runId: number; attempt: number; runUrl: string; artifactId: number; artifactUrl: string; expiresAt: string; digest: string; conclusion: string; qualificationConclusion: string };
 }
 interface CompatibilityFacts {

@@ -49,13 +49,17 @@ export function validateQualificationReport(value) {
       const boundary = arch[key];
       if (boundary.checks.length !== checkIds[key].length || boundary.checks.some(c => !checkIds[key].includes(c.id))) throw new Error('Missing or misplaced qualification checks');
       if (new Set(boundary.checks.map(c => c.id)).size !== boundary.checks.length) throw new Error('Duplicate qualification check');
+      if (key === 'distribution' && arch.execution === 'not exercised'
+        && boundary.checks.some(c => ['version-agreement','installation-agreement'].includes(c.id) && c.outcome !== 'not exercised')) {
+        throw new Error('Unexercised installation/version claim');
+      }
       const applicable = key === 'distribution' && arch.execution === 'not exercised' ? boundary.checks.filter(c => !['version-agreement','installation-agreement'].includes(c.id)) : boundary.checks;
       const expected = applicable.some(c => c.outcome === 'failed') ? 'failed'
         : applicable.some(c => c.outcome === 'unavailable') ? 'unavailable'
         : applicable.some(c => c.outcome === 'not exercised') ? 'not exercised' : 'passed';
       if (boundary.outcome !== expected) throw new Error('Inconsistent qualification boundary');
     }
-    if (arch.distribution.outcome === 'passed' && (!value.release || !arch.asset?.sha256 || !value.package.version || !value.package.sha256 || !value.source.adapterSha256)) throw new Error('Missing qualification identity');
+    if (arch.distribution.outcome === 'passed' && (!value.release || !arch.asset?.sha256 || !value.package.version || !value.package.sha256 || !value.source.adapterSha256 || !value.source.updaterSha256)) throw new Error('Missing qualification identity');
     if (arch.execution === 'not exercised' && arch.credentialFreeCli.outcome === 'passed') throw new Error('Non-native CLI claim');
     if (arch.distribution.outcome === 'passed') {
       const required = arch.execution === 'native' ? checkIds.distribution : checkIds.distribution.slice(0, 5);
