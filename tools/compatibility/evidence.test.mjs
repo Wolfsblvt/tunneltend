@@ -38,7 +38,7 @@ test('same-tag mutation remains open on repeat and across package/contract chang
   const initial = assemble([first, changed]);
   assert.equal(initial.groups[0].qualified.evidence.runId, 1);
   const repeat = fixtureRecord({ id: 3, digest: '9'.repeat(64), time: '2026-10-26T10:00:00Z' });
-  repeat.report.package.version = '1.0.2'; repeat.report.contractVersion = 2;
+  repeat.report.package.version = '1.0.2'; repeat.report.contractVersion = 3;
   const next = assemble([repeat], [validateIdentityHistory(initial.identityHistory)]);
   assert.equal(next.groups[0].newest.evidence.runId, 3);
   assert.equal(next.groups[0].qualified, null); // expired predecessor proof is not renewed by history

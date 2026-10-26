@@ -7,14 +7,14 @@ const cliIds = ['version','runtimes','runtimes-json','runtime-status','runtime-c
 const boundary = (ids, outcome) => ({ outcome, checks: ids.map(id => ({id, outcome})) });
 function report() {
   return {
-    schemaVersion: 1, contractVersion: 1, observedAt:'2026-10-26T00:00:00Z', checkedAt:'2026-10-26T00:01:00Z',
+    schemaVersion: 2, contractVersion: 2, observedAt:'2026-10-26T00:00:00Z', checkedAt:'2026-10-26T00:01:00Z',
     run:{id:'12', attempt:1, workflow:'upstream-compatibility.yml', artifact:'client-qualification-release'},
-    source:{repository:'Wolfsblvt/tunneltend', commit:'a'.repeat(40), harnessSha256:'b'.repeat(64), adapterSha256:'c'.repeat(64)},
+    source:{repository:'Wolfsblvt/tunneltend', commit:'a'.repeat(40), harnessSha256:'b'.repeat(64), adapterSha256:'c'.repeat(64), updaterSha256:'f'.repeat(64)},
     package:{kind:'release', version:'1.0.1', sha256:'d'.repeat(64), sourceCommit:null},
     release:{id:123, tag:'v0.0.18', publishedAt:'2026-10-23T00:00:00Z'},
     architectures:['amd64','arm64'].map((architecture, i) => ({
       architecture, asset:{id:123+i, name:`tunnel-client-v0.0.18-windows-${architecture}.zip`, sha256:'e'.repeat(64)}, execution:i ? 'not exercised' : 'native',
-      distribution:boundary(distributionIds, 'passed'), credentialFreeCli:boundary(cliIds, i ? 'not exercised' : 'passed'),
+      distribution:{outcome:'passed', checks:distributionIds.map((id,j) => ({id, outcome:i && j >= 5 ? 'not exercised' : 'passed'}))}, credentialFreeCli:boundary(cliIds, i ? 'not exercised' : 'passed'),
       localFleet:boundary(['owned-fleet'],'not exercised'), connectedConsumer:boundary(['connected-call'],'not exercised')
     }))
   };
@@ -44,6 +44,8 @@ for (const [name, mutate] of Object.entries({
   'duplicate architecture': r => { r.architectures[1].architecture='amd64'; },
   'partial evidence disguised as pass': r => { r.architectures[0].distribution.checks[0].outcome='failed'; },
   'missing asset identity': r => { r.architectures[0].asset.sha256=null; },
+  'missing updater identity': r => { r.source.updaterSha256=null; },
+  'old assisted-proof contract': r => { r.schemaVersion=1; r.contractVersion=1; delete r.source.updaterSha256; },
   'invented connected proof': r => { r.architectures[0].connectedConsumer=boundary(['connected-call'],'passed'); },
   'non-native CLI proof': r => { r.architectures[0].execution='not exercised'; },
   'wrong artifact identity': r => { r.run.artifact='client-qualification-source'; },
@@ -55,3 +57,13 @@ for (const [name, mutate] of Object.entries({
   'unexercised native distribution': r => { r.architectures[0].distribution.checks[6].outcome='not exercised'; },
   'partial CLI pass': r => { r.architectures[0].credentialFreeCli.checks[6].outcome='not exercised'; }
 })) test(`refuses ${name}`, () => { const value=report(); mutate(value); assert.throws(() => validateQualificationReport(value)); });
+
+for (const id of ['version-agreement','installation-agreement']) {
+  for (const outcome of ['passed','failed','unavailable']) {
+    test(`refuses unexercised ${id} marked ${outcome}`, () => {
+      const value=report();
+      value.architectures[1].distribution.checks.find(c => c.id === id).outcome=outcome;
+      assert.throws(() => validateQualificationReport(value), /Unexercised installation\/version claim/);
+    });
+  }
+}

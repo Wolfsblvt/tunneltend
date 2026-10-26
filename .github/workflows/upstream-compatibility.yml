@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/QualificationWorkflow.Tests.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
+    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'scripts/lib/qualification-updater.ps1', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/QualificationWorkflow.Tests.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
   pull_request:
-    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/QualificationWorkflow.Tests.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
+    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'scripts/lib/qualification-updater.ps1', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/QualificationWorkflow.Tests.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
 
 permissions:
   contents: read
