@@ -10,6 +10,8 @@ The website authors its own user-facing manual in `website/src/content/docs/docs
 
 The website consumes three repository inputs directly at build time: the brand bundle `brand/bundle/tunneltend/`, the online installer `scripts/Install-TunnelTend-Online.ps1`, and nothing else from `docs/`.
 
+The OpenAI section also projects fixed-schema compatibility metadata assembled in `website/artifacts/compatibility/` by the existing clean website controller. It separates the package/build tested, newest observed official bytes, last routine qualification, four evidence boundaries and retained identity-change history. This is generated build input from trusted native GitHub artifacts, not authored manual content or a local installation gate. [Official-client compatibility](upstream-compatibility.md#retained-qualification-and-public-facts) owns trust, freshness, expiry, notification and recovery. The same controller resolves accepted current `main` for both website changes and successful default-branch qualification events; no executable qualification output or old queued website source is published.
+
 ## Routes and page identity
 
 Product routes below use `https://tunneltend.com`; manual routes use `https://docs.tunneltend.com`.

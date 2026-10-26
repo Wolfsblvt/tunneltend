@@ -33,6 +33,16 @@ Describe 'Official client maintenance transaction' {
         (Get-Content -Raw $script:Registry.settings.officialClient.executablePath).Trim() | Should -Be 'previous client'
     }
 
+    It 'retains same-version installed bytes without staging or stopping the fleet' {
+        Mock Test-TtOfficialClientNeedsUpdate -ModuleName TunnelTend { @{needed=$false;latestVersion='0.0.18';installed=@{version='0.0.18'}} }
+        Mock Invoke-TtBundledUpdater -ModuleName TunnelTend { throw 'Same version must not stage automatically.' }
+        $result = & $script:Module { param($r,$s,$root) Invoke-TtOfficialClientUpdateInternal $r $s $root } $script:Registry $script:Runtime $TestDrive
+        $result.changed | Should -BeFalse
+        (Get-Content -Raw $script:Registry.settings.officialClient.executablePath).Trim() | Should -Be 'previous client'
+        Should -Invoke Invoke-TtBundledUpdater -ModuleName TunnelTend -Exactly -Times 0
+        Should -Invoke Stop-TtManagedService -ModuleName TunnelTend -Exactly -Times 0
+    }
+
     It 'refuses an incompatible staged client before stopping services' {
         Mock Invoke-TtBundledUpdater -ModuleName TunnelTend { @{exit_code=0;stderr='';stdout=''} }
         Mock Test-TtOfficialClientCapabilities -ModuleName TunnelTend { @{compatible=$false} }
@@ -57,6 +67,7 @@ Describe 'Official client maintenance transaction' {
         }
         $result = & $script:Module { param($r,$s,$root) Invoke-TtOfficialClientUpdateInternal $r $s $root -Force } $script:Registry $script:Runtime $TestDrive
         $result.changed | Should -BeTrue
+        Should -Invoke Invoke-TtBundledUpdater -ModuleName TunnelTend -Exactly -Times 1 -ParameterFilter { $ReleaseTag -eq 'v0.0.16' }
         $result.restoredServices | Should -Contain 'demo'
         Mock Test-TtOfficialClientNeedsUpdate -ModuleName TunnelTend { @{ needed=$false; latestVersion='0.0.15'; installed=@{version='0.0.16'} } }
         { & $script:Module { param($r,$s,$root) Invoke-TtOfficialClientUpdateInternal $r $s $root -Force } $script:Registry $script:Runtime $TestDrive } | Should -Throw '*downgrade*'

@@ -26,6 +26,9 @@ on:
       - 'tools/brand-bundle/**'
       - 'scripts/Install-TunnelTend-Online.ps1'
       - '.github/workflows/website.yml'
+      - 'tools/compatibility/**'
+      - 'scripts/lib/client-qualification.mjs'
+      - 'schemas/client-qualification.schema.json'
   pull_request:
     branches: [main]
     paths:
@@ -44,10 +47,18 @@ on:
       - 'tools/brand-bundle/**'
       - 'scripts/Install-TunnelTend-Online.ps1'
       - '.github/workflows/website.yml'
+      - 'tools/compatibility/**'
+      - 'scripts/lib/client-qualification.mjs'
+      - 'schemas/client-qualification.schema.json'
   workflow_dispatch:
+  workflow_run:
+    workflows: ['Upstream compatibility watch']
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
+  actions: read
 
 env:
   SITE_ROOT: website
@@ -55,6 +66,15 @@ env:
 
 jobs:
   website:
+    # workflow_run is a privilege boundary. The executable run supplies data only; this
+    # separate clean runner resolves accepted main after entering the one production slot.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.path == '.github/workflows/upstream-compatibility.yml' &&
+       contains(fromJSON('["schedule","workflow_dispatch","push"]'), github.event.workflow_run.event))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # Do not cancel a needed deployment merely because a later app-only push arrives.
@@ -79,9 +99,25 @@ jobs:
       - name: Install locked dependencies
         working-directory: ${{ env.SITE_ROOT }}
         run: npm ci --no-audit --no-fund
+      - name: Resolve retained compatibility metadata
+        id: compatibility
+        if: github.event_name != 'pull_request'
+        working-directory: ${{ env.SITE_ROOT }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/resolve-compatibility.mjs
       - name: Check and build
         working-directory: ${{ env.SITE_ROOT }}
         run: npm test
+      - name: Retain release identity history
+        if: github.event_name != 'pull_request' && steps.compatibility.outputs.history_ready == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: client-qualification-history
+          path: website/artifacts/compatibility/report.json
+          if-no-files-found: error
+          retention-days: 90
+          overwrite: true
       # Publication is split so the deploy credential reaches only the deploy command. The build
       # toolchain and every dependency it executes never see CLOUDFLARE_API_TOKEN; the legal
       # operator projection reaches the publication build and checks, not the deployer.

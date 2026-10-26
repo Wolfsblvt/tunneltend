@@ -6,6 +6,10 @@ This changelog records user-visible TunnelTend changes by release line. The firs
 
 ## [Unreleased]
 
+### Added
+
+- Public compatibility facts distinguish the newest observed official-client asset from the last routine qualification, with the tested TunnelTend package, separate evidence boundaries and retained same-tag change history. The existing website publisher consumes validated native metadata; central evidence never gates local installation or unrelated website delivery.
+
 ### Fixed
 
 - Appearance and reader preferences remain consistent when moving between the product website and Docs. A functional first-party preference cookie carries the choice between hosts, with local-storage fallback.

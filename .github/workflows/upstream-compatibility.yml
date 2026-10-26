@@ -2,47 +2,88 @@ name: Upstream compatibility watch
 
 on:
   schedule:
-    - cron: '17 7 * * 1'
+    - cron: '17 7 * * *'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'scripts/lib/qualification-updater.ps1', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/QualificationWorkflow.Tests.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
+  pull_request:
+    paths: ['src/TunnelTend/Private/20-OfficialClient.ps1', 'src/TunnelTend/Private/60-Updater.ps1', 'src/TunnelTend/Tools/**', 'scripts/Invoke-ClientQualification.ps1', 'scripts/lib/client-qualification.mjs', 'scripts/lib/qualification-updater.ps1', 'schemas/client-qualification.schema.json', 'tests/*Client*.ps1', 'tests/Updater*.ps1', 'tests/QualificationWorkflow.Tests.ps1', 'tests/client-qualification.test.mjs', '.github/workflows/upstream-compatibility.yml']
 
 permissions:
   contents: read
 
 jobs:
-  inspect:
-    name: Inspect stable tunnel-client release
+  qualify:
+    name: Qualify Windows client (${{ matrix.package }})
     runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [source, release]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Refresh release snapshot
-        shell: pwsh
-        run: ./scripts/Update-UpstreamSnapshot.ps1
-      - name: Preserve changed snapshot
-        id: diff
-        shell: pwsh
-        run: |
-          $snapshot = 'docs/research/openai-tunnel-client-release.json'
-          git diff --quiet -- $snapshot
-          $comparisonExitCode = $LASTEXITCODE
-          if ($comparisonExitCode -notin @(0, 1)) { throw "Git snapshot comparison failed (exit $comparisonExitCode)." }
-          if ($comparisonExitCode -eq 0) {
-            "changed=false" >> $env:GITHUB_OUTPUT
-          } else {
-            "changed=true" >> $env:GITHUB_OUTPUT
-            New-Item -ItemType Directory -Path artifacts -Force | Out-Null
-            git diff -- $snapshot | Tee-Object -FilePath artifacts/upstream-release.diff
-            Copy-Item $snapshot artifacts/openai-tunnel-client-release.json
-          }
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: steps.diff.outputs.changed == 'true'
         with:
-          name: upstream-compatibility-change
-          path: |
-            artifacts/upstream-release.diff
-            artifacts/openai-tunnel-client-release.json
-          if-no-files-found: error
-          retention-days: 30
-      - name: Require compatibility review when changed
-        if: steps.diff.outputs.changed == 'true'
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: website/.node-version
+          package-manager-cache: false
+      - name: Check evidence contract
         shell: pwsh
-        run: throw 'The stable openai/tunnel-client release changed. Review the uploaded snapshot and run the compatibility and Windows gates before accepting it.'
+        run: node --test tests/client-qualification.test.mjs
+      - name: Build tested source package
+        if: matrix.package == 'source'
+        shell: pwsh
+        run: ./scripts/Build-Release.ps1 -Version '0.0.0-qualification' -SkipTests
+      - name: Exercise actual distribution and credential-free CLI
+        shell: pwsh
+        env:
+          PACKAGE_KIND: ${{ matrix.package }}
+          SOURCE_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          $parameters = @{
+            PackageKind = $env:PACKAGE_KIND
+            SourceCommit = $env:SOURCE_COMMIT
+            RunId = $env:RUN_ID
+            RunAttempt = [int]$env:RUN_ATTEMPT
+          }
+          if ($env:PACKAGE_KIND -eq 'source') {
+            $parameters.PackagePath = Join-Path $PWD 'artifacts/tunneltend-0.0.0-qualification.zip'
+            $parameters.PackageVersion = '0.0.0-qualification'
+          }
+          # Preserve the runner's upload environment; qualification clears its
+          # own process environment before executing downloaded binaries.
+          $arguments = @('-NoProfile','-NonInteractive','-File','scripts/Invoke-ClientQualification.ps1')
+          foreach ($key in $parameters.Keys) { $arguments += @("-$key", [string]$parameters[$key]) }
+          $info = [Diagnostics.ProcessStartInfo]::new()
+          $info.FileName = (Get-Process -Id $PID).Path
+          $info.WorkingDirectory = $PWD.Path
+          $info.UseShellExecute = $false
+          $info.CreateNoWindow = $true
+          $info.RedirectStandardOutput = $true
+          $info.RedirectStandardError = $true
+          foreach ($argument in $arguments) { $info.ArgumentList.Add($argument) }
+          $process = [Diagnostics.Process]::Start($info)
+          $stdout = $process.StandardOutput.ReadToEndAsync()
+          $stderr = $process.StandardError.ReadToEndAsync()
+          $process.WaitForExit()
+          # Drain, but never publish arbitrary downloaded-client output.
+          $null = $stdout.GetAwaiter().GetResult()
+          $null = $stderr.GetAwaiter().GetResult()
+          if ($process.ExitCode -ne 0) { throw 'Qualification failed; preserve the bounded report.' }
+      - name: Validate report for retention
+        id: validate
+        if: always()
+        shell: pwsh
+        run: node scripts/lib/client-qualification.mjs artifacts/qualification/report.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && steps.validate.outcome == 'success'
+        with:
+          name: client-qualification-${{ matrix.package }}
+          path: artifacts/qualification/report.json
+          if-no-files-found: error
+          retention-days: 90
