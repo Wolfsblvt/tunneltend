@@ -95,15 +95,22 @@ try {
     if ([string]$testedModule.Version -ne ($PackageVersion -split '-')[0]) { throw 'Product package version mismatch.' }
     $report.source.adapterSha256 = (Get-FileHash -LiteralPath (Join-Path $packageRoot 'src/TunnelTend/Private/20-OfficialClient.ps1')).Hash.ToLowerInvariant()
     $updaterPath = Join-Path $packageRoot 'src/TunnelTend/Tools/Update-OfficialTunnelClient.ps1'
-    $testedUpdater = New-QualificationUpdater -Path $updaterPath
     $report.source.updaterSha256 = (Get-FileHash -LiteralPath $updaterPath).Hash.ToLowerInvariant()
     foreach ($record in $report.architectures) { Set-QualificationCheck $record.distribution $currentCheck 'passed' }
     $currentCheck = 'release-selection'
-    $release = & $testedUpdater {
-        param($tag)
-        if ((Get-Command Get-LatestStableRelease).Parameters.ContainsKey('Tag')) { Get-LatestStableRelease -Tag $tag }
-        else { Get-LatestStableRelease }
-    } $ReleaseTag
+    $legacy = $null
+    if ((Get-Command $updaterPath).Parameters.ContainsKey('LibraryOnly')) {
+        $testedUpdater = New-QualificationUpdater -Path $updaterPath
+        $release = & $testedUpdater {
+            param($tag)
+            if ((Get-Command Get-LatestStableRelease).Parameters.ContainsKey('Tag')) { Get-LatestStableRelease -Tag $tag }
+            else { Get-LatestStableRelease }
+        } $ReleaseTag
+    }
+    else {
+        $legacy=Invoke-QualificationLegacyUpdater -Module $testedModule -Path $updaterPath -Work $work -PowerShellPath (Get-Process -Id $PID).Path
+        $release=$legacy.release
+    }
     if ([string]$release.tag_name -cnotmatch '^v?[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Invalid stable version tag.' }
     if ($ReleaseTag -and [string]$release.tag_name -cne $ReleaseTag) { throw 'Package selected a different official release.' }
     $report.release = @{ id=[long]$release.id; tag=[string]$release.tag_name; publishedAt=([DateTimeOffset]$release.published_at).UtcDateTime.ToString('o') }
@@ -113,7 +120,8 @@ try {
         $step = 'asset-selection'
         try {
             $arch = if ($record.architecture -eq 'amd64') { 'X64' } else { 'Arm64' }
-            $asset = Get-QualificationAsset -Updater $testedUpdater -Release $release -Architecture $arch
+            if ($legacy -and [Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString() -ne $arch) { continue }
+            $asset = if ($legacy) { $legacy.asset } else { Get-QualificationAsset -Updater $testedUpdater -Release $release -Architecture $arch }
             # Older packages expose only native selection. Never borrow a newer selector.
             if ($null -eq $asset) { continue }
             # Asset naming, release URL and executable selection must describe this release.
@@ -121,29 +129,38 @@ try {
             $record.asset = @{ id=[long]$asset.id; name=[string]$asset.name; sha256=$null }
             Set-QualificationCheck $record.distribution $step 'passed'
             $step = 'published-digest'
-            $archive = Join-Path $work $asset.name
-            if ([long]$asset.size -le 0 -or [long]$asset.size -gt 536870912) { throw 'Invalid published archive size.' }
-            $digest = & $testedUpdater {
-                param($release,$asset,$archive,$work)
-                Save-HttpsFile -Uri $asset.browser_download_url -Destination $archive -MaximumBytes 536870912 -Description 'Official qualification asset'
-                $digest = Get-PublishedArchiveSha256 $release $asset $work
-                if (-not $digest -or (Get-FileSha256 $archive) -cne $digest.Hash -or (Get-Item $archive).Length -ne [long]$asset.size) { throw 'Official archive verification failed.' }
-                $digest
-            } $release $asset $archive $work
-            $record.asset.sha256 = $digest.Hash
-            Set-QualificationCheck $record.distribution $step 'passed'
-            $step = 'guarded-extraction'
-            $target = Join-Path $work $record.architecture
-            $payload = & $testedUpdater {
-                param($archive,$target)
-                Expand-ZipSafely $archive $target 1073741824 2048
-                $root = Get-PayloadRoot $target
-                $manifest = @(Get-PayloadManifest $root)
-                $relative = Resolve-ExecutableRelativePath -PayloadManifest $manifest -ConfiguredRelativePath 'tunnel-client.exe' -PreviousState $null
-                @{ root=$root; executable=(Get-SafeChildPath $root $relative) }
-            } $archive $target
-            $payloadRoot = $payload.root
-            $exe = $payload.executable
+            if ($legacy) {
+                $record.asset.sha256=$legacy.digest
+                Set-QualificationCheck $record.distribution $step 'passed'
+                $step='guarded-extraction'
+                $payloadRoot=$legacy.root
+                $exe=$legacy.executable
+            }
+            else {
+                $archive = Join-Path $work $asset.name
+                if ([long]$asset.size -le 0 -or [long]$asset.size -gt 536870912) { throw 'Invalid published archive size.' }
+                $digest = & $testedUpdater {
+                    param($release,$asset,$archive,$work)
+                    Save-HttpsFile -Uri $asset.browser_download_url -Destination $archive -MaximumBytes 536870912 -Description 'Official qualification asset'
+                    $digest = Get-PublishedArchiveSha256 $release $asset $work
+                    if (-not $digest -or (Get-FileSha256 $archive) -cne $digest.Hash -or (Get-Item $archive).Length -ne [long]$asset.size) { throw 'Official archive verification failed.' }
+                    $digest
+                } $release $asset $archive $work
+                $record.asset.sha256 = $digest.Hash
+                Set-QualificationCheck $record.distribution $step 'passed'
+                $step = 'guarded-extraction'
+                $target = Join-Path $work $record.architecture
+                $payload = & $testedUpdater {
+                    param($archive,$target)
+                    Expand-ZipSafely $archive $target 1073741824 2048
+                    $root = Get-PayloadRoot $target
+                    $manifest = @(Get-PayloadManifest $root)
+                    $relative = Resolve-ExecutableRelativePath -PayloadManifest $manifest -ConfiguredRelativePath 'tunnel-client.exe' -PreviousState $null
+                    @{ root=$root; executable=(Get-SafeChildPath $root $relative) }
+                } $archive $target
+                $payloadRoot = $payload.root
+                $exe = $payload.executable
+            }
             Set-QualificationCheck $record.distribution $step 'passed'
             if ([Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString() -ne $arch) { continue }
             $record.execution = 'native'

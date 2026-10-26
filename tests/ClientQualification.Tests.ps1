@@ -4,6 +4,29 @@ BeforeAll {
 }
 
 Describe 'Qualification uses the tested package updater' {
+    It 'executes the legacy package updater and preserves its acquisition failure' -Skip:(-not $IsWindows) {
+        $updater=Join-Path $TestDrive 'legacy-updater.ps1'
+        @'
+param([string]$ConfigPath,[switch]$RequirePublishedChecksum)
+$config=Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
+[IO.Directory]::CreateDirectory($config.stateDirectory) | Out-Null
+if (-not $RequirePublishedChecksum) { exit 9 }
+[IO.File]::WriteAllText((Join-Path $config.stateDirectory 'attempted.txt'),'package updater ran')
+exit 7
+'@ | Set-Content -LiteralPath $updater
+        $package=New-Module -ScriptBlock {
+            function New-TtDefaultRegistry { @{settings=@{officialClient=@{}}} }
+            function Get-TtOfficialClientUpdaterConfig { param($Registry,$StateRoot) @{stateDirectory=(Join-Path $StateRoot 'updater')} }
+            function Write-TtJsonAtomic { param($Path,$Value) $Value | ConvertTo-Json | Set-Content -LiteralPath $Path }
+            Export-ModuleMember -Function @()
+        }
+        try {
+            { Invoke-QualificationLegacyUpdater -Module $package -Path $updater -Work $TestDrive -PowerShellPath (Get-Process -Id $PID).Path } | Should -Throw '*Package native updater failed*'
+            Get-Content (Join-Path $TestDrive 'legacy-state/updater/attempted.txt') | Should -Be 'package updater ran'
+        }
+        finally { Remove-Module $package -Force }
+    }
+
     It 'refuses package acquisition when the source selector accepts the same asset' {
         $updater = Join-Path $TestDrive 'incapable-updater.ps1'
         @'
