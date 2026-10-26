@@ -11,10 +11,12 @@ const exact = (object, keys) => object && typeof object === 'object' && !Array.i
 export function validateIdentityHistory(value) {
   // Legacy snapshots preserve identities but never prove continuity that their schema could not express.
   if (value?.schemaVersion === 1 && exact(value, ['schemaVersion', 'generatedAt', 'sourceCommit', 'run', 'identities'])) {
-    value = { ...value, schemaVersion: 2, continuity: 'unknown' };
+    value = { ...value, schemaVersion: 2, continuity: 'unknown', continuousSince: value.generatedAt };
   }
-  if (!exact(value, ['schemaVersion', 'continuity', 'generatedAt', 'sourceCommit', 'run', 'identities']) || value.schemaVersion !== 2
+  if (!exact(value, ['schemaVersion', 'continuity', 'continuousSince', 'generatedAt', 'sourceCommit', 'run', 'identities']) || value.schemaVersion !== 2
     || !['retained', 'unknown'].includes(value.continuity)
+    || !utc.test(value.continuousSince) || !Number.isFinite(Date.parse(value.continuousSince))
+    || Date.parse(value.continuousSince) > Date.parse(value.generatedAt)
     || !utc.test(value.generatedAt) || !Number.isFinite(Date.parse(value.generatedAt)) || !/^[a-f0-9]{40}$/.test(value.sourceCommit)
     || !exact(value.run, ['id', 'attempt']) || !Number.isSafeInteger(value.run.id) || value.run.id < 1
     || !Number.isSafeInteger(value.run.attempt) || value.run.attempt < 1 || !Array.isArray(value.identities)) throw new Error('identity-history');
@@ -47,6 +49,11 @@ export function buildEvidence({ records, issues = [], histories = [], historyWri
   const identities = new Map();
   const continuity = historyWritable && histories.length > 0 && histories.every(history => history.continuity === 'retained')
     ? 'retained' : 'unknown';
+  // A loss remains unknown before its boundary, but releases published after continuous observation
+  // began can qualify automatically. Use the latest boundary when snapshots span a loss/restart.
+  const continuousSince = histories.length && historyWritable
+    ? new Date(Math.max(...histories.map(history => Date.parse(history.continuousSince)))).toISOString()
+    : now.toISOString();
   // Merge retained snapshots instead of allowing a failed or concurrent later build to erase an open change.
   for (const history of histories) {
     for (const item of history.identities) mergeIdentity(item);
@@ -77,15 +84,19 @@ export function buildEvidence({ records, issues = [], histories = [], historyWri
     for (const architecture of ['amd64', 'arm64']) {
       const items = observations.filter(item => item.package.kind === kind && item.architecture === architecture);
       const newest = items.at(-1) ?? null;
-      const qualified = continuity === 'retained' ? items.findLast(item => item.evidence.qualificationConclusion === 'success' && item.distribution.outcome === 'passed'
+      const qualified = items.findLast(item => historyWritable
+        && (continuity === 'retained' || (histories.length > 0
+          && Date.parse(item.release?.publishedAt) > Date.parse(continuousSince)
+          && Date.parse(identities.get(`${item.release?.tag}/${architecture}`)?.baseline.observedAt) > Date.parse(continuousSince)))
+        && item.evidence.qualificationConclusion === 'success' && item.distribution.outcome === 'passed'
         && (item.execution === 'native' ? item.credentialFreeCli.outcome === 'passed' : item.credentialFreeCli.outcome === 'not exercised')
-        && item.asset?.sha256 === identities.get(`${item.release?.tag}/${architecture}`)?.baseline.sha256) ?? null : null;
+        && item.asset?.sha256 === identities.get(`${item.release?.tag}/${architecture}`)?.baseline.sha256) ?? null;
       if (newest) groups.push({ kind, architecture, newest, qualified });
     }
   }
   return {
     schemaVersion: 1, builtAt: now.toISOString(), websiteCommit, groups, issues,
-    identityHistory: { schemaVersion: 2, continuity, generatedAt: now.toISOString(), sourceCommit: websiteCommit, run: websiteRun,
+    identityHistory: { schemaVersion: 2, continuity, continuousSince, generatedAt: now.toISOString(), sourceCommit: websiteCommit, run: websiteRun,
       // Keep the currently observed baseline and open changes, rather than making a version registry.
       identities: [...identities.values()].filter(item => item.changes.length > 0 ||
         ![...identities.values()].some(other => other.architecture === item.architecture && Date.parse(other.lastObservedAt) > Date.parse(item.lastObservedAt))) },
