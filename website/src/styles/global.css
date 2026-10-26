@@ -262,15 +262,15 @@ html[data-theme-pref="auto"][data-theme="light"] .theme-dot { color: #161b24; }
 .search-input::-webkit-search-cancel-button { display: none; }
 .search-close { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--hair-strong); border-radius: 4px; background: none; color: var(--fg-3); padding: 2px 6px; }
 .search-status { margin: 0; padding: 10px 16px; font-size: 12px; color: var(--fg-3); }
-.search-results { list-style: none; margin: 0; padding: 0 8px 8px; overflow: auto; display: grid; gap: 2px; }
+.search-results { list-style: none; margin: 0; padding: 0 8px 8px; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
 .search-hit { display: grid; gap: 3px; padding: 9px 10px; border-radius: var(--r-block); border: 1px solid transparent; }
 .search-hit:hover, .search-hit:focus-visible { background: var(--bg-raised-2); border-color: var(--hair); outline: none; }
 .search-hit:focus-visible { border-color: var(--accent); }
-.search-hit-head { display: flex; align-items: center; gap: 10px; }
-.search-hit-title { font-weight: 600; }
+.search-hit-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.search-hit-title { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
 .search-kind { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; min-width: 44px; text-align: center; }
 .search-hit[data-kind="docs"] .search-kind { border-color: var(--fg-2); color: var(--fg); }
-.search-hit-excerpt { font-size: 12.5px; color: var(--fg-2); }
+.search-hit-excerpt { min-width: 0; font-size: 12.5px; color: var(--fg-2); overflow-wrap: anywhere; }
 .search-hit-excerpt mark { background: none; color: var(--fg); font-weight: 600; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 .search-subs { list-style: none; margin: 0 0 4px; padding: 0 10px 0 64px; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; }
 .search-sub { color: var(--fg-2); }
