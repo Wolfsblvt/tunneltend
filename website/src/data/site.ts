@@ -11,13 +11,6 @@ export const LATEST_RELEASE = `${GITHUB}/releases/latest`;
 export const COMPANY = 'Wolfsblvt Works';
 export const COMPANY_SITE = 'https://wolfsblvt.works';
 
-/** The current stable release this site describes. Change it with the release, not with the design. */
-export const RELEASE_VERSION = '1.0.1';
-export const RELEASE_TAG = `v${RELEASE_VERSION}`;
-export const RELEASE_URL = `${GITHUB}/releases/tag/${RELEASE_TAG}`;
-export const RELEASE_ZIP = `${GITHUB}/releases/download/${RELEASE_TAG}/tunneltend-${RELEASE_VERSION}.zip`;
-export const RELEASE_SHA = `${RELEASE_ZIP}.sha256`;
-
 /** One-line installation. The served script downloads the release, verifies its checksum and runs the installer. */
 export const INSTALL_COMMAND = `irm ${ORIGIN}/install.ps1 | iex`;
 

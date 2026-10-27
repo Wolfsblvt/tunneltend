@@ -119,7 +119,7 @@ Run the root gate and repository validation first, then:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
-  -Version 1.0.1 `
+  -Version 1.0.2 `
   -SkipTests
 ```
 

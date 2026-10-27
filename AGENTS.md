@@ -240,7 +240,7 @@ Build a candidate after those gates:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\Build-Release.ps1 `
-  -Version 1.0.1 `
+  -Version 1.0.2 `
   -SkipTests
 ```
 

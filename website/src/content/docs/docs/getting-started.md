@@ -204,10 +204,10 @@ The released one-line installer above is the normal route. Use these alternative
 
 Get `tunneltend-<version>.zip` and `tunneltend-<version>.zip.sha256` from the **Assets** list on the [latest release](https://github.com/Wolfsblvt/tunneltend/releases/latest) and save both in one folder. Choose the TunnelTend release ZIP, not GitHub's **Source code** download. In PowerShell 7, move to the download folder with `Set-Location 'C:\path\to\your\downloads'`, replacing that example with its actual path.
 
-The script below compares the ZIP's SHA-256 checksum with the published one and stops on a mismatch before anything is extracted or run; otherwise it extracts and starts the installer. Use the version you downloaded:
+The script below compares the ZIP's SHA-256 checksum with the published one and stops on a mismatch before anything is extracted or run; otherwise it extracts and starts the installer. Replace `<version>` with the version in the downloaded filename before running it:
 
 ```powershell
-$zip = '.\tunneltend-1.0.1.zip'
+$zip = '.\tunneltend-<version>.zip'
 $expected = ((Get-Content "$zip.sha256" -Raw) -split '\s+' | Select-Object -First 1).ToLowerInvariant()
 $actual = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($expected -notmatch '^[0-9a-f]{64}$' -or $actual -ne $expected) {
@@ -267,7 +267,7 @@ When `-StateRoot` is omitted, reinstall and uninstall read the installation’s 
 
 To update TunnelTend itself, obtain and verify the newer release, extract it and rerun its installer for the same installation. Preserve your state first and read the change notes. `tunneltend client update` updates OpenAI’s client, not TunnelTend.
 
-The following upgrade-continuity repair is in current source for the next release; published **1.0.1 does not include it**. Before reinstalling 1.0.1, inspect and record your current choices and supply the intended policy, scope, credential-reference and client-location options explicitly.
+The following upgrade-continuity behavior is included in **1.0.2 and later**; [GitHub Releases](https://github.com/Wolfsblvt/tunneltend/releases/latest) shows which versions are available. **1.0.1 does not include it**. Before reinstalling 1.0.1, inspect and record your current choices and supply the intended policy, scope, credential-reference and client-location options explicitly.
 
 With the repaired installer, reinstallation preserves saved autostart, automatic-update and watchdog choices, scope defaults, credential reference and official-client location when their options are omitted, including retained state after uninstall. Questions start from saved choices; explicit options take precedence. New state still uses the autonomous defaults. When calling the script directly in a PowerShell session, `-DisableAutostart:$false` enables autostart explicitly, and `-OrganizationId @()` clears the default organization list.
 

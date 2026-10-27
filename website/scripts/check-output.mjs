@@ -7,7 +7,6 @@ import publicPages from '../src/data/public-pages.mjs';
 import { assetUrl, siteBasePath } from './identity-model.mjs';
 import { resolvedPages } from './site-pages.mjs';
 import { manualVerifyScript } from '../src/data/manual-verify.mjs';
-import { RELEASE_VERSION } from '../src/data/site.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = resolve(projectRoot, 'artifacts/site');
@@ -93,7 +92,7 @@ const visibleText = (html) => html.replace(/<[^>]+>/gu, '')
   .replace(/&(quot|amp|lt|gt);/gu, (_, name) => ({ quot: '"', amp: '&', lt: '<', gt: '>' })[name])
   .replace(/\s+/gu, '');
 // Highlighted lines carry no separator between them, so the comparison ignores whitespace.
-const expectedScript = manualVerifyScript(RELEASE_VERSION).replace(/\s+/gu, '');
+const expectedScript = manualVerifyScript().replace(/\s+/gu, '');
 for (const output of ['index.html', 'docs/getting-started/index.html']) {
   if (!visibleText(readFileSync(resolve(outputRoot, output), 'utf8')).includes(expectedScript)) {
     throw new Error(`The manual verification script on ${output} is not the shared executable script.`);

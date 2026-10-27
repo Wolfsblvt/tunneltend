@@ -11,9 +11,8 @@ import { manualVerifyScript } from '../src/data/manual-verify.mjs';
 
 // The manual keeps a literal copy of the script; it must be the shared one, whatever the platform.
 const guide = readFileSync(new URL('../src/content/docs/docs/getting-started.md', import.meta.url), 'utf8');
-const guideVersion = guide.match(/\\tunneltend-(\d+\.\d+\.\d+)\.zip'/u)?.[1];
 const fence = '`'.repeat(3);
-if (!guideVersion || !guide.includes([`${fence}powershell`, manualVerifyScript(guideVersion), fence].join('\n'))) {
+if (!guide.includes([`${fence}powershell`, manualVerifyScript(), fence].join('\n'))) {
   throw new Error('getting-started.md does not carry the shared manual verification script.');
 }
 
@@ -42,7 +41,7 @@ function run(name, sha256Text, zipBytes) {
   writeFileSync(`${zip}.sha256`, sha256Text(digest));
   const scriptPath = join(dir, 'verify.ps1');
   // The extracted folder is `.\tunneltend`, so the stub installer starts there, as for a user.
-  writeFileSync(scriptPath, `Set-Location -LiteralPath '${dir}'\n${manualVerifyScript(version)}\n`);
+  writeFileSync(scriptPath, `Set-Location -LiteralPath '${dir}'\n${manualVerifyScript().replace('<version>', version)}\n`);
   const result = spawnSync('pwsh', ['-NoProfile', '-NonInteractive', '-File', scriptPath], { encoding: 'utf8', windowsHide: true });
   return { result, extracted: existsSync(join(dir, 'tunneltend')), launched: existsSync(join(dir, 'installer-ran.txt')) || existsSync(join(dir, 'tunneltend', 'installer-ran.txt')) };
 }

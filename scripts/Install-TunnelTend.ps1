@@ -123,7 +123,7 @@ try {
     $PowerShellPath = & $installerModule { param($path) Get-TtPowerShellExecutable $path } $PowerShellPath
     # Acquisition and optional service registration also launch PowerShell. Make
     # the selected runtime available to them inside this rollback transaction.
-    $manifest = [ordered]@{ product='tunneltend'; version='1.0.1'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot; powerShellPath=$PowerShellPath }
+    $manifest = [ordered]@{ product='tunneltend'; version='1.0.2'; installedAt=[DateTimeOffset]::UtcNow.ToString('o'); installRoot=$InstallRoot; stateRoot=$StateRoot; powerShellPath=$PowerShellPath }
     $manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $InstallRoot 'install.json') -Encoding utf8NoBOM
     $effectiveSettings = & $installerModule { param($plan,$state,$recovery) Set-TtInstallerSettings $plan $state $recovery } $settingsPlan $StateRoot $settingsRecoveryPath
 

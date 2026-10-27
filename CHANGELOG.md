@@ -12,6 +12,7 @@ This changelog records user-visible TunnelTend changes by release line. The firs
 
 ### Fixed
 
+- Official-client updates acquire the exact stable release selected during planning and check required command shapes and credential-free behavior before replacement. Later compatible releases do not require a matching TunnelTend release; automatic same-version checks retain installed bytes.
 - Appearance and reader preferences remain consistent when moving between the product website and Docs. A functional first-party preference cookie carries the choice between hosts, with local-storage fallback.
 - Updating TunnelTend by rerunning the installer preserves saved automation choices, scope defaults, credential references and the official-client location unless explicitly changed. Failed installs restore their own settings changes without overwriting unrelated or conflicting current intent.
 - Committed installs survive cleanup warnings even with `-WarningAction Stop`; earlier failures reverse their PATH additions. Conflicting explicit choices are refused even when they initially matched saved state, and source installs reject state inside generated `bin` before moving it.
