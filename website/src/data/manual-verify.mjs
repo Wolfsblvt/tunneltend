@@ -7,8 +7,8 @@
  * Everything that follows the comparison sits in the else branch of a single statement: a
  * terminating error cannot be skipped by a terminal that feeds pasted lines one at a time.
  */
-export function manualVerifyScript(version) {
-  return String.raw`$zip = '.\tunneltend-${version}.zip'
+export function manualVerifyScript() {
+  return String.raw`$zip = '.\tunneltend-<version>.zip'
 $expected = ((Get-Content "$zip.sha256" -Raw) -split '\s+' | Select-Object -First 1).ToLowerInvariant()
 $actual = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($expected -notmatch '^[0-9a-f]{64}$' -or $actual -ne $expected) {

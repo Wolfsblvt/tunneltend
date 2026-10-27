@@ -5,7 +5,7 @@
 // a fictional dashboard. No Mac window chrome: this is a Windows tool.
 import Icon from '../Icon.astro';
 import CommandStrip from '../CommandStrip.astro';
-import { INSTALL_COMMAND, RELEASE_VERSION, docPaths, paths } from '../../data/site';
+import { INSTALL_COMMAND, LATEST_RELEASE, docPaths, paths } from '../../data/site';
 ---
 <section class="hero">
   <div class="wrap hero-grid">
@@ -19,7 +19,7 @@ import { INSTALL_COMMAND, RELEASE_VERSION, docPaths, paths } from '../../data/si
       <div class="hero-install">
         <p class="hero-fine">First time? <a class="link-quiet" href={`${docPaths.getStarted}#before-installation`}>Check your tool, PowerShell and OpenAI access</a> before installing.</p>
         <CommandStrip command={INSTALL_COMMAND} label="Copy the one-line install command" />
-        <p class="hero-fine">Windows 11 · PowerShell 7.4+ · v{RELEASE_VERSION} · free and open source · <button class="reader-quiet" type="button" data-reader-toggle data-label-plain="Excuse me, I’m a dev?!" data-label-dev="I’m not a dev, actually" aria-pressed="false"><span data-reader-label>Excuse me, I’m a dev?!</span></button></p>
+        <p class="hero-fine">Windows 11 · PowerShell 7.4+ · <a class="link-quiet" href={LATEST_RELEASE}>Latest release</a> · free and open source · <button class="reader-quiet" type="button" data-reader-toggle data-label-plain="Excuse me, I’m a dev?!" data-label-dev="I’m not a dev, actually" aria-pressed="false"><span data-reader-label>Excuse me, I’m a dev?!</span></button></p>
       </div>
       <div class="hero-ctas">
         <a class="btn btn-l btn-primary" href={paths.install}><Icon name="windows" size={15} />Install on Windows</a>
